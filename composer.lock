@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "00532455e391747d6d43c7e4c83339de",
+    "content-hash": "c9b92da43b87183e30d10d2cf850118f",
     "packages": [
         {
             "name": "brick/math",
@@ -1041,6 +1041,55 @@
                 }
             ],
             "time": "2023-09-13T02:24:55+00:00"
+        },
+        {
+            "name": "kafka0238/crest",
+            "version": "0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/kafka0238/crest.git",
+                "reference": "8537bf42e09086523fe8c0c4af429751114c550b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/kafka0238/crest/zipball/8537bf42e09086523fe8c0c4af429751114c550b",
+                "reference": "8537bf42e09086523fe8c0c4af429751114c550b",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-json": "*",
+                "php": ">=5.3.2"
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "src/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "kafka0238",
+                    "homepage": "https://github.com/kafka0238/"
+                }
+            ],
+            "description": "A powerfull PHP library for the Bitrix24 REST API",
+            "homepage": "https://github.com/kafka0238/crest",
+            "keywords": [
+                "Bitrix24",
+                "api",
+                "php",
+                "rest"
+            ],
+            "support": {
+                "issues": "https://github.com/kafka0238/crest/issues",
+                "source": "https://github.com/kafka0238/crest/tree/master"
+            },
+            "time": "2020-05-28T13:23:40+00:00"
         },
         {
             "name": "laravel/breeze",
