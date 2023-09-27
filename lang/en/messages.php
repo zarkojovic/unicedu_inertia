@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'welcome' => 'Welcome mortal',
+    'welcome' => 'Welcome mortalz',
     'next' => 'Next &raquo;',
 
 ];
