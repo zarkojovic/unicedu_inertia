@@ -5,6 +5,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import GenericInput from "@/Atoms/GenericInput.vue";
 
 const form = useForm({
     name: '',
@@ -43,6 +44,7 @@ const submit = () => {
 
             <div class="mt-4">
                 <InputLabel for="email" value="Email" />
+
 
                 <TextInput
                     id="email"

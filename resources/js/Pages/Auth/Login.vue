@@ -3,9 +3,10 @@ import Checkbox from '@/Components/Checkbox.vue';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
+import Button from '@/Atoms/Button.vue';
 import TextInput from '@/Components/TextInput.vue';
 import {Head, Link, useForm} from '@inertiajs/vue3';
+import GenericInput from "@/Atoms/GenericInput.vue";
 
 defineProps({
     canResetPassword: {
@@ -20,6 +21,7 @@ const form = useForm({
     email: '',
     password: '',
     remember: false,
+
 });
 
 const submit = () => {
@@ -38,34 +40,25 @@ const submit = () => {
 
         <form @submit.prevent="submit">
             <div>
-                <InputLabel for="email" value="Email"/>
-
-                <TextInput
-                    id="email"
-                    type="email"
-                    class="mt-1 block w-full"
+                <GenericInput
+                    :type="'email'"
+                    :label="'Email'"
                     v-model="form.email"
-                    required
-                    autofocus
-                    autocomplete="username"
+                    :error="form.errors.email"
+                    :helper="'Use valid email!'"
+                    :is_required="true"
                 />
-
-                <InputError class="mt-2" :message="form.errors.email"/>
             </div>
 
             <div class="mt-4">
-                <InputLabel for="password" value="Password"/>
-
-                <TextInput
-                    id="password"
-                    type="password"
-                    class="mt-1 block w-full"
+                <GenericInput
+                    :type="'password'"
+                    :label="'Password'"
                     v-model="form.password"
-                    required
-                    autocomplete="current-password"
+                    :error="form.errors.password"
+                    :helper="'Password must be min 8 characters!'"
+                    :is_required="true"
                 />
-
-                <InputError class="mt-2" :message="form.errors.password"/>
             </div>
 
             <div class="block mt-4">
@@ -79,7 +72,7 @@ const submit = () => {
                 <Link
                     v-if="canResetPassword"
                     :href="route('password.request')"
-                    class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none"
+                    class="underline text-sm text-orange-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none"
                 >
                     Forgot your password?
                 </Link>
@@ -88,10 +81,13 @@ const submit = () => {
             </div>
             <div class="flex items-center justify-center mt-4">
 
-                <PrimaryButton class="w-full flex items-center justify-center"
-                               :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+                <Button
+                    :class="{ 'opacity-25': form.processing }"
+                    :disabled="form.processing"
+                    :width="100"
+                >
                     Log in
-                </PrimaryButton>
+                </Button>
             </div>
         </form>
     </GuestLayout>

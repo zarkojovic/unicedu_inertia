@@ -1,6 +1,6 @@
 <script setup>
 import {Head, Link, router, usePage} from '@inertiajs/vue3';
-import SwitchLanguage from "@/Pages/Atoms/SwitchLanguage.vue";
+import SwitchLanguage from "@/Atoms/SwitchLanguage.vue";
 
 defineProps({
     canLogin: {

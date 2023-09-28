@@ -7,7 +7,7 @@ import NavLink from '@/Components/NavLink.vue';
 
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import {Link} from '@inertiajs/vue3';
-import ChangeTheme from "@/Pages/Atoms/ChangeTheme.vue";
+import ChangeTheme from "@/Atoms/ChangeTheme.vue";
 
 const showingNavigationDropdown = ref(false);
 </script>
