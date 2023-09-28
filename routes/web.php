@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
 
 /*
@@ -20,8 +21,14 @@ Route::get('/welcome', function () {
     echo __('messages.welcome');
 });
 
+
+Route::post('/change-lang', function (\Illuminate\Http\Request $request) {
+    $lang = $request->lang;
+    App()->setLocale($lang);
+    Session::put('locale', $lang);
+})->name('change-lang');
+
 Route::get('/', function () {
-    App()->setLocale('en');
     $message = __('messages.welcome');
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),

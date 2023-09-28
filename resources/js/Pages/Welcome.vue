@@ -1,5 +1,6 @@
 <script setup>
-import {Head, Link} from '@inertiajs/vue3';
+import {Head, Link, router, usePage} from '@inertiajs/vue3';
+import SwitchLanguage from "@/Pages/Atoms/SwitchLanguage.vue";
 
 defineProps({
     canLogin: {
@@ -34,16 +35,15 @@ defineProps({
                 :href="route('dashboard')"
                 class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500"
             >Dashboard
-            </Link
-            >
+            </Link>
 
             <template v-else>
+                <SwitchLanguage/>
                 <Link
                     :href="route('login')"
                     class="font-semibold text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500"
                 >Log in
-                </Link
-                >
+                </Link>
 
                 <Link
                     v-if="canRegister"

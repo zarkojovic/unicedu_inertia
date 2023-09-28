@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'welcome' => 'Welcome from english!',
+    'previous' => '&laquo; Previous',
     'next' => 'Next &raquo;',
 
 ];

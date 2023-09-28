@@ -7,13 +7,9 @@ import NavLink from '@/Components/NavLink.vue';
 
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import {Link} from '@inertiajs/vue3';
-import {useDark, useToggle} from "@vueuse/core";
+import ChangeTheme from "@/Pages/Atoms/ChangeTheme.vue";
 
 const showingNavigationDropdown = ref(false);
-
-const isDark = useDark();
-const toggleDark = useToggle(isDark);
-
 </script>
 
 <template>
@@ -37,11 +33,7 @@ const toggleDark = useToggle(isDark);
                                 <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
                                     Dashboard
                                 </NavLink>
-
-                                <button @click="toggleDark()"
-                                        class="text-orange-700 dark:text-orange-400 font-semibold py-2 px-4 rounded-md">
-                                    Switch theme
-                                </button>
+                                <ChangeTheme/>
                             </div>
                         </div>
 
