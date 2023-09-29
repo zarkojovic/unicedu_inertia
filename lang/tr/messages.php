@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'welcome' => 'Welcome from turkish?',
+    'welcome' => 'Platforma hoş geldiniz',
 
 
 ];

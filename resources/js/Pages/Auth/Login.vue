@@ -1,12 +1,20 @@
 <script setup>
 import Checkbox from '@/Components/Checkbox.vue';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
 import Button from '@/Atoms/Button.vue';
-import TextInput from '@/Components/TextInput.vue';
 import {Head, Link, useForm} from '@inertiajs/vue3';
 import GenericInput from "@/Atoms/GenericInput.vue";
+import FileInput from "@/Atoms/FileInput.vue";
+import toast from "@/Stores/toast";
+
+const addToast = () => {
+    toast.add({
+        message: 'Test message',
+        type: 'success',
+        duration: 4000
+    });
+};
+
 
 defineProps({
     canResetPassword: {
@@ -20,8 +28,8 @@ defineProps({
 const form = useForm({
     email: '',
     password: '',
+    fileValue: '',
     remember: false,
-
 });
 
 const submit = () => {
@@ -29,6 +37,7 @@ const submit = () => {
         onFinish: () => form.reset('password'),
     });
 };
+
 </script>
 
 <template>
@@ -47,6 +56,8 @@ const submit = () => {
                     :error="form.errors.email"
                     :helper="'Use valid email!'"
                     :is_required="true"
+                    :input-name="'email'"
+                    :input-id="'email'"
                 />
             </div>
 
@@ -58,6 +69,16 @@ const submit = () => {
                     :error="form.errors.password"
                     :helper="'Password must be min 8 characters!'"
                     :is_required="true"
+                    :input-name="'password'"
+                    :input-id="'password'"
+                />
+            </div>
+
+            <div class="mt-4">
+                <FileInput
+                    v-model="form.fileValue"
+                    :label="'Upload file'"
+                    :helper="'Upload!!'"
                 />
             </div>
 
@@ -77,7 +98,9 @@ const submit = () => {
                     Forgot your password?
                 </Link>
 
-
+                <Button @click="addToast">
+                    Add toast
+                </Button>
             </div>
             <div class="flex items-center justify-center mt-4">
 

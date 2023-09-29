@@ -11,7 +11,9 @@ const {
     error = '',
     helper = '',
     modelValue,
-    is_required = false
+    is_required = false,
+    inputName,
+    inputId
 } = defineProps([
     'type',
     'placeholder',
@@ -20,7 +22,9 @@ const {
     'error',
     'helper',
     'modelValue',
-    'is_required'
+    'is_required',
+    'inputName',
+    'inputId'
 ]);
 
 // Define emits for custom events
@@ -64,7 +68,9 @@ const emitBlur = () => {
             :disabled="disabled"
             @focus="emitFocus"
             @blur="emitBlur"
-            :required="required"
+            :required="is_required"
+            :name="inputName"
+            :id="inputId"
         />
         <p class="mt-2 text-sm text-gray-500" v-if="helper">{{ helper }}</p>
         <p class="mt-2 text-sm text-red-500" v-if="error">{{ error }}</p>
