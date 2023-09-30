@@ -16,6 +16,9 @@ use Inertia\Inertia;
 | contains the "web" middleware group. Now create something great!
 |
 */
+Route::fallback(function (){
+    return Inertia::render('404');
+});
 
 Route::get('/welcome', function () {
     echo __('messages.welcome');
@@ -37,7 +40,7 @@ Route::get('/', function () {
         'phpVersion' => PHP_VERSION,
         'message' => $message
     ]);
-});
+})->name("home");
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
