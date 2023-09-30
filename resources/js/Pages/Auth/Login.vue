@@ -58,8 +58,6 @@ const submit = () => {
                 />
             </div>
 
-            <div>
-
             <div class="block mt-4">
                 <label class="flex items-center">
                     <Checkbox name="remember" v-model:checked="form.remember"/>
