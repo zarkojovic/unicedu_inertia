@@ -68,13 +68,14 @@ const submit = () => {
                 </label>
             </div>
 
-            <div>
+            <div class="mx-auto">
+                <span class="text-sm">Forgot your password? </span>
                 <Link
                     v-if="canResetPassword"
                     :href="route('password.request')"
                     class="underline text-sm text-orange-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none"
                 >
-                    Forgot your password?
+                    Reset it here
                 </Link>
 
 
@@ -88,6 +89,18 @@ const submit = () => {
                 >
                     Log in
                 </Button>
+            </div>
+
+            <div class="mx-auto">
+                <span class="text-sm">New to Poland Study? </span>
+                <Link
+                    :href="route('register')"
+                    class="underline text-sm text-orange-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none"
+                >
+                    Sign up
+                </Link>
+
+
             </div>
         </form>
     </GuestLayout>
