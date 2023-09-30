@@ -4,6 +4,7 @@ import GuestLayout from '@/Layouts/GuestLayout.vue';
 import Button from '@/Atoms/Button.vue';
 import {Head, Link, useForm} from '@inertiajs/vue3';
 import GenericInput from "@/Atoms/GenericInput.vue";
+import FileInput from "@/Atoms/FileInput.vue";
 
 defineProps({
     canResetPassword: {
@@ -44,11 +45,15 @@ const submit = () => {
                     :error="form.errors.email"
                     :helper="'Use valid email!'"
                     :is_required="true"
+                    :input-name="'email'"
+                    :input-id="'email'"
                 />
             </div>
 
             <div>
                 <GenericInput
+                    :input-name="'password'"
+                    :input-id="'password'"
                     :type="'password'"
                     :label="'Password'"
                     v-model="form.password"
@@ -77,12 +82,16 @@ const submit = () => {
 
 
             </div>
+
+
             <div>
 
                 <Button
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                     :width="100"
+                    :type="'primary'"
+                    @click="submit"
                 >
                     Log in
                 </Button>

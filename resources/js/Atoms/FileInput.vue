@@ -7,17 +7,15 @@ import Button from '@/Atoms/Button.vue';
 
 // Define props and their default values
 const {
-    placeholder = '',
     label = '',
     error = '',
     helper = '',
     modelValue,
     is_required = false,
-    inputName,
-    inputId,
+    inputName = 'test',
+    inputId = 'test',
     validTypes = null
 } = defineProps([
-    'placeholder',
     'label',
     'error',
     'helper',
@@ -109,7 +107,7 @@ const clearFile = function () {
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" v-if="label">{{ label }} <span
             class="text-sm text-red-600" v-if="is_required">*</span></label>
         <div class="mt-1 flex">
-            <label for="test" v-if="!upload" @mouseenter="handleHover" @mouseleave="handleMove"
+            <label :for="inputName" v-if="!upload" @mouseenter="handleHover" @mouseleave="handleMove"
                    class="py-3 px-6  rounded-lg  border border-gray-300 hover:bg-orange-500 hover:cursor-pointer hover:text-white hover:border-transparent transition">
                 <div>
                     <span v-if="isReplace">Replace Document</span>
@@ -122,14 +120,14 @@ const clearFile = function () {
                     </Transition>
                 </div>
             </label>
-            <label for="test" v-else
+            <label :for="inputName" v-else
                    class="py-3 px-6  rounded-lg  bg-orange-500 text-white hover:cursor-pointer transition">
                 <span class="text-white">Document uploaded <v-icon name="md-done-round"/></span>
             </label>
             <input
                 type="file"
-                id="test"
-                name="test"
+                :id="inputId"
+                :name="inputName"
                 class="form-control userFiles hidden"
                 @change="handleUpload"
             />

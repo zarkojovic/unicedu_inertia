@@ -19,11 +19,6 @@ export default {
             backgroundImage: {
                 'gradient': 'linear-gradient(45deg, rgb(229, 100, 70) 0%, rgb(235, 171, 88) 100%)',
             }
-        },
-        textColor: {
-            'primary': '#FFAE1F',
-            // 'secondary': '#ffed4a',
-            // 'danger': '#e3342f',
         }
     },
 
