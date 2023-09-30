@@ -27,8 +27,9 @@ const remove = (index) => {
     <TransitionGroup
         tag="div"
         enter-from-class="translate-x-full opacity-0"
-        enter-active-class="duration-500"
-        leave-active-class="duration-500"
+        enter-active-class="duration-500 transition"
+        move-class="transition-all duration-200"
+        leave-active-class="duration-500 transition"
         leave-to-class="translate-x-full opacity-0"
         class="fixed top-4 right-4 z-50 max-w-xs"
     >

@@ -1,6 +1,6 @@
 <script setup>
 import {computed, defineProps, defineEmits} from 'vue';
-import {FaRegularEdit, IoClose, MdSaveOutlined} from "oh-vue-icons/icons";
+import {FaRegularEdit, IoClose, MdSaveOutlined, LaTrashAlt} from "oh-vue-icons/icons";
 import {addIcons} from "oh-vue-icons";
 
 // Define props
@@ -22,7 +22,7 @@ const {
     'isLoading',
 ]);
 
-addIcons(FaRegularEdit, IoClose, MdSaveOutlined);
+addIcons(FaRegularEdit, IoClose, MdSaveOutlined, LaTrashAlt);
 
 // Define emits for custom events
 const emits = defineEmits(['click']);
@@ -79,6 +79,8 @@ const btnIconClass = computed(() => {
             return 'io-close'
         case 'edit':
             return 'fa-regular-edit'
+        case 'delete':
+            return 'la-trash-alt'
         default :
             return null;
     }
@@ -97,6 +99,7 @@ const handleClick = () => {
         class="inline-flex items-center px-4 py-2 dark:bg-gray-200 border border-transparent rounded-lg font-semibold text-xs dark:text-gray-800 uppercase tracking-widest dark:hover:bg-white  active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2  focus:ring-offset-2 transition ease-in-out duration-150 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center"
         :class="[btnStyleClass,btnWidthClass]"
         :disabled="disabled || isLoading"
+        type="button"
         @click="handleClick"
     >
         <span v-if="isLoading" class="spinner"></span>

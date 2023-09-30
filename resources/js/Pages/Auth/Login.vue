@@ -7,14 +7,6 @@ import GenericInput from "@/Atoms/GenericInput.vue";
 import FileInput from "@/Atoms/FileInput.vue";
 import toast from "@/Stores/toast";
 
-const addToast = () => {
-    toast.add({
-        message: 'Test message',
-        type: 'success',
-        duration: 4000
-    });
-};
-
 
 defineProps({
     canResetPassword: {
@@ -28,7 +20,7 @@ defineProps({
 const form = useForm({
     email: '',
     password: '',
-    fileValue: '',
+    fileValue: null,
     remember: false,
 });
 
@@ -74,14 +66,6 @@ const submit = () => {
                 />
             </div>
 
-            <div class="mt-4">
-                <FileInput
-                    v-model="form.fileValue"
-                    :label="'Upload file'"
-                    :helper="'Upload!!'"
-                />
-            </div>
-
             <div class="block mt-4">
                 <label class="flex items-center">
                     <Checkbox name="remember" v-model:checked="form.remember"/>
@@ -98,9 +82,6 @@ const submit = () => {
                     Forgot your password?
                 </Link>
 
-                <Button @click="addToast">
-                    Add toast
-                </Button>
             </div>
             <div class="flex items-center justify-center mt-4">
 
@@ -108,6 +89,7 @@ const submit = () => {
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                     :width="100"
+                    @click="submit"
                 >
                     Log in
                 </Button>
