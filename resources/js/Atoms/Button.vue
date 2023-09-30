@@ -13,7 +13,6 @@ const {
     disabled = false,
     isLoading = false
 } = defineProps([
-    'text',
     'type',
     'outline',
     'size',
