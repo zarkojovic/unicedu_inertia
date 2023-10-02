@@ -15,10 +15,10 @@ const showingNavigationDropdown = ref(false);
 <template>
     <div class="grid cols-12">
 
-        <div class="lg:col-span-3 xl:col-span-2 2xl:col-span-2 hidden lg:inline-block">
+        <div class="lg:col-span-2 xl:col-span-1 hidden lg:inline-block">
                 <Sidebar/>
         </div>
-        <div class="lg:col-start-4 lg:col-span-9 xl:col-start-3 2xl:col-span-10 2xl:col-start-3 2xl:col-span-10">
+        <div class="lg:col-start-3 lg:col-span-10 xl:col-start-2 xl:col-span-11">
             <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
             <nav class="bg-gray-30 dark:border-gray-700">
                 <!-- Primary Navigation Menu -->
