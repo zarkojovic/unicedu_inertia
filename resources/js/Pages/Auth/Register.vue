@@ -137,7 +137,7 @@ const submit = () => {
                 <p class="text-sm mr-1">Already have an account? </p>
                 <Link
                     :href="route('login')"
-                    class="underline text-sm rounded-md focus:outline-none"
+                    class="underline text-orange-500 text-sm rounded-md focus:outline-none"
                 >
                     Sign in
                 </Link>
