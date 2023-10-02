@@ -61,8 +61,10 @@ const emitBlur = () => {
 </script>
 <template>
     <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" v-if="label">{{ label }} <span
-            class="text-sm text-red-600" v-if="is_required">*</span></label>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" v-if="label">
+            {{ label }}
+<!--            <span class="text-sm text-red-600" v-if="is_required">*</span>-->
+        </label>
         <input
             class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-orange-300 dark:focus:border-orange-400 focus:ring-orange-300 dark:focus:orange-400 rounded-lg shadow-sm transition ease-in-out delay-100 mt-1 block w-full"
             :value="modelValue"
