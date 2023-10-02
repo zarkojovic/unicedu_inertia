@@ -59,6 +59,7 @@ const emitBlur = () => {
     emits('blur');
 };
 </script>
+
 <template>
     <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" v-if="label">{{ label }} <span
@@ -82,3 +83,7 @@ const emitBlur = () => {
         <p class="mt-2 text-sm text-red-500" v-if="error">{{ error }}</p>
     </div>
 </template>
+
+<style scoped>
+
+</style>

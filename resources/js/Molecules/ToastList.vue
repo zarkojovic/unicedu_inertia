@@ -1,16 +1,17 @@
 <script setup>
 
-import Toast from "@/Atoms/Toast.vue";
 import {onUnmounted, ref} from "vue";
 import {router, usePage} from "@inertiajs/vue3";
 import toast from '@/Stores/toast';
+import Toast from '@/Atoms/Toast.vue';
 
 const page = usePage();
 
-let removeFinishEventListener = router.on('finish', () => {
-    if (page.props.value.toast) {
+const removeFinishEventListener = router.on('finish', () => {
+    if (page.props.toast) {
         toast.add({
-            message: 'New message'
+            message: page.props.toast.message,
+            type: page.props.toast.type
         })
     }
 });

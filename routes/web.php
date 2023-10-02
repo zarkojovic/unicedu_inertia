@@ -16,7 +16,7 @@ use Inertia\Inertia;
 | contains the "web" middleware group. Now create something great!
 |
 */
-Route::fallback(function (){
+Route::fallback(function () {
     return Inertia::render('404');
 });
 
@@ -50,6 +50,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+Route::post('/test', function () {
+    return redirect()->back()->with(['toast' => ['message' => 'vracamo sesijuu', 'type' => 'warning']]);
 });
 
 Route::get('/user', [\App\Http\Controllers\UserController::class, 'show'])->name('user.show');

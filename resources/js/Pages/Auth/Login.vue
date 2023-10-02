@@ -4,6 +4,7 @@ import GuestLayout from '@/Layouts/GuestLayout.vue';
 import Button from '@/Atoms/Button.vue';
 import {Head, Link, useForm} from '@inertiajs/vue3';
 import GenericInput from "@/Atoms/GenericInput.vue";
+import toast from '@/Stores/toast.js';
 import FileInput from "@/Atoms/FileInput.vue";
 
 defineProps({
@@ -26,7 +27,13 @@ const submit = () => {
     form.post(route('login'), {
         onFinish: () => form.reset('password'),
     });
+
+    // form.post('/test');
+
+
 };
+
+
 </script>
 
 <template>
@@ -60,6 +67,7 @@ const submit = () => {
                     :error="form.errors.password"
                     :helper="'Password must be min 8 characters!'"
                     :is_required="true"
+                    @keyup.enter="submit"
                 />
             </div>
 
@@ -79,13 +87,8 @@ const submit = () => {
                 >
                     Reset it here
                 </Link>
-
-
             </div>
-
-
             <div>
-
                 <Button
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
