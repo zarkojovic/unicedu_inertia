@@ -4,6 +4,7 @@ import {MdDoneRound, PrUpload} from "oh-vue-icons/icons";
 import toast from '@/Stores/toast';
 import {ref, defineProps, defineEmits} from 'vue';
 import Button from '@/Atoms/Button.vue';
+import {trans} from 'laravel-vue-i18n';
 
 // Define props and their default values
 const {
@@ -61,7 +62,7 @@ const handleUpload = (event) => {
 
             upload.value = true;
             toast.add({
-                message: `File uploaded successfully, but it's not saved yet!`,
+                message: trans('auth.failed'),
                 duration: 4000,
                 type: 'warning'
             });

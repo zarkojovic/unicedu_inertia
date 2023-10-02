@@ -6,6 +6,7 @@ import {createInertiaApp} from '@inertiajs/vue3';
 import {resolvePageComponent} from 'laravel-vite-plugin/inertia-helpers';
 import {ZiggyVue} from '../../vendor/tightenco/ziggy/dist/vue.m';
 import {OhVueIcon, addIcons} from "oh-vue-icons";
+import {i18nVue} from 'laravel-vue-i18n'
 
 const appName = import.meta.env.VITE_APP_NAME || 'Poland Study';
 
@@ -17,6 +18,12 @@ createInertiaApp({
             .use(plugin)
             .component("v-icon", OhVueIcon)
             .use(ZiggyVue, Ziggy)
+            .use(i18nVue, {
+                resolve: async lang => {
+                    const langs = import.meta.glob('../../lang/*.json');
+                    return await langs[`../../lang/${lang}.json`]();
+                }
+            })
             .mount(el);
     },
     progress: {
