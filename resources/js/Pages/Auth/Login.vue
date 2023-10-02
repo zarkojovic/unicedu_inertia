@@ -43,7 +43,12 @@ const submit = () => {
             {{ status }}
         </div>
 
-        <form @submit.prevent="submit" class="grid grid-cols-1 md:gap-x-8 gap-2 gap-y-5">
+        <div class="container mb-3">
+            <h1 class="md:text-2xl text-xl text-center">Welcome to Poland Study!</h1>
+            <h2 class="text-sm text-gray-400 text-center">Please enter your details</h2>
+        </div>
+
+        <form @submit.prevent="submit" class="grid grid-cols-1 md:gap-x-8 gap-2 gap-y-4">
             <div>
                 <GenericInput
                     :type="'email'"
@@ -72,23 +77,6 @@ const submit = () => {
             </div>
 
             <div>
-                <label class="flex items-center">
-                    <Checkbox name="remember" v-model:checked="form.remember"/>
-                    <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Remember me</span>
-                </label>
-            </div>
-
-            <div class="mx-auto">
-                <span class="text-sm">Forgot your password? </span>
-                <Link
-                    v-if="canResetPassword"
-                    :href="route('password.request')"
-                    class="underline text-sm text-orange-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none"
-                >
-                    Reset it here
-                </Link>
-            </div>
-            <div>
                 <Button
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
@@ -99,18 +87,26 @@ const submit = () => {
                     Log in
                 </Button>
             </div>
-
-            <div class="mx-auto">
-                <span class="text-sm">New to Poland Study? </span>
-                <Link
-                    :href="route('register')"
-                    class="underline text-sm text-orange-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none"
-                >
-                    Sign up
-                </Link>
-
-
-            </div>
         </form>
+        <div class="mx-auto mt-2 w-max">
+            <span class="text-sm">New to Poland Study? </span>
+            <Link
+                :href="route('register')"
+                class="underline text-sm text-orange-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none"
+            >
+                Sign up
+            </Link>
+        </div>
+
+        <div class="mx-auto w-max">
+            <span class="text-sm">Forgot your password? </span>
+            <Link
+                v-if="canResetPassword"
+                :href="route('password.request')"
+                class="underline text-sm text-orange-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none"
+            >
+                Reset it here
+            </Link>
+        </div>
     </GuestLayout>
 </template>
