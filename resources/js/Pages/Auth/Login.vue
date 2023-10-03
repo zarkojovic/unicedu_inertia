@@ -57,7 +57,7 @@ const submit = () => {
                     :label="'Email'"
                     v-model="form.email"
                     :error="form.errors.email"
-                    :helper="'Use valid email!'"
+                    :helper="'Use a valid email!'"
                     :is_required="true"
                     :input-name="'email'"
                     :input-id="'email'"
@@ -72,7 +72,7 @@ const submit = () => {
                     :label="'Password'"
                     v-model="form.password"
                     :error="form.errors.password"
-                    :helper="'Password must be min 8 characters!'"
+                    :helper="'Password must have at least 8 characters!'"
                     :is_required="true"
                     @keyup.enter="submit"
                 />

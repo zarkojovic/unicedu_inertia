@@ -2,7 +2,7 @@
     <GuestLayout>
         <Head title="Not Found - Poland Study"/>
         <h1 class="text-xl text-center">Oops... Nothing found here.</h1>
-        <Link :href="route('home')" class="block text-center">Go back to safety</Link>
+        <Link :href="route('home')" class="block text-center underline text-orange-500">Go back to safety</Link>
     </GuestLayout>
 </template>
 
