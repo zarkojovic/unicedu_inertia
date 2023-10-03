@@ -1,89 +1,56 @@
 <script setup>
-import {ref, defineProps, defineEmits, computed, watch, onMounted} from 'vue';
-import toast from '@/Stores/toast';
+import {ref, defineProps, defineEmits} from 'vue';
 
+const {
+    label,
+    items,
+    modelValue,
+    type,
+    name,
+    id,
+    is_required
+} = defineProps(['label', 'items', 'modelValue', 'type', 'name', 'id', 'is_required']);
 
-const props = defineProps({
-    type: {
-        type: String,
-    },
-    placeholder: {
-        type: String,
-    },
-    disabled: {
-        type: Boolean,
-    },
-    label: {
-        type: String,
-    },
-    error: {
-        type: String,
-        default: ''
-    },
-    helper: {
-        type: String,
-    },
-    modelValue: {
-        type: String,
-    },
-    is_required: {
-        type: Boolean,
-        default: false
-    },
-    inputName: {
-        type: String
-    },
-    inputId: {
-        type: String
+const emits = defineEmits(['update:modelValue']);
+const selectedItems = ref([...modelValue]);
+
+const isChecked = (item) => selectedItems.value.includes(item);
+
+const toggleSelection = (item) => {
+    if (type === 'radio') {
+        selectedItems.value = item; // For radio buttons, only one item can be selected at a time
+    } else {
+        if (isChecked(item)) {
+            selectedItems.value = selectedItems.value.filter((selectedItem) => selectedItem !== item);
+        } else {
+            selectedItems.value.push(item);
+        }
     }
-});
-
-// Define emits for custom events
-const emits = defineEmits(['input', 'focus', 'blur', 'update:modelValue']);
-
-const input = ref(null);
-
-// Emit input event when the input value changes
-const emitInput = (event) => {
-    emits('input', event.target.value);
-};
-
-// Emit focus event when the input is focused
-const emitFocus = () => {
-    emits('focus');
-};
-
-
-// Emit blur event when the input loses focus
-const emitBlur = () => {
-    emits('blur');
+    emits('update:modelValue', selectedItems.value);
 };
 </script>
+
 
 <template>
     <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" v-if="label">{{ label }} <span
             class="text-sm text-red-600" v-if="is_required">*</span></label>
-        <input
-            class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-orange-300 dark:focus:border-orange-400 focus:ring-orange-300 dark:focus:orange-400 rounded-lg shadow-sm transition ease-in-out delay-100 mt-1 block w-full"
-            :value="modelValue"
-            @input="$emit('update:modelValue', $event.target.value)"
-            ref="input"
-            :class="{ 'border-red-500': error }"
-            :type="props.type"
-            :placeholder="props.placeholder"
-            :disabled="props.disabled"
-            @focus="emitFocus"
-            @blur="emitBlur"
-            :required="props.is_required"
-            :name="props.inputName"
-            :id="props.inputId"
-        />
-        <p class="mt-2 text-sm text-gray-500" v-if="props.helper">{{ props.helper }}</p>
-        <p class="mt-2 text-sm text-red-500" v-if="error">{{ error }}</p>
+        <ul>
+            <li v-for="(item, index) in items" :key="index">
+                <input
+                    :type="type === 'radio' ? 'radio' : 'checkbox'"
+                    :id="name + '-' + index"
+                    :value="item"
+                    class="dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-orange-500 shadow-sm focus:ring-0 focus:ring-offset-0 transition ease-in-out"
+                    :class="type === 'radio' ? 'rounded-full' : 'rounded'"
+                    :name="type === 'radio' ? name : null"
+                    :checked="isChecked(item)"
+                    @input="toggleSelection(item)"
+                />
+                <label :for="'input-' + index" class="ms-2">{{ item }}</label>
+            </li>
+        </ul>
+        <p>Selected Items: {{ selectedItems.length > 0 ? selectedItems : '' }}</p>
     </div>
 </template>
 
-<style scoped>
-
-</style>

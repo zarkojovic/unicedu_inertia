@@ -1,11 +1,11 @@
 <script setup>
-import Checkbox from '@/Components/Checkbox.vue';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import Button from '@/Atoms/Button.vue';
 import {Head, Link, useForm} from '@inertiajs/vue3';
 import GenericInput from "@/Atoms/GenericInput.vue";
 import toast from '@/Stores/toast.js';
-import FileInput from "@/Atoms/FileInput.vue";
+import ListInput from "@/Atoms/ListInput.vue";
+import {ref} from "vue";
 
 defineProps({
     canResetPassword: {
@@ -15,6 +15,10 @@ defineProps({
         type: String,
     },
 });
+
+
+const radioItems = ['Item 1', 'Item 2', 'Item 3'];
+const selectedRadioItem = ref([]);
 
 const form = useForm({
     email: '',
@@ -75,6 +79,7 @@ const submit = () => {
                     @keyup.enter="submit"
                 />
             </div>
+
 
             <div>
                 <Button
