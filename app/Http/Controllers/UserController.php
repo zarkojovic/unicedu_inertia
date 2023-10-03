@@ -34,7 +34,11 @@ class UserController extends RootController
             return redirect()->route("admin_home");
         }
         return Inertia::render("Profile/Show", [
-//            "fieldCategories" => FieldCategory::select("field_category_id","category_name")->where("is_visible")
+            "id" => $user->user_id,
+            "firstName" => $user->first_name,
+            "lastName" => $user->last_name,
+            "email" => $user->email,
+            "img" => asset("storage/profile/original/".$user->profile_image)
         ]);
 //        return view('student.profile');
     }

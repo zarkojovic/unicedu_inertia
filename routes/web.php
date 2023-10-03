@@ -54,6 +54,9 @@ Route::middleware('auth')->group(function () {
     //FOR VERIFIED USERS
     Route::middleware('verified')->group(function (){
         Route::get('/profile', [UserController::class, 'show'])->name('profile');
+
+        //EDIT IMAGE
+        Route::match(['post', 'put', 'patch'], '/image/edit', [UserController::class, 'updateImage'])->name("user.image.update");
     });
 
     //LARAVEL STARTER KIT DEFAULT ROUTES {
