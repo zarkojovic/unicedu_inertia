@@ -37,6 +37,11 @@ class UserController extends RootController
         $categoriesWithFields = FieldCategory::getAllCategoriesWithFields('/profile');
         return Inertia::render("Profile/Show", [
             'categoriesWithFields' => $categoriesWithFields,
+            "id" => $user->user_id,
+            "firstName" => $user->first_name,
+            "lastName" => $user->last_name,
+            "email" => $user->email,
+            "img" => asset("storage/profile/original/".$user->profile_image)
         ]);
 //        return view('student.profile');
     }
@@ -420,8 +425,8 @@ class UserController extends RootController
     {
         $user = Auth::user();
         $userDeals = Deal::where('user_id', $user->user_id)
-            ->where('active', 1)
-            ->get();
+                            ->where('active', 1)
+                            ->get();
         $showModal = $request->input('showModal');
 
 
