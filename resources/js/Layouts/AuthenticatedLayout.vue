@@ -6,6 +6,7 @@ import Sidebar from '@/Components/Sidebar.vue';
 
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import {usePage} from "@inertiajs/vue3";
+import Button from "@/Atoms/Button.vue";
 
 const showingNavigationDropdown = ref(false);
 
@@ -31,6 +32,7 @@ const page = usePage();
 
                             <div class="hidden lg:flex lg:items-center md:ml-6">
                                 <!-- Settings Dropdown -->
+                                <slot name="head-button"></slot>
                                 <div class="ml-3 relative">
                                     <Dropdown align="right" width="48">
                                         <template #trigger>
@@ -129,7 +131,7 @@ const page = usePage();
 
 
                 <!-- Page Content -->
-                <main>
+                <main class="max-w-7xl mx-auto">
                     <slot/>
                 </main>
             </div>

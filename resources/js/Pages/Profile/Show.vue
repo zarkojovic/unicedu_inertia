@@ -1,14 +1,23 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import {Head} from '@inertiajs/vue3';
 import UpdatePasswordForm from "@/Pages/Profile/Partials/UpdatePasswordForm.vue";
 import UpdateProfileInformationForm from "@/Pages/Profile/Partials/UpdateProfileInformationForm.vue";
 import DeleteUserForm from "@/Pages/Profile/Partials/DeleteUserForm.vue";
+import CategorySection from "@/Organisms/CategorySection.vue";
+import {onMounted} from "vue";
+
+const props = defineProps({
+    categoriesWithFields: {
+        type: Object
+    }
+})
+
 
 </script>
 
 <template>
-    <Head title="Profile" />
+    <Head title="Profile"/>
 
     <AuthenticatedLayout>
         <template #header>
@@ -16,10 +25,11 @@ import DeleteUserForm from "@/Pages/Profile/Partials/DeleteUserForm.vue";
         </template>
 
         <div class="py-12">
-            <div class="mx-auto bg-white rounded-xl shadow-md overflow-hidden w-5/6">
+            <div class="mx-auto bg-white rounded-xl shadow-sm overflow-hidden">
                 <div class="md:flex">
                     <div class="md:flex-shrink-0">
-                        <img class="h-48 w-full object-cover md:w-48" src="public/profile/original/profile.jpg" alt="Student profile image"/>
+                        <img class="h-48 w-full object-cover md:w-48" src="public/profile/original/profile.jpg"
+                             alt="Student profile image"/>
                     </div>
                     <div class="p-8">
                         <p class="text-lg tracking-wide font-semibold">Student Student</p>
@@ -29,5 +39,12 @@ import DeleteUserForm from "@/Pages/Profile/Partials/DeleteUserForm.vue";
                 </div>
             </div>
         </div>
+
+
+        <CategorySection
+            v-for="(category,key) in categoriesWithFields"
+            :key="key"
+            :category-info="category"
+        />
     </AuthenticatedLayout>
 </template>

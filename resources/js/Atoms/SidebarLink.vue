@@ -27,10 +27,6 @@ const iconComponent = computed(() => {
     })); // Handle errors gracefully
 });
 
-onMounted(() => {
-    console.log(iconComponentName.value);
-})
-
 
 const item = ref(props.modelValue);
 
