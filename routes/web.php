@@ -17,6 +17,7 @@ use Inertia\Inertia;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
 Route::fallback(function () {
     return Inertia::render('404');
 });
@@ -25,6 +26,9 @@ Route::get('/welcome', function () {
     echo __('messages.welcome');
 });
 
+//Route::get('/profile', function () {
+//    return Inertia::render('Profile');
+//});
 
 Route::post('/change-lang', function (\Illuminate\Http\Request $request) {
     $lang = $request->lang;
@@ -44,7 +48,6 @@ Route::get('/', function () {
 })->name("home");
 
 Route::get('/dashboard', function () {
-
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -60,10 +63,5 @@ Route::post('/test', function () {
 
 Route::get('/user', [\App\Http\Controllers\UserController::class, 'show'])->name('user.show');
 
-Route::get('/auth_user', function () {
-    $user = auth()->user();
-
-    var_dump($user->role->role_name);
-});
 
 require __DIR__ . '/auth.php';

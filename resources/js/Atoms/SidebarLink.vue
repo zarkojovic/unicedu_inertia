@@ -1,5 +1,5 @@
 <script setup>
-import {Link} from "@inertiajs/vue3";
+import {Link, usePage} from "@inertiajs/vue3";
 import {computed, onMounted, ref} from "vue";
 import {
     IconDashboard,
@@ -51,13 +51,21 @@ const iconComponentName = computed(() => {
     return 'Icon' + camelCasedWords.join('');
 })
 
+const page = usePage();
+
+const activeLink = computed(() => {
+    return props.modelValue.route.includes(page.props.current_route_uri);
+});
+
 </script>
 
 <template>
 
     <Link
         :href="item.route"
-        class="w-full px-3 py-4 flex overflow-y-auto rounded-lg hover:bg-orange-500 hover:text-white mb-2 transition-all ease-in">
+        class="w-full px-3 py-4 flex overflow-y-auto rounded-lg hover:bg-orange-400 hover:text-white mb-2 transition-all ease-in"
+        :class="activeLink ? 'bg-orange-500 text-white': ''"
+    >
         <component v-if="iconComponentName === 'IconDashboard'" :is="IconDashboard" class="me-3"/>
         <component v-else-if="iconComponentName === 'IconWallpaper'" :is="IconWallpaper" class="me-3"/>
         <component v-else-if="iconComponentName === 'IconBoxMultiple'" :is="IconBoxMultiple" class="me-3"/>

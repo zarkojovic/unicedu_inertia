@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Page;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
 use Inertia\Middleware;
 use Tightenco\Ziggy\Ziggy;
@@ -45,7 +46,8 @@ class HandleInertiaRequests extends Middleware
                 'location' => $request->url(),
             ],
             'toast' => session('toast'),
-            'pages' => Page::where('role_id', auth()->user()->role_id)->select('route', 'icon', 'title')->get(),
+            'sidebar_pages' => Page::where('role_id', auth()->user()->role_id)->select('route', 'icon', 'title')->get(),
+            'current_route_uri' => Route::current()->uri
         ];
     }
 }

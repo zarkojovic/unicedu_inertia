@@ -20,7 +20,7 @@ const page = usePage();
         <div class="lg:col-span-2 xl:col-span-1 hidden lg:inline-block">
 
             <Sidebar
-                :pages="page.props.pages"
+                :pages="page.props.sidebar_pages"
             />
         </div>
         <div class="lg:col-start-3 lg:col-span-10 xl:col-start-2 xl:col-span-11">
