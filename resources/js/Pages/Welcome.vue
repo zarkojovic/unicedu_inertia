@@ -1,6 +1,7 @@
 <script setup>
 import {Head, Link, router, usePage} from '@inertiajs/vue3';
 import SwitchLanguage from "@/Atoms/SwitchLanguage.vue";
+import ToastList from "@/Molecules/ToastList.vue";
 
 defineProps({
     canLogin: {
@@ -26,10 +27,12 @@ defineProps({
 <template>
     <Head title="Welcome"/>
 
+    <ToastList/>
     <div
         class="relative sm:flex sm:justify-center sm:items-center min-h-screen bg-dots-darker bg-center bg-gray-100 dark:bg-dots-lighter dark:bg-gray-900 selection:bg-red-500 selection:text-white"
     >
         <div v-if="canLogin" class="sm:fixed sm:top-0 sm:right-0 p-6 text-right">
+            <SwitchLanguage/>
             <Link
                 v-if="$page.props.auth.user"
                 :href="route('dashboard')"
