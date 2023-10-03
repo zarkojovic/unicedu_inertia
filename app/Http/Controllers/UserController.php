@@ -14,6 +14,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
 use Kafka0238\Crest\Src;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Facades\Image;
@@ -32,7 +33,10 @@ class UserController extends RootController
         if ($user->role->role_name === "admin") {
             return redirect()->route("admin_home");
         }
-        return view('student.profile');
+        return Inertia::render("Profile/Show", [
+//            "fieldCategories" => FieldCategory::select("field_category_id","category_name")->where("is_visible")
+        ]);
+//        return view('student.profile');
     }
 
 
