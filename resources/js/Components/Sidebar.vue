@@ -8,7 +8,7 @@
 
         </div>
 
-        <SidebarLink v-for="(item,key) in items" :key="key" :model-value="item"/>
+        <SidebarLink v-for="(item,key) in pages" :key="key" :model-value="item"/>
 
 
     </div>
@@ -20,24 +20,6 @@ import {Link} from "@inertiajs/vue3";
 import {ref} from "vue";
 import SidebarLink from "@/Atoms/SidebarLink.vue";
 
-const items = ref([
-    {
-        title: 'Title 1',
-        href: '/test',
-        icon: 'test'
-    }, {
-        title: 'Title 2',
-        href: '/test',
-        icon: 'test'
-    }, {
-        title: 'Title 3',
-        href: '/test',
-        icon: 'test'
-    }, {
-        title: 'Title 4',
-        href: '/test',
-        icon: 'test'
-    },
-]);
+const {pages} = defineProps(['pages']);
 
 </script>

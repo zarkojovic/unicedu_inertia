@@ -45,7 +45,8 @@ const toggleSelection = (item) => {
                     :class="type === 'radio' ? 'rounded-full' : 'rounded'"
                     :name="type === 'radio' ? name : null"
                     :checked="isChecked(item)"
-                    @input="toggleSelection(item)"
+                    @change="toggleSelection(item)"
+
                 />
                 <label :for="'input-' + index" class="ms-2">{{ item }}</label>
             </li>

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Models\Page;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
@@ -43,6 +44,7 @@ Route::get('/', function () {
 })->name("home");
 
 Route::get('/dashboard', function () {
+
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -58,5 +60,10 @@ Route::post('/test', function () {
 
 Route::get('/user', [\App\Http\Controllers\UserController::class, 'show'])->name('user.show');
 
+Route::get('/auth_user', function () {
+    $user = auth()->user();
+
+    var_dump($user->role->role_name);
+});
 
 require __DIR__ . '/auth.php';

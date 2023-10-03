@@ -17,8 +17,6 @@ defineProps({
 });
 
 
-const radioItems = ['Item 1', 'Item 2', 'Item 3'];
-const selectedRadioItem = ref([]);
 
 const form = useForm({
     email: '',

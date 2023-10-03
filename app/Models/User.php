@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\CanResetPassword;
+
 //use Illuminate\Auth\Passwords\CanResetPassword;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Role;
@@ -64,9 +65,9 @@ class User extends Authenticatable implements MustVerifyEmail
 
     //Relationships
 
-    public function role(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    public function role(): \Illuminate\Database\Eloquent\Relations\hasOne
     {
-        return $this->belongsTo(Role::class, 'role_id');
+        return $this->hasOne(Role::class, 'role_id');
     }
 
     public function info(): \Illuminate\Database\Eloquent\Relations\hasMany
