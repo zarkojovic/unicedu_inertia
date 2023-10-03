@@ -10,15 +10,11 @@ import {usePage} from "@inertiajs/vue3";
 const showingNavigationDropdown = ref(false);
 
 const page = usePage();
-
-
 </script>
 
 <template>
     <div class="grid cols-12">
-
         <div class="lg:col-span-2 xl:col-span-1 hidden lg:inline-block">
-
             <Sidebar
                 :pages="page.props.sidebar_pages"
             />
