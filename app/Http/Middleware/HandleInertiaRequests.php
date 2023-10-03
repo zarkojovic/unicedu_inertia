@@ -46,7 +46,7 @@ class HandleInertiaRequests extends Middleware
                 'location' => $request->url(),
             ],
             'toast' => session('toast'),
-            'sidebar_pages' => Page::where('role_id', auth()->user()->role_id)->select('route', 'icon', 'title')->get(),
+            'sidebar_pages' => auth()->check() ? Page::where('role_id', auth()->user()->role_id)->select('route', 'icon', 'title')->get() : [],
             'current_route_uri' => Route::current()->uri
         ];
     }
