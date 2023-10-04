@@ -20,7 +20,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <div class="bg-white rounded-xl shadow-sm mb-3">
+    <div class="bg-white rounded-xl shadow-md mb-3">
         <div class="px-6 py-4">
             <div class="flex justify-between items-center">
                 <div class="font-bold text-xl mb-2">{{ props.categoryInfo.category_name }}</div>
