@@ -33,7 +33,10 @@ class UserController extends RootController
         if ($user->role->role_name === "admin") {
             return redirect()->route("admin_home");
         }
+
+        $categoriesWithFields = FieldCategory::getAllCategoriesWithFields('/profile');
         return Inertia::render("Profile/Show", [
+            'categoriesWithFields' => $categoriesWithFields,
             "id" => $user->user_id,
             "firstName" => $user->first_name,
             "lastName" => $user->last_name,
