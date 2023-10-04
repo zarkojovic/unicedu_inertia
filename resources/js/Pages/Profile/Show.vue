@@ -11,9 +11,7 @@ import DeleteUserForm from "@/Pages/Profile/Partials/DeleteUserForm.vue";
     <Head title="Profile" />
 
     <AuthenticatedLayout>
-        <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Profile</h2>
-        </template>
+
 
         <div class="py-12">
             <div class="mx-auto bg-white rounded-xl shadow-md overflow-hidden w-5/6">

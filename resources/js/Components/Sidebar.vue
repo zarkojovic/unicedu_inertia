@@ -1,5 +1,5 @@
 <template>
-    <div class="h-screen  w-100 p-5 border-r border-gray-200 bg-white">
+    <div class="h-screen w-100 p-5 border-r border-gray-200 bg-white">
         <div class="flex items-center justify-center mb-5">
             <Link :href="route('dashboard')">
                 <ApplicationLogo width="80"
