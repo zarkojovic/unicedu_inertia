@@ -270,8 +270,9 @@ class UserController extends RootController
         }
 
         if (!empty($errors)) {
+            $errorMessages = implode('\n', $errors); // Concatenate error messages
             Log::errorLog("Bad file for profile image.", Auth::user()->user_id);
-            return to_route("home")->with(['toast' => ['message' => "Bad file for profile image.", 'type' => 'danger']]);
+            return to_route("home")->with(['toast' => ['message' => $errorMessages, 'type' => 'danger']]);
         }
 
         #QUESTION: DA LI SU OVDE PRISTUPACNE SLIKE? DA LI MOGU DA SE PRIKAZU IZ STORAGEA? MOZDA MORA SOFTLINK...
