@@ -131,7 +131,7 @@ const page = usePage();
 
 
                 <!-- Page Content -->
-                <main class="w-11/12 mx-auto">
+                <main class="w-11/12 max-w-7xl mx-auto">
                     <slot/>
                 </main>
             </div>
