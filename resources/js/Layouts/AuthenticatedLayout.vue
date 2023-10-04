@@ -7,6 +7,7 @@ import Sidebar from '@/Components/Sidebar.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import {usePage} from "@inertiajs/vue3";
 import Button from "@/Atoms/Button.vue";
+import ToastList from "@/Molecules/ToastList.vue";
 
 const showingNavigationDropdown = ref(false);
 
@@ -14,6 +15,7 @@ const page = usePage();
 </script>
 
 <template>
+    <ToastList/>
     <div class="grid cols-12">
         <div class="lg:col-span-2 xl:col-span-1 hidden lg:inline-block">
             <Sidebar
@@ -131,7 +133,7 @@ const page = usePage();
 
 
                 <!-- Page Content -->
-                <main class="max-w-7xl w-11/12 mx-auto">
+                <main class="w-11/12 max-w-7xl mx-auto">
                     <slot/>
                 </main>
             </div>

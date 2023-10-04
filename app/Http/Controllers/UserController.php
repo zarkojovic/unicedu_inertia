@@ -41,7 +41,8 @@ class UserController extends RootController
             "firstName" => $user->first_name,
             "lastName" => $user->last_name,
             "email" => $user->email,
-            "img" => asset("storage/profile/original/".$user->profile_image)
+            "img" => asset("storage/profile/thumbnail/".$user->profile_image),
+            "csrfToken" => csrf_token()
         ]);
 //        return view('student.profile');
     }
@@ -238,9 +239,10 @@ class UserController extends RootController
     public function updateImage(Request $request)
     {
         #INPUTS
-        if (!$request->hasFile('profile-image')) {
-            return redirect()->route('profile')->with(["errors" => ['No image uploaded.']]);
+        if (!$request->hasFile('profileImage')) {
+            return to_route('home')->with(['toast' => ['message' => 'No file uploaded.', 'type' => 'danger']]);
         }
+//            return Inertia::render("404");
 
         $pathOriginal = "public/profile/original";
         $pathThumbnail = "public/profile/thumbnail";
@@ -250,7 +252,7 @@ class UserController extends RootController
         $kilobyte = 1024; // 2MB in kilobytes
         $errors = [];
 
-        $file = $request->file('profile-image');
+        $file = $request->file('profileImage');
 
         $fileName = $file->getClientOriginalName();
         $tmpName = $file->getPathname(); // tmp_name
@@ -269,7 +271,7 @@ class UserController extends RootController
 
         if (!empty($errors)) {
             Log::errorLog("Bad file for profile image.", Auth::user()->user_id);
-            return redirect()->route('profile')->with(["errors" => $errors]);
+            return to_route("home")->with(['toast' => ['message' => "Bad file for profile image.", 'type' => 'danger']]);
         }
 
         #QUESTION: DA LI SU OVDE PRISTUPACNE SLIKE? DA LI MOGU DA SE PRIKAZU IZ STORAGEA? MOZDA MORA SOFTLINK...
@@ -281,12 +283,12 @@ class UserController extends RootController
 
         if (!Storage::exists($pathOriginal)) {
             Log::errorLog("Original folder path not found.", Auth::user()->user_id);
-            return redirect()->route('profile')->with(["errors" => ['Saving image on the server failed.']]);
+            return to_route('home')->with(['toast' => ['message' => 'Saving image on the server failed.', 'type' => 'danger']]);
         }
         $moved = Storage::putFileAs($pathOriginal, $file, $newFileName);
         if (!$moved) {
             Log::errorLog("Failed to move profile image to original folder.", Auth::user()->user_id);
-            return redirect()->route('profile')->with(["errors" => ['Saving image on the server failed.']]);
+            return to_route('home')->with(['toast' => ['message' => 'Saving image on the server failed.', 'type' => 'danger']]);
         }
 
         #MAKE SMALL IMAGES
@@ -304,7 +306,7 @@ class UserController extends RootController
         } catch (\Exception $e) {
             report($e);
             Log::errorLog("Failed to resize file image.", Auth::user()->user_id);
-            return redirect()->route('profile')->with(["errors" => ['An error occurred while saving profile image.']]);
+            return to_route('home')->with(['toast' => ['message' => 'An error occurred while saving profile image.', 'type' => 'danger']]);
         }
 
         #INSERT INTO DATABASE
@@ -326,7 +328,7 @@ class UserController extends RootController
             if (!$user->save()) {
                 DB::rollback();
                 Log::errorLog("Profile image updating not saved.", Auth::user()->user_id);
-                return redirect()->route('profile')->with(["errors" => ['An error occurred while saving profile image.']]);
+                return to_route('home')->with(['toast' => ['message' => 'An error occurred while saving profile image.', 'type' => 'danger']]);
             }
 
             $fieldId = Field::where('field_name', 'UF_CRM_1667336320092')->value('field_id');
@@ -335,7 +337,7 @@ class UserController extends RootController
             if (!$fieldId) {
                 DB::rollback();
                 Log::errorLog("Field id for 'UF_CRM_1667336320092' not found.", Auth::user()->user_id);
-                return redirect()->route('profile')->with(["errors" => ['An error occurred while saving profile image.']]);
+                return to_route('home')->with(['toast' => ['message' => 'An error occurred while saving profile image.', 'type' => 'danger']]);
             }
 
             // Insert a row into the UserInfo table
@@ -367,8 +369,7 @@ class UserController extends RootController
         } catch (\Exception $e) {
             DB::rollback();
             Log::errorLog("Failed to update profile image.", Auth::user()->user_id);
-            report($e);
-            return redirect()->route('profile')->with(["errors" => ['An error occurred while saving profile image.']]);
+            return to_route('home')->with(['toast' => ['message' => 'An error occurred while saving profile image.', 'type' => 'danger']]);
         }
 
         #UF_CRM_1667336320092 - polje za sliku
@@ -393,8 +394,7 @@ class UserController extends RootController
 //            return "Error: " . $e->getMessage();
 //        }
 
-
-        return redirect()->route('profile')->with("success", "Profile image updated successfully.");
+        return to_route('home')->with(['toast' => ['message' => 'Profile image updated successfully!', 'type' => 'success']]);
     }
 
     /**
