@@ -1,6 +1,6 @@
 <template>
     <div class="py-12">
-        <div class="mx-auto bg-white rounded-xl shadow-md overflow-hidden w-5/6 p-4 lg:px-8">
+        <div class="mx-auto bg-white rounded-xl shadow-md overflow-hidden w-11/12 p-4 lg:px-8">
             <h2 class="text-center mb-2 text-lg md:text-left md:text-xl">Student Profile</h2>
             <div class="md:flex md:justify-left">
                 <div class="mx-auto md:mx-0 w-36">
