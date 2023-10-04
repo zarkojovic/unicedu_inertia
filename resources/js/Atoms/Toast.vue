@@ -5,7 +5,7 @@ import {computed, defineProps, onMounted} from "vue";
 const {
     message,
     type,
-    duration = 50000
+    duration = 5000
 } = defineProps([
     'message',
     'type',
