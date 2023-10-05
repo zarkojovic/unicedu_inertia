@@ -1,6 +1,7 @@
 <script setup>
 import {ref, provide} from 'vue';
 import Sidebar from '@/Organisms/Sidebar.vue';
+import ToastList from "@/Molecules/ToastList.vue";
 
 
 const isSidebarOpen = ref(false);
@@ -10,8 +11,8 @@ provide("isSidebarOpen", isSidebarOpen);
 </script>
 
 <template>
-
-    <Sidebar :isSidebarOpen="isSidebarOpen" />
+    <ToastList/>
+    <Sidebar :isSidebarOpen="isSidebarOpen"/>
 
     <!-- Page Content -->
     <main :class="{ 'blur-sm': isSidebarOpen }"
