@@ -18,7 +18,13 @@ export default {
             },
             backgroundImage: {
                 'gradient': 'linear-gradient(45deg, rgb(229, 100, 70) 0%, rgb(235, 171, 88) 100%)',
-            }
+            },
+            padding: {
+                '124': '24rem',
+            },
+            screens: {
+                '3xl': '1900px',
+            },
         }
     },
 
