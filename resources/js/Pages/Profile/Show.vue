@@ -8,18 +8,11 @@ import ProfileCard from "@/Organisms/ProfileCard.vue";
 import CategorySection from "@/Organisms/CategorySection.vue";
 
 defineProps({
-    firstName: {
-        type: String
-    },
-    lastName: {
-        type: String
-    },
-    email: {
-        type: String
-    },
-    img: {
-        type: String
-    },
+    firstName: String,
+    lastName: String,
+    email: String,
+    img: String,
+    csrfToken: String,
     categoriesWithFields: {
         type: Object
     }
@@ -33,7 +26,7 @@ defineProps({
     <AuthenticatedLayout>
 
 
-        <ProfileCard :firstName="firstName" :lastName="lastName" :email="email" :img="img"/>
+        <ProfileCard :firstName="firstName" :lastName="lastName" :email="email" :img="img" :csrfToken="csrfToken"/>
 
 
         <CategorySection

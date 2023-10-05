@@ -34,28 +34,30 @@ Route::post('/change-lang', function (\Illuminate\Http\Request $request) {
     Session::put('locale', $lang);
 })->name('change-lang');
 
-Route::get('/', function () {
-    $message = __('messages.welcome');
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-        'message' => $message
-    ]);
-})->name("home");
-
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+//Route::get('/', function () {
+//    $message = __('messages.welcome');
+//    return Inertia::render('Welcome', [
+//        'canLogin' => Route::has('login'),
+//        'canRegister' => Route::has('register'),
+//        'laravelVersion' => Application::VERSION,
+//        'phpVersion' => PHP_VERSION,
+//        'message' => $message
+//    ]);
+//})->name("home");
 
 //FOR AUTHENTICATED USERS
 Route::middleware('auth')->group(function () {
 
-
     //FOR VERIFIED USERS
     Route::middleware('verified')->group(function () {
+        Route::get('/', [UserController::class, 'show'])->name("home");
+
         Route::get('/profile', [UserController::class, 'show'])->name('profile');
+
+        Route::get('/dashboard', function () {
+            return Inertia::render('Dashboard');
+        })->name('dashboard');
+
 
         //EDIT IMAGE
         Route::match(['post', 'put', 'patch'], '/image/edit', [UserController::class, 'updateImage'])->name("user.image.update");
