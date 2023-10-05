@@ -129,7 +129,7 @@ const clearFile = function () {
                 type="file"
                 :id="inputId"
                 :name="inputName"
-                class="form-control userFiles hidden"
+                class="form-control userFiles hidden userFormField"
                 @change="handleUpload"
             />
             <Transition

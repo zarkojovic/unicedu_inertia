@@ -3,10 +3,10 @@ import {ref} from 'vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import Sidebar from '@/Components/Sidebar.vue';
-
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import {usePage} from "@inertiajs/vue3";
 import Button from "@/Atoms/Button.vue";
+import ToastList from "@/Molecules/ToastList.vue";
 
 const showingNavigationDropdown = ref(false);
 
@@ -14,6 +14,7 @@ const page = usePage();
 </script>
 
 <template>
+    <ToastList/>
     <div class="grid cols-12">
         <div class="lg:col-span-2 xl:col-span-1 hidden lg:inline-block">
             <Sidebar
