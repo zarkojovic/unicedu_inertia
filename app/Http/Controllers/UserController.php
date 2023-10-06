@@ -41,7 +41,7 @@ class UserController extends RootController
             "firstName" => $user->first_name,
             "lastName" => $user->last_name,
             "email" => $user->email,
-            "img" => asset("storage/profile/thumbnail/".$user->profile_image),
+            "img" => asset("storage/profile/thumbnail/" . $user->profile_image),
             "csrfToken" => csrf_token()
         ]);
 //        return view('student.profile');
@@ -72,13 +72,22 @@ class UserController extends RootController
 
     public function updateUserInfo(Request $request)
     {
+
+
 //        GET ALL OF THE DATA FROM REQUEST
         $items = $request->all();
+//        return redirect()->back()->with((['toast' => ['message' => 'Items: ' . $items, 'type' => 'warning']]));
 //        GET AUTH-ED USER FOR UPDATING HIS DATA
         $user = Auth::user();
 
 //        LOOPING THROUGH EACH ELEMENT IN REQUEST
-        foreach ($items as $key => $value) {
+        foreach ($items['dataValues'] as $key => $value) {
+            Log::informationLog(json_encode($value));
+        }
+
+        return redirect()->back()->with((['toast' => ['message' => 'Item started to be proccessed', 'type' => 'warning']]));
+//            session(['toast' => ['message' => 'Item started to be proccessed ' . count($value), 'type' => 'danger']]);
+        if (0) {
             try {
                 DB::beginTransaction();
 //            GETTING THE FIELD_ID BASE ON FIELD_NAME FROM REQUEST
@@ -185,7 +194,6 @@ class UserController extends RootController
                             $user_info->value = null;
                             $user_info->display_value = null;
                             $user_info->save();
-
                         }
                     }
                 }
@@ -193,7 +201,7 @@ class UserController extends RootController
             } catch (\Exception $ex) {
                 http_response_code(501);
                 Log::errorLog($ex->getMessage(), Auth::user()->user_id);
-                return response()->json(['error' => $ex->getMessage()], 500);
+                return redirect()->back()->with(['toast' => ['message' => $ex->getMessage(), 'type' => 'warning']]);
             }
 
 
@@ -208,10 +216,8 @@ class UserController extends RootController
 
             foreach ($deals as $key => $val) {
                 // Make API call to create the deal in Bitrix24
-                $res = CRest::call("crm.deal.update", [
-                    'ID' => (string)$key,
-                    'FIELDS' => $fields
-                ]);
+                $res = CRest::call("crm.deal.update", ['ID' => (string)$key,
+                    'FIELDS' => $fields]);
 
                 if ($res['result']) {
                     Log::apiLog('Deal ' . $key . ' successfully updated!');
@@ -224,7 +230,8 @@ class UserController extends RootController
 
     }
 
-    public function getUserInfo()
+    public
+    function getUserInfo()
     {
         $user = Auth::user();
         $info = Db::table("user_infos")
@@ -236,7 +243,8 @@ class UserController extends RootController
         echo json_encode($info);
     }
 
-    public function updateImage(Request $request)
+    public
+    function updateImage(Request $request)
     {
         #INPUTS
         if (!$request->hasFile('profileImage')) {
@@ -401,12 +409,14 @@ class UserController extends RootController
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public
+    function destroy(string $id)
     {
         //
     }
 
-    public function showUsers()
+    public
+    function showUsers()
     {
         $users = User::select('first_name', 'last_name', 'email', 'phone', 'email_verified_at', 'profile_image', 'contact_id', 'created_at', 'updated_at', 'user_id as id')->get();
         $columns = DB::getSchemaBuilder()->getColumnListing('users');
@@ -414,7 +424,8 @@ class UserController extends RootController
         return view("admin.table_data", ['pageTitle' => 'User', 'data' => $users, 'columns' => $columns, 'name' => 'Users']);
     }
 
-    public function editUsers(string $id)
+    public
+    function editUsers(string $id)
     {
         $users = User::select('first_name', 'last_name', 'email_verified_at', 'profile_image', 'contact_id', 'created_at', 'phone', 'updated_at', "user_id as id")
             ->findOrFail($id);
@@ -422,12 +433,13 @@ class UserController extends RootController
         return view('admin.users.edit', ['pageTitle' => 'User Info', 'history' => $history, 'data' => $users, 'name' => 'Users']);
     }
 
-    public function showMyApplications(Request $request)
+    public
+    function showMyApplications(Request $request)
     {
         $user = Auth::user();
         $userDeals = Deal::where('user_id', $user->user_id)
-                            ->where('active', 1)
-                            ->get();
+            ->where('active', 1)
+            ->get();
         $showModal = $request->input('showModal');
 
 

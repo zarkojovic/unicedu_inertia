@@ -16,36 +16,44 @@ const props = defineProps({
     }
 })
 
-onMounted(() => {
-    console.log(props.categoryInfo);
-})
+const categoryFieldForm = ref(null);
 
-const form = useForm({});
+const form = useForm({
+    dataValues: null,
+    dropdown: null
+});
+
+onMounted(() => {
+    console.log(props.categoryInfo)
+});
 
 const submitForm = () => {
-    form.post('/test');
+    form.dataValues = categoryFieldForm.value;
+    form.post('/userFieldsUpdate', {
+        onFinish: () => display.value = !display.value,
+    });
 
-    const formFields = document.querySelectorAll('.userFormField');
-
-    formFields.forEach(el => {
-        var obj = {
-            type: '',
-            value: '',
-            display_value: '',
-            file_name: '',
-            file_path: ''
-        }
-        if (el.type.includes('select')) {
-            obj.type = 'select';
-            obj.value = el.options[el.selectedIndex].value;
-            obj.display_value = el.options[el.selectedIndex].text;
-        } else {
-            obj.type = el.type;
-            obj.value = el.value;
-        }
-
-        console.log(obj)
-    })
+    // const formFields = document.querySelectorAll('.userFormField');
+    //
+    // formFields.forEach(el => {
+    //     var obj = {
+    //         type: '',
+    //         value: '',
+    //         display_value: '',
+    //         file_name: '',
+    //         file_path: ''
+    //     }
+    //     if (el.type.includes('select')) {
+    //         obj.type = 'select';
+    //         obj.value = el.options[el.selectedIndex].value;
+    //         obj.display_value = el.options[el.selectedIndex].text;
+    //     } else {
+    //         obj.type = el.type;
+    //         obj.value = el.value;
+    //     }
+    //
+    //     console.log(obj)
+    // })
 
 
     // display.value = !display.value;
@@ -83,7 +91,6 @@ const submitForm = () => {
             </div>
             <div class="grid grid-cols-3 sm:grid-cols-3 gap-4 mt-3">
                 <div class="grid col-span-2  grid-cols-2 sm:grid-cols-2 gap-4">
-
                     <DisplayInfo
                         v-if="display"
                         v-for="(field,key) in props.categoryInfo.fields"
@@ -92,26 +99,28 @@ const submitForm = () => {
                     />
                     <div v-else v-for="(field,key) in props.categoryInfo.fields" :key="field.field_name">
 
-                        <FileInput v-if="field.type === 'file'"
-                                   :key="key"
-                                   :label="field.title"
-                                   :input-name="field.field_name"
-                                   :input-id="field.field_name"
-                        />
+                        <form ref="categoryFieldForm">
+                            <FileInput v-if="field.type === 'file'"
+                                       :key="key"
+                                       :label="field.title"
+                                       :input-name="field.field_name"
+                                       :input-id="field.field_name"
+                            />
 
-                        <DropdownInput
-                            v-else-if="field.type === 'enumeration'"
-                            :options="field.items"
-                            :label="field.title"
-                        />
+                            <DropdownInput
+                                v-else-if="field.type === 'enumeration'"
+                                :options="field.items"
+                                v-model="form.dropdown"
+                                :label="field.title"
+                            />
 
-                        <GenericInput v-else
-                                      :type="field.type === 'string' ? 'text' : field.type"
-                                      :label="field.title"
-                                      :is_required="!!field.is_required"
-                                      :model-value="field.value"
-                        />
-
+                            <GenericInput v-else
+                                          :type="field.type === 'string' ? 'text' : field.type"
+                                          :label="field.title"
+                                          :is_required="!!field.is_required"
+                                          v-model="field.value"
+                            />
+                        </form>
                     </div>
                 </div>
                 <!-- Third Column (Empty on smaller screens) -->

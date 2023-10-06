@@ -37,6 +37,7 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
+
             ],
             'lang' => [
                 'current' => Session::get('locale')
@@ -48,7 +49,6 @@ class HandleInertiaRequests extends Middleware
             'toast' => session('toast'),
             'sidebar_pages' => auth()->check() ? Page::where('role_id', auth()->user()->role_id)->select('route', 'icon', 'title')->get() : [],
             'current_route_uri' => Route::current()->uri,
-
         ];
     }
 }
