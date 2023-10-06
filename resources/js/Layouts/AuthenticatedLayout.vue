@@ -1,142 +1,23 @@
 <script setup>
-import {ref} from 'vue';
-import Dropdown from '@/Components/Dropdown.vue';
-import DropdownLink from '@/Components/DropdownLink.vue';
-import Sidebar from '@/Components/Sidebar.vue';
-
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
-import {usePage} from "@inertiajs/vue3";
-import Button from "@/Atoms/Button.vue";
+import {ref, provide} from 'vue';
+import Sidebar from '@/Organisms/Sidebar.vue';
 import ToastList from "@/Molecules/ToastList.vue";
 
-const showingNavigationDropdown = ref(false);
 
-const page = usePage();
+const isSidebarOpen = ref(false);
+provide("isSidebarOpen", isSidebarOpen);
+
+
 </script>
 
 <template>
     <ToastList/>
-    <div class="grid cols-12">
-        <div class="lg:col-span-2 xl:col-span-1 hidden lg:inline-block">
-            <Sidebar
-                :pages="page.props.sidebar_pages"
-            />
-        </div>
-        <div class="lg:col-start-3 lg:col-span-10 xl:col-start-2 xl:col-span-11">
-            <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-                <nav class="bg-gray-30 dark:border-gray-700">
-                    <!-- Primary Navigation Menu -->
-                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div class="flex lg:justify-between h-16">
-                            <div class="flex">
+    <Sidebar :isSidebarOpen="isSidebarOpen"/>
 
-                            </div>
+    <!-- Page Content -->
+    <main :class="{ 'blur-sm': isSidebarOpen }"
+          class="lg:ml-64 p-5 sm:p-10 md:px-15 lg:px-16 xl:px-36 2xl:px-48 3xl:px-124 ">
+        <slot/>
+    </main>
 
-                            <div class="hidden lg:flex lg:items-center md:ml-6">
-                                <!-- Settings Dropdown -->
-                                <slot name="head-button"></slot>
-                                <div class="ml-3 relative">
-                                    <Dropdown align="right" width="48">
-                                        <template #trigger>
-                                        <span class="inline-flex rounded-md">
-                                            <button
-                                                type="button"
-                                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150"
-                                            >
-                                                {{ $page.props.auth.user.first_name }}
-                                                <svg
-                                                    class="ml-2 -mr-0.5 h-4 w-4"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 20 20"
-                                                    fill="currentColor"
-                                                >
-                                                    <path
-                                                        fill-rule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                        clip-rule="evenodd"
-                                                    />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                        </template>
-
-                                        <template #content>
-                                            <DropdownLink :href="route('profile.edit')"> Profile</DropdownLink>
-                                            <DropdownLink :href="route('logout')" method="post" as="button">
-                                                Log Out
-                                            </DropdownLink>
-                                        </template>
-                                    </Dropdown>
-                                </div>
-                            </div>
-
-                            <!-- Hamburger -->
-                            <div class="-mr-2 flex items-center lg:hidden">
-                                <button
-                                    @click="showingNavigationDropdown = !showingNavigationDropdown"
-                                    class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-gray-500 dark:focus:text-gray-400 transition duration-150 ease-in-out"
-                                >
-                                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                                        <path
-                                            :class="{
-                                            hidden: showingNavigationDropdown,
-                                            'inline-flex': !showingNavigationDropdown,
-                                        }"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M4 6h16M4 12h16M4 18h16"
-                                        />
-                                        <path
-                                            :class="{
-                                            hidden: !showingNavigationDropdown,
-                                            'inline-flex': showingNavigationDropdown,
-                                        }"
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M6 18L18 6M6 6l12 12"
-                                        />
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Responsive Navigation Menu -->
-                    <div
-                        :class="{ block: showingNavigationDropdown, hidden: !showingNavigationDropdown }"
-                        class="lg:hidden bg-white"
-                    >
-
-
-                        <!-- Responsive Settings Options -->
-                        <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">
-                            <div class="px-4">
-                                <div class="font-medium text-base text-gray-800 dark:text-gray-200">
-                                    {{ $page.props.auth.user.name }}
-                                </div>
-                                <div class="font-medium text-sm text-gray-500">{{ $page.props.auth.user.email }}</div>
-                            </div>
-
-                            <div class="mt-3 space-y-1">
-                                <ResponsiveNavLink :href="route('profile.edit')"> Profile</ResponsiveNavLink>
-                                <ResponsiveNavLink :href="route('logout')" method="post" as="button">
-                                    Log Out
-                                </ResponsiveNavLink>
-                            </div>
-                        </div>
-                    </div>
-                </nav>
-
-                <!-- Page Heading -->
-
-
-                <!-- Page Content -->
-                <main class="w-11/12 max-w-7xl mx-auto">
-                    <slot/>
-                </main>
-            </div>
-        </div>
-    </div>
 </template>
