@@ -26,6 +26,10 @@ const emits = defineEmits(['update:modelValue']);
 
 const selected = ref(props.modelValue);
 
+const handleUpdate = (event) => {
+    emits('update:modelValue', props.options[event.target.value]);
+};
+
 </script>
 
 <template>
@@ -35,10 +39,11 @@ const selected = ref(props.modelValue);
         <span class="text-sm text-red-600" v-if="props.is_required">*</span>
     </label>
     <select
+        @input="handleUpdate"
         v-model="selected"
         class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-orange-300 dark:focus:border-orange-400 focus:ring-orange-300 dark:focus:orange-400 rounded-lg shadow-sm transition ease-in-out delay-100 mt-1 block w-full userFormField"
     >
-        <option v-for="option in props.options" :key="option.value" :value="option.value">{{ option.label }}
+        <option v-for="(option,index) in props.options" :key="index" :value="index">{{ option.label }}
         </option>
     </select>
 

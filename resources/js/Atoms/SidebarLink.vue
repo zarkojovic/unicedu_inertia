@@ -76,7 +76,9 @@ const activeLink = computed(() => {
         <component v-else-if="iconComponentName === 'IconUser'" :is="IconUser" class="me-3"/>
         <component v-else-if="iconComponentName === 'IconSchool'" :is="IconSchool" class="me-3"/>
         <component v-else-if="iconComponentName === 'IconLogout'" :is="IconLogout" class="me-3"/>
+
         {{ item.title }}
+
     </Link>
 </template>
 

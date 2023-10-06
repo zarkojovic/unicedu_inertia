@@ -22,7 +22,11 @@ const logOutBtn = ref({
 
 
             </ul>
-            <Link :href="route('logout')" method="post" as="button" type="button">Logout</Link>
+
+            <Link
+                class="w-full px-3 py-4 mt-2 flex overflow-y-auto rounded-lg hover:bg-orange-200 hover:text-orange-500 mb-2 transition-all ease-in"
+                :href="route('logout')" method="post" as="button" type="button">Logout
+            </Link>
 
         </div>
     </aside>
