@@ -9,7 +9,8 @@ import {
     IconUsers,
     IconApiApp,
     IconUser,
-    IconSchool
+    IconSchool,
+    IconLogout
 } from '@tabler/icons-vue';
 import {defineAsyncComponent} from 'vue'
 
@@ -31,20 +32,24 @@ const iconComponent = computed(() => {
 const item = ref(props.modelValue);
 
 const iconComponentName = computed(() => {
-    var words = props.modelValue.icon.trim().split(' ').slice(1); // Remove the "ti" prefix and trim whitespace
+    if (props.modelValue.icon !== null) {
+        var words = props.modelValue.icon.trim().split(' ').slice(1); // Remove the "ti" prefix and trim whitespace
 
-    words = words[0].split('-');
-    const camelCasedWords = words.map((word, index) => {
-        if (index === 0) {
-            // Remove the "ti-" prefix and keep it in lowercase
-            return word.slice(3);
-        } else {
-            // Capitalize the first letter of subsequent words
-            return word.charAt(0).toUpperCase() + word.slice(1);
-        }
-    });
+        words = words[0].split('-');
+        const camelCasedWords = words.map((word, index) => {
+            if (index === 0) {
+                // Remove the "ti-" prefix and keep it in lowercase
+                return word.slice(3);
+            } else {
+                // Capitalize the first letter of subsequent words
+                return word.charAt(0).toUpperCase() + word.slice(1);
+            }
+        });
 
-    return 'Icon' + camelCasedWords.join('');
+        return 'Icon' + camelCasedWords.join('');
+    } else {
+        return null;
+    }
 })
 
 const page = usePage();
@@ -59,8 +64,7 @@ const activeLink = computed(() => {
 
     <Link
         :href="item.route"
-        class="w-full px-3 py-4 flex overflow-y-auto rounded-lg hover:bg-orange-400 hover:text-white mb-2 transition-all ease-in"
-        :class="activeLink ? 'bg-orange-500 text-white': ''"
+        :class="activeLink ? 'flex items-center rounded-lg p-2 bg-orange-500 text-white hover:bg-orange-500 hover:text-white' : '' + 'flex items-center p-2 text-gray-900 hover:bg-orange-100 rounded-lg dark:text-white hover:text-orange-500 dark:hover:bg-gray-700 group transition'"
     >
         <component v-if="iconComponentName === 'IconDashboard'" :is="IconDashboard" class="me-3"/>
         <component v-else-if="iconComponentName === 'IconWallpaper'" :is="IconWallpaper" class="me-3"/>
@@ -70,7 +74,10 @@ const activeLink = computed(() => {
         <component v-else-if="iconComponentName === 'IconApiApp'" :is="IconApiApp" class="me-3"/>
         <component v-else-if="iconComponentName === 'IconUser'" :is="IconUser" class="me-3"/>
         <component v-else-if="iconComponentName === 'IconSchool'" :is="IconSchool" class="me-3"/>
+        <component v-else-if="iconComponentName === 'IconLogout'" :is="IconLogout" class="me-3"/>
+
         {{ item.title }}
+
     </Link>
 </template>
 

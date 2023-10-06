@@ -27,5 +27,5 @@
 import {defineProps} from "vue";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 
-const { toggleSidebar } = defineProps(["toggleSidebar"]);
+const {toggleSidebar} = defineProps(["toggleSidebar"]);
 </script>

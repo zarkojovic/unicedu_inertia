@@ -16,7 +16,7 @@ provide("isSidebarOpen", isSidebarOpen);
 
     <!-- Page Content -->
     <main :class="{ 'blur-sm': isSidebarOpen }"
-          class="lg:ml-64 p-5 sm:p-10 md:px-15 lg:px-16 xl:px-36 2xl:px-48 3xl:px-124 ">
+          class="lg:ml-64 p-5 sm:p-10 md:px-15 lg:px-16 xl:px-36 2xl:px-48 3xl:px-124 bg-gray-50">
         <slot/>
     </main>
 

@@ -72,10 +72,11 @@ class FieldCategory extends Model
 
         for ($i = 0; $i < count($fields); $i++) {
             if ($fields[$i]->type == 'enumeration') {
-                $FieldItems = \App\Models\FieldItem::where('field_id', $fields[$i]->field_id)->pluck('item_value', 'item_id')->toArray();
+                $FieldItems = \App\Models\FieldItem::where('field_id', $fields[$i]->field_id)->select('item_value as label', 'item_id as value')->get()->toArray();
                 $fields[$i]->items = $FieldItems;
             }
         }
+
 
         for ($i = 0; $i < count($categories); $i++) {
             $fieldsWithThisCategories = filterObjectsByFieldCategoryId($fields, $categories[$i]->field_category_id);
