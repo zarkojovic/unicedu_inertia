@@ -1,7 +1,7 @@
 <script setup>
 
 import Button from "@/Atoms/Button.vue";
-import {onMounted, ref} from "vue";
+import {onMounted, provide, ref} from "vue";
 import GenericInput from "@/Atoms/GenericInput.vue";
 import FileInput from "@/Atoms/FileInput.vue";
 import DropdownInput from "@/Atoms/DropdownInput.vue";
@@ -18,10 +18,17 @@ const props = defineProps({
 
 const categoryFieldForm = ref(null);
 
-const form = useForm({
-    dataValues: null,
-    dropdown: null
-});
+const formItems = ref({
+    formItems: [],
+    dropdown: {
+        label: 'Platinum',
+        value: null
+    }
+})
+
+const form = useForm(formItems.value);
+
+provide('formItems', formItems);
 
 onMounted(() => {
     console.log(props.categoryInfo)
@@ -112,6 +119,7 @@ const submitForm = () => {
                                 :options="field.items"
                                 v-model="form.dropdown"
                                 :label="field.title"
+                                :input-name="field.field_name"
                             />
 
                             <GenericInput v-else
