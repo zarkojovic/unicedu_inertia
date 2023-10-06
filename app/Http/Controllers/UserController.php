@@ -37,12 +37,12 @@ class UserController extends RootController
         $categoriesWithFields = FieldCategory::getAllCategoriesWithFields('/profile');
         return Inertia::render("Profile/Show", [
             'categoriesWithFields' => $categoriesWithFields,
-            "id" => $user->user_id,
-            "firstName" => $user->first_name,
-            "lastName" => $user->last_name,
-            "email" => $user->email,
+//            "id" => $user->user_id,
+//            "firstName" => $user->first_name,
+//            "lastName" => $user->last_name,
+//            "email" => $user->email,
             "img" => asset("storage/profile/thumbnail/".$user->profile_image),
-            "csrfToken" => csrf_token()
+//            "csrfToken" => csrf_token()
         ]);
 //        return view('student.profile');
     }

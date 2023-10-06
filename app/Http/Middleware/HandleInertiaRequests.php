@@ -37,6 +37,7 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
+                'img' => auth()->check() ? asset("storage/profile/tiny/".$request->user()->profile_image) : ''
             ],
             'lang' => [
                 'current' => Session::get('locale')
