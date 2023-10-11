@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\UploadedFile;
 use App\Models\Deal;
 use App\Models\Field;
 use App\Models\FieldCategory;
@@ -67,25 +68,34 @@ class UserController extends RootController
 
     public function updateUserInfo(Request $request)
     {
+
+//        dd($request->all());
+
 //        GET ALL OF THE DATA FROM REQUEST
-        $items = $request->all();
+        $items = $request['formItems'];
 //        GET AUTH-ED USER FOR UPDATING HIS DATA
         $user = Auth::user();
 
 //        LOOPING THROUGH EACH ELEMENT IN REQUEST
         foreach ($items as $key => $value) {
+
             try {
                 DB::beginTransaction();
 //            GETTING THE FIELD_ID BASE ON FIELD_NAME FROM REQUEST
-                $field_id = DB::table('fields')->select('field_name', 'title', 'field_id')->where('field_name', $key)->first();
+                $field_id = DB::table('fields')->select('field_name', 'title', 'field_id')->where('field_name', $value['field_name'])->first();
 //            CHECKING IF THE INFO ALREADY EXISTS IN TABLE
                 $user_info = UserInfo::where("user_id", (int)$user->user_id)->where("field_id", (int)$field_id->field_id)->first();
-//            CHECKING IF THE REQUEST IS FILE
-                if ($request->hasFile($key)) {
-//                GETTING THE INFO FROM FILE
-                    $storeFile = $request->file($key);
 
-                    $extension = $storeFile->getClientOriginalExtension();
+//                dd($value);
+
+//            CHECKING IF THE REQUEST IS FILE
+                if ($value['value'] instanceof UploadedFile) {
+
+//                GETTING THE INFO FROM FILE
+                    $storeFile = $value['value'];
+
+
+                    $extension = $storeFile->extension();
 
                     // Check if the file extension is 'pdf'
                     if ($extension !== 'pdf') {
@@ -114,7 +124,7 @@ class UserController extends RootController
                 $fieldCheck = Field::findOrFail($field_id->field_id);
                 if (!$user_info) {
 //                IF IT IS A FILE
-                    if ($request->hasFile($key)) {
+                    if (isset($value['is_file']) && $value['is_file']) {
                         UserInfo::create([
                             'user_id' => (int)$user->user_id,
                             'field_id' => (int)$field_id->field_id,
@@ -123,19 +133,19 @@ class UserController extends RootController
                         ]);
                         Log::informationLog("User updated $key.", Auth::user()->user_id);
                     } else {
+
 //                    IF IT'S NOT FILE
                         if (!empty($value) && $value !== 'null' && $value != 0) {
-                            if (str_contains($value, '__')) {
-                                list($id, $display) = explode('__', $value);
+                            if (isset($value['label'])) {
                                 UserInfo::create([
                                     'user_id' => (int)$user->user_id,
                                     'field_id' => (int)$field_id->field_id,
-                                    'value' => $id,
-                                    'display_value' => $display
+                                    'value' => $value['value'],
+                                    'display_value' => $value['label']
                                 ]);
                             } else {
-                                if (is_string($value)) {
-                                    $value = ucfirst($value);
+                                if (is_string($value['value'])) {
+                                    $value = ucfirst($value['value']);
                                 }
                                 UserInfo::create([
                                     'user_id' => (int)$user->user_id,
@@ -160,14 +170,13 @@ class UserController extends RootController
                         $user_info->save();
                     } else {
                         if (!empty($value)) {
-                            if ($value != 0 && $value !== 'null') {
-                                if (str_contains($value, '__')) {
-                                    list($id, $display) = explode('__', $value);
-                                    $user_info->value = $id;
-                                    $user_info->display_value = $display;
+                            if ($value['value'] != 0 && $value['value'] !== 'null') {
+                                if (isset($value['label'])) {
+                                    $user_info->value = $value['value'];
+                                    $user_info->display_value = $value['label'];
                                 } else {
-                                    if (is_string($value)) {
-                                        $value = ucfirst($value);
+                                    if (is_string($value['value'])) {
+                                        $value = ucfirst($value['value']);
                                     }
                                     $user_info->value = $value;
                                 }

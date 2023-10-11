@@ -30,8 +30,8 @@ const formItems = inject('formItems');
 
 const handleUpdate = (event) => {
     var obj = props.options.filter(el => el.value === event.target.value);
-    console.log(formItems.value.formItems)
     formItems.value.formItems[props.inputName] = obj[0];
+    console.log(formItems.value.formItems)
     emits('update:modelValue', obj[0]);
 
 };

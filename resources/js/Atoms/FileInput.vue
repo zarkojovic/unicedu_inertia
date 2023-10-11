@@ -2,7 +2,7 @@
 import {addIcons} from "oh-vue-icons";
 import {MdDoneRound, PrUpload} from "oh-vue-icons/icons";
 import toast from '@/Stores/toast';
-import {ref, defineProps, defineEmits} from 'vue';
+import {ref, defineProps, defineEmits, inject} from 'vue';
 import Button from '@/Atoms/Button.vue';
 import {trans} from 'laravel-vue-i18n';
 
@@ -15,7 +15,8 @@ const {
     is_required = false,
     inputName = 'test',
     inputId = 'test',
-    validTypes = null
+    validTypes = null,
+    isCategoryField
 } = defineProps([
     'label',
     'error',
@@ -24,7 +25,8 @@ const {
     'is_required',
     'inputName',
     'inputId',
-    'validTypes'
+    'validTypes',
+    'isCategoryField'
 ]);
 
 // Add icons for later use
@@ -42,6 +44,8 @@ const isValidType = ref(true); // Whether the file type is valid
 const isReplace = ref(false); // Whether to replace an existing document
 
 
+const formItems = inject('formItems');
+
 // Function to handle file upload
 const handleUpload = (event) => {
     if (event.target.files[0]) {
@@ -58,11 +62,17 @@ const handleUpload = (event) => {
         }
 
         if (isValidType.value) {
-            emits('update:modelValue', event.target.files[0].name);
+            // emits('update:modelValue', event.target.files[0].name);
 
+            if (isCategoryField) {
+                formItems.value.formItems[inputName] = {
+                    value: fileValue.value,
+                    is_file: true
+                };
+            }
             upload.value = true;
             toast.add({
-                message: trans('auth.failed'),
+                message: 'File uploaded but not saved yet!',
                 duration: 4000,
                 type: 'warning'
             });
