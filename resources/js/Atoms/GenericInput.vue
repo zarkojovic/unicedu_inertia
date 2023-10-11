@@ -1,6 +1,5 @@
 <script setup>
-import {ref, defineProps, defineEmits, computed, watch, onMounted} from 'vue';
-import toast from '@/Stores/toast';
+import {defineEmits, defineProps, inject, ref} from 'vue';
 
 
 const props = defineProps({
@@ -35,14 +34,31 @@ const props = defineProps({
     },
     inputId: {
         type: String
+    },
+    isCategoryField: {
+        type: Boolean
     }
+
 });
 
 // Define emits for custom events
-const emits = defineEmits(['input', 'focus', 'blur', 'update:modelValue']);
+const emits = defineEmits(['focus', 'blur', 'update:modelValue']);
 
-const input = ref(null);
+const inputValue = ref(props.modelValue);
+const formItems = inject('formItems');
 
+const handleUpdate = (event) => {
+
+    var inputValue = event.target.value;
+    if (props.isCategoryField) {
+        formItems.value.formItems[props.inputName] = {
+            value: inputValue,
+        };
+        console.log(formItems.value.formItems)
+    }
+
+    emits('update:modelValue', event.target.value);
+};
 
 </script>
 <template>
@@ -53,9 +69,8 @@ const input = ref(null);
         </label>
         <input
             class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-orange-300 dark:focus:border-orange-400 focus:ring-orange-300 dark:focus:orange-400 rounded-lg shadow-sm transition ease-in-out delay-100 mt-1 block w-full userFormField"
-            :value="modelValue"
-            @input="$emit('update:modelValue', $event.target.value)"
-            ref="input"
+            v-model="inputValue"
+            @input="handleUpdate"
             :class="{ 'border-red-500': error }"
             :type="props.type"
             :placeholder="props.placeholder"

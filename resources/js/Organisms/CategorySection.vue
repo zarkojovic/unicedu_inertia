@@ -1,5 +1,6 @@
 <script setup>
 
+import toast from '@/Stores/toast.js';
 import Button from "@/Atoms/Button.vue";
 import {onMounted, provide, ref} from "vue";
 import GenericInput from "@/Atoms/GenericInput.vue";
@@ -19,7 +20,7 @@ const props = defineProps({
 const categoryFieldForm = ref(null);
 
 const formItems = ref({
-    formItems: [],
+    formItems: {},
     dropdown: {
         label: 'Platinum',
         value: null
@@ -35,10 +36,40 @@ onMounted(() => {
 });
 
 const submitForm = () => {
-    form.dataValues = categoryFieldForm.value;
-    form.post('/userFieldsUpdate', {
-        onFinish: () => display.value = !display.value,
+    form.dataValues = formItems.value;
+    const keys = Object.keys(formItems.value.formItems);
+    console.log(keys);
+    if (keys.length === 0) {
+        display.value = !display.value;
+        toast.add({
+            message: 'No changes made.',
+            type: 'warning'
+        });
+        return;
+    }
+    var arrayOfUpdateFields = [];
+    keys.forEach(el => {
+        formItems.value.formItems[el].field_name = el;
+        arrayOfUpdateFields.push(formItems.value.formItems[el]);
     });
+
+    console.log(arrayOfUpdateFields);
+    form.formItems = arrayOfUpdateFields;
+
+    form.post('/userFieldsUpdate', {
+        onFinish: () => {
+            display.value = !display.value;
+            toast.add({
+                message: props.categoryInfo.category_name + ' category is updated!',
+                type: 'success'
+            })
+        },
+
+    });
+
+
+    // console.log(arrayOfUpdateFields)
+
 
     // const formFields = document.querySelectorAll('.userFormField');
     //
@@ -84,6 +115,7 @@ const submitForm = () => {
                     <Button
                         type="success"
                         icon="save"
+                        :disabled="form.processing"
                         @click="submitForm"
                     >
                     </Button>
@@ -92,6 +124,7 @@ const submitForm = () => {
                         icon="close"
                         class="ms-2"
                         @click="display = !display"
+                        :disabled="form.processing"
                     >
                     </Button>
                 </div>
@@ -112,6 +145,7 @@ const submitForm = () => {
                                        :label="field.title"
                                        :input-name="field.field_name"
                                        :input-id="field.field_name"
+                                       :is-category-field="true"
                             />
 
                             <DropdownInput
@@ -127,6 +161,8 @@ const submitForm = () => {
                                           :label="field.title"
                                           :is_required="!!field.is_required"
                                           v-model="field.value"
+                                          :is-category-field="true"
+                                          :input-name="field.field_name"
                             />
                         </form>
                     </div>
