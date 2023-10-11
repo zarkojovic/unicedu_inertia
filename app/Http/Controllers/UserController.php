@@ -29,8 +29,7 @@ class UserController extends RootController
     public function show()
     {
         $user = Auth::user();
-
-        if ($user->role->role_name === "admin") {
+        if ($user->role_id === 3) {
             return redirect()->route("admin_home");
         }
 

@@ -6,6 +6,7 @@ defineProps({
 //     firstName: String,
 //     lastName: String,
 //     email: String,
+    phone: String,
     img: String,
 //     csrfToken: String
 })
@@ -18,7 +19,7 @@ const form = useForm({
 
 const submitForm = ($event) => {
     form.profileImage = $event.target.files[0];
-    if (form.profileImage){
+    if (form.profileImage) {
         form.post("/image/edit");
     }
 }
@@ -33,23 +34,30 @@ const labelProgressClasses = computed(() => ({
 
 <template>
     <div class="py-6 mt-6">
-        <div class="mx-auto bg-white rounded-3xl shadow-md overflow-hidden p-4 lg:px-8">
+        <div class="mx-auto bg-white rounded-3xl shadow-md overflow-hidden p-5 lg:px-8">
             <h2 class="text-center mb-2 text-lg md:text-left md:text-xl">Student Profile</h2>
             <div class="md:flex md:justify-left">
-                <div class="mx-auto md:mx-0 w-36">
+                <div class="mx-auto md:mx-0 w-32">
                     <img class="h-auto max-w-full rounded-full" :src="img" alt="Student profile image"/>
                 </div>
-                <div class="grid grid-col-1 md:ml-8">
-                    <p class="text-lg capitalize tracking-wide font-semibold text-center md:text-left self-center">{{ page.props.auth.user.first_name }} {{ page.props.auth.user.last_name }}</p>
-                    <p class="mt-1 text-md leading-tight font-medium text-gray-400 text-center md:text-left md:mt-0">{{ page.props.auth.user.email }}</p>
-                    <span class="mt-2 px-4 uppercase text-white text-center bg-gradient rounded-tr-lg self-center rounded-b-lg p-1 mx-auto md:mx-0 md:w-1/2 md:mt-0 md:px-0">package</span>
-                    <form @submit.prevent method="POST" enctype="multipart/form-data" class="flex justify-center mt-2">
-                        <label class="profile-image-label cursor-pointer md:text-left"
-                        for="profile-image-input" :class="labelProgressClasses">
-                            Upload Profile Image (Required)</label>
+                <div class="grid grid-col-1 md:ml-8 content-between">
+                    <div>
+                        <p class="text-lg capitalize tracking-wide font-semibold text-center md:text-left self-center">
+                            {{ page.props.auth.user.first_name }} {{ page.props.auth.user.last_name }}</p>
+                        <p class="text-md leading-tight font-medium text-gray-400 text-center md:text-left my-1">
+                            {{ page.props.auth.user.email }}</p>
+                        <p class="text-md leading-tight font-medium text-gray-400 text-center md:text-left mt-1">
+                            {{ page.props.auth.user.phone }}</p>
+
+                    </div>
+                    <form @submit.prevent method="POST" enctype="multipart/form-data" class="flex justify-center mt-5">
                         <input type="file" class="hidden" name="profile-image"
-                               id="profile-image-input" :disabled="form.progress !== null" @change="submitForm($event)"/>
-<!--                        <input type="hidden" name="_token" :value="csrfToken" />-->
+                               id="profile-image-input" :disabled="form.progress !== null"
+                               @change="submitForm($event)"/>
+                        <!--                        <input type="hidden" name="_token" :value="csrfToken" />-->
+                        <label class="profile-image-label cursor-pointer md:text-left align-bottom "
+                               for="profile-image-input" :class="labelProgressClasses">
+                            Upload Profile Image (Required)</label>
                     </form>
                 </div>
             </div>
