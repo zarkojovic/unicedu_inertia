@@ -55,6 +55,9 @@ const iconComponentName = computed(() => {
 const page = usePage();
 
 const activeLink = computed(() => {
+    if(page.props.current_route_uri === '/'){
+        return props.modelValue.route.includes('/profile');
+    }
     return props.modelValue.route.includes(page.props.current_route_uri);
 });
 

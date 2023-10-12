@@ -48,6 +48,8 @@ class LoginRequest extends FormRequest
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
             ]);
+        }else{
+            $this->session()->forget('toast');
         }
 
         RateLimiter::clear($this->throttleKey());

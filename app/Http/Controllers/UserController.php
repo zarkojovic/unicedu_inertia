@@ -15,6 +15,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Kafka0238\Crest\Src;
 use Illuminate\Support\Facades\Storage;
@@ -103,13 +104,20 @@ class UserController extends RootController
                         } else {
                             $fieldName = $field_id->field_name;
                         }
-                        throw new Exception("'$fieldName' File must be pdf!");
+//                        throw new Exception("'$fieldName' File must be pdf!");
+                        session(['toast' => ['message' => "'$fieldName' File must be pdf!", 'type' => 'danger']]);
+                        throw ValidationException::withMessages([
+                            'error' =>  "'$fieldName' File must be pdf!",
+                        ]);
                     }
 
 
-                    if ($storeFile->getSize() > 10 * 1024 * 1024) {
+                    if ($storeFile->getSize() > 5 * 1024 * 1024) {
+                        session(['toast' => ['message' => "File too big (5mb limit)!", 'type' => 'danger']]);
                         // The file is over 8MB (8 * 1024 * 1024 bytes)
-                        throw new Exception("File too big!");
+                        throw ValidationException::withMessages([
+                            'error' =>  "File too big (5mb limit)!",
+                        ]);
                         // Handle the validation error or other actions here
                     }
 
@@ -121,6 +129,7 @@ class UserController extends RootController
                 }
                 //IF INFO DOESNT EXIST
                 $fieldCheck = Field::findOrFail($field_id->field_id);
+
                 if (!$user_info) {
 //                IF IT IS A FILE
                     if (isset($value['is_file']) && $value['is_file']) {
@@ -157,12 +166,16 @@ class UserController extends RootController
                     }
                 } else {
 //                IF ITS AN UPDATING
-                    if ($request->hasFile($key)) {
+                    if ($value['value'] instanceof UploadedFile) {
                         #REMOVE OLD IMAGE FROM FOLDERS
                         $oldProfileImage = $user_info->file_path;
+
+//                        dd($oldProfileImage);
+
                         Storage::delete([
                             "public/profile/documents/$oldProfileImage"
                         ]);
+
 //                    UPDATE INFO
                         $user_info->file_name = $fileName;
                         $user_info->file_path = $fileNewName;
@@ -188,7 +201,7 @@ class UserController extends RootController
                             $user_info->value = null;
                             $user_info->display_value = null;
                             $user_info->save();
-
+                            session(['toast' => ['message' => "Field Category updated!!", 'type' => 'success']]);
                         }
                     }
                 }
@@ -196,9 +209,8 @@ class UserController extends RootController
             } catch (\Exception $ex) {
                 http_response_code(501);
                 Log::errorLog($ex->getMessage(), Auth::user()->user_id);
-                return response()->json(['error' => $ex->getMessage()], 500);
+                return redirect()->back()->with(['toast' =>['message'=> $ex->getMessage(),'type'=>'danger']]);
             }
-
 
         }
 

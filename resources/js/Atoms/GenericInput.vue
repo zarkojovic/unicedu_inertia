@@ -45,8 +45,8 @@ const props = defineProps({
 const emits = defineEmits(['focus', 'blur', 'update:modelValue']);
 
 const inputValue = ref(props.modelValue);
-const formItems = inject('formItems');
 
+const formItems = props.isCategoryField ? inject('formItems') : null;
 const handleUpdate = (event) => {
 
     var inputValue = event.target.value;
@@ -54,7 +54,6 @@ const handleUpdate = (event) => {
         formItems.value.formItems[props.inputName] = {
             value: inputValue,
         };
-        console.log(formItems.value.formItems)
     }
 
     emits('update:modelValue', event.target.value);

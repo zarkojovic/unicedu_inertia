@@ -11,6 +11,7 @@ const props = defineProps({
 
 const page = usePage();
 
+
 const getDisplayValue = computed(() => {
     if (props.fieldInfo.file_name !== '') {
         return props.fieldInfo.file_name;
@@ -25,6 +26,8 @@ const filePath = computed(() => {
     return page.props.documents_root + props.fieldInfo.file_path;
 });
 
+
+
 </script>
 
 <template>
@@ -32,9 +35,9 @@ const filePath = computed(() => {
         <p class="font-bold text-sm">{{ props.fieldInfo.title }} <span v-if="!!props.fieldInfo.is_required"
                                                                        class="italic text-gray-400 text-sm">(required)</span>
         </p>
-        <span v-if="getDisplayValue === null" class="italic text-slate-400 text-sm font-thin">empty</span>
-        <span v-if="props.fieldInfo.file_name !== null" class="text-orange-400 text-sm"><a
+        <span v-if="getDisplayValue === null" class="italic text-gray-400 text-sm">empty</span>
+        <span v-if="props.fieldInfo.file_name !== ''" class="text-orange-400 text-sm"><a target="_blank"
             :href="filePath">{{ getDisplayValue }}</a></span>
-        <span v-else class="italic text-gray-400 text-sm">{{ getDisplayValue }}</span>
+        <span v-else class=" text-gray-400 text-sm">{{ getDisplayValue }}</span>
     </div>
 </template>
