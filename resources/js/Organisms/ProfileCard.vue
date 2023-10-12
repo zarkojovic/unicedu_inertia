@@ -42,7 +42,7 @@ const labelProgressClasses = computed(() => ({
                 </div>
                 <div class="grid grid-col-1 md:ml-8 content-between">
                     <div>
-                        <p class="text-lg capitalize tracking-wide font-semibold text-center md:text-left self-center">
+                        <p class="text-lg capitalize tracking-wide font-semibold text-neutral-800 text-center md:text-left self-center">
                             {{ page.props.auth.user.first_name }} {{ page.props.auth.user.last_name }}</p>
                         <p class="text-md leading-tight font-medium text-gray-400 text-center md:text-left my-1">
                             {{ page.props.auth.user.email }}</p>
@@ -50,15 +50,16 @@ const labelProgressClasses = computed(() => ({
                             {{ page.props.auth.user.phone }}</p>
 
                     </div>
-                    <form @submit.prevent method="POST" enctype="multipart/form-data" class="flex justify-center mt-5">
+                    <form @submit.prevent method="POST" enctype="multipart/form-data" class="flex justify-between mt-5">
                         <input type="file" class="hidden" name="profile-image"
                                id="profile-image-input" :disabled="form.progress !== null"
                                @change="submitForm($event)"/>
                         <!--                        <input type="hidden" name="_token" :value="csrfToken" />-->
                         <label class="profile-image-label cursor-pointer md:text-left align-bottom "
                                for="profile-image-input" :class="labelProgressClasses">
-                            Upload Profile Image (Required)</label>
+                            Upload Profile Image</label>
                     </form>
+
                 </div>
             </div>
         </div>

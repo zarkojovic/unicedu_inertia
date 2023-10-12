@@ -100,9 +100,9 @@ const submitForm = () => {
 
 <template>
     <div class="bg-white rounded-3xl shadow-md mb-6">
-        <div class="p-6 ">
+        <div class="p-6">
             <div class="flex justify-between items-center">
-                <div class="font-bold text-xl mb-2">{{ props.categoryInfo.category_name }}</div>
+                <div class="font-bold text-neutral-800 text-lg mb-2">{{ props.categoryInfo.category_name }}</div>
                 <div class="flex" v-if="display">
                     <Button
                         icon="edit"

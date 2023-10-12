@@ -1,6 +1,6 @@
 <script setup>
 import {computed, defineProps, defineEmits} from 'vue';
-import {FaRegularEdit, IoClose, MdSaveOutlined, LaTrashAlt} from "oh-vue-icons/icons";
+import {FaPen, IoClose, MdSaveOutlined, LaTrashAlt} from "oh-vue-icons/icons";
 import {addIcons} from "oh-vue-icons";
 
 // Define props
@@ -22,7 +22,7 @@ const {
     'isLoading',
 ]);
 
-addIcons(FaRegularEdit, IoClose, MdSaveOutlined, LaTrashAlt);
+addIcons(FaPen, IoClose, MdSaveOutlined, LaTrashAlt);
 
 // Define emits for custom events
 const emits = defineEmits(['click']);
@@ -78,7 +78,7 @@ const btnIconClass = computed(() => {
         case 'close':
             return 'io-close'
         case 'edit':
-            return 'fa-regular-edit'
+            return 'fa-pen'
         case 'delete':
             return 'la-trash-alt'
         default :
@@ -103,9 +103,9 @@ const handleClick = () => {
         @click="handleClick"
     >
         <span v-if="isLoading" class="spinner"></span>
-        <span v-else>
+        <span v-else class="flex justify-center">
             <slot/>
-            <v-icon v-if="btnIconClass != null" :name="btnIconClass"/>
+            <v-icon scale="0.75" v-if="btnIconClass != null" :name="btnIconClass"/>
         </span>
     </button>
 </template>
