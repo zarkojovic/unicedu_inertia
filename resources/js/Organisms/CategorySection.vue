@@ -31,14 +31,10 @@ const form = useForm(formItems.value);
 
 provide('formItems', formItems);
 
-onMounted(() => {
-    console.log(props.categoryInfo)
-});
 
 const submitForm = () => {
     form.dataValues = formItems.value;
     const keys = Object.keys(formItems.value.formItems);
-    console.log(keys);
     if (keys.length === 0) {
         display.value = !display.value;
         toast.add({
@@ -53,11 +49,10 @@ const submitForm = () => {
         arrayOfUpdateFields.push(formItems.value.formItems[el]);
     });
 
-    console.log(arrayOfUpdateFields);
     form.formItems = arrayOfUpdateFields;
 
     form.post('/userFieldsUpdate', {
-        onFinish: () => {
+        onSuccess: () => {
             display.value = !display.value;
             toast.add({
                 message: props.categoryInfo.category_name + ' category is updated!',
@@ -146,6 +141,7 @@ const submitForm = () => {
                                        :input-name="field.field_name"
                                        :input-id="field.field_name"
                                        :is-category-field="true"
+                                       :valid-types="['application/pdf']"
                             />
 
                             <DropdownInput

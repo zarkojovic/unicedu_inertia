@@ -71,6 +71,7 @@ const handleUpload = (event) => {
                 };
             }
             upload.value = true;
+
             toast.add({
                 message: 'File uploaded but not saved yet!',
                 duration: 4000,
@@ -110,6 +111,8 @@ const handleMove = () => {
 const clearFile = function () {
     fileValue.value = null;
     isReplace.value = false;
+    upload.value = false;
+    isHover.value = false;
 }
 
 </script>

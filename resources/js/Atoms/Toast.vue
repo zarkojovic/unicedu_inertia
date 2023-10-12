@@ -19,7 +19,6 @@ const toastClass = computed(() => {
 });
 
 const messageWithLineBreaks = message.replace(/\\n/g, '\n').split('\n');
-console.log(messageWithLineBreaks)
 
 onMounted(() => {
     setTimeout(() => emit('remove'), duration);
