@@ -94,7 +94,7 @@ const submitForm = () => {
 </script>
 
 <template>
-    <div class="bg-white rounded-xl shadow-md mb-3">
+    <div class="bg-white rounded-3xl shadow-md mb-6">
         <div class="p-6 ">
             <div class="flex justify-between items-center">
                 <div class="font-bold text-xl mb-2">{{ props.categoryInfo.category_name }}</div>

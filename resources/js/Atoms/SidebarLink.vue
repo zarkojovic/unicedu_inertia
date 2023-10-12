@@ -67,8 +67,7 @@ const activeLink = computed(() => {
 
     <Link
         :href="item.route"
-        class="w-full px-3 py-4 flex overflow-y-auto rounded-lg hover:bg-orange-200 hover:text-orange-500 mb-2 transition-all ease-in"
-        :class="activeLink ? 'bg-orange-500 text-white': ''"
+        :class="activeLink ? 'flex items-center rounded-lg p-2 bg-orange-500 text-white hover:bg-orange-500 hover:text-white' : '' + 'flex items-center p-2 text-gray-900 hover:bg-orange-100 rounded-lg dark:text-white hover:text-orange-500 dark:hover:bg-gray-700 group transition'"
     >
         <component v-if="iconComponentName === 'IconDashboard'" :is="IconDashboard" class="me-3"/>
         <component v-else-if="iconComponentName === 'IconWallpaper'" :is="IconWallpaper" class="me-3"/>
