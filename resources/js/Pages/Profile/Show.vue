@@ -22,7 +22,7 @@ defineProps({
     <AuthenticatedLayout>
 
 
-        <ProfileCard :email="email" :img="img" :csrfToken="csrfToken"/>
+        <ProfileCard :img="img" />
 
 
         <CategorySection

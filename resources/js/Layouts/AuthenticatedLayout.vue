@@ -1,12 +1,11 @@
 <script setup>
-import {ref, provide} from 'vue';
+import {ref, provide } from 'vue';
 import Sidebar from '@/Organisms/Sidebar.vue';
 import ToastList from "@/Molecules/ToastList.vue";
 
 
 const isSidebarOpen = ref(false);
 provide("isSidebarOpen", isSidebarOpen);
-
 
 </script>
 

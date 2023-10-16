@@ -18,14 +18,61 @@
                         <span class="self-center text-md font-semibold sm:text-md whitespace-nowrap dark:text-white">Student Platform</span>
                     </a>
                 </div>
-
+                <div class="hidden lg:block">
+                    <button @click="toggleUserMenu" ref="navIcon" type="button" class="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600">
+                        <img class="w-8 h-8 rounded-full" src="{{ page.props.auth.img }}" alt="user photo">
+                    </button>
+                </div>
             </div>
+        </div>
+        <div v-if="isUserMenuOpen" class="z-50 right-10 absolute text-base list-none bg-white divide-y divide-gray-100 rounded shadow">
+            <div class="px-4 py-3">
+                <p class="text-sm text-gray-900">
+                    {{ page.props.auth.user.first_name }} {{ page.props.auth.user.last_name }}
+                </p>
+                <p class="text-sm font-medium text-gray-900 truncate dark:text-gray-300" role="none">
+                    {{ page.props.auth.user.email }}
+                </p>
+            </div>
+            <ul class="py-1" role="none">
+                <li>
+                    <Link :href="route('logout')" method="post" as="button" type="button" class="flex w-full block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white" role="menuitem">
+                        Sign out
+                    </Link>
+                </li>
+
+            </ul>
         </div>
     </nav>
 </template>
 <script setup>
-import {defineProps} from "vue";
+import {defineProps, ref, onMounted} from "vue";
 import ApplicationLogo from "@/Components/ApplicationLogo.vue";
+import {Link, usePage} from "@inertiajs/vue3";
+
+
+const page = usePage();
 
 const {toggleSidebar} = defineProps(["toggleSidebar"]);
+
+const isUserMenuOpen = ref(false);
+
+const toggleUserMenu = () => {
+    isUserMenuOpen.value = !isUserMenuOpen.value;
+};
+
+const navIcon = ref(null)
+
+onMounted(()=>{
+    document.addEventListener("click", (e)=>{
+        if(e.target == navIcon.value || e.target.parentNode == navIcon.value) return
+        isUserMenuOpen.value = false;
+    })
+})
+
+const logOutBtn = ref({
+    route: '/logout',
+    title: 'Logout'
+});
+
 </script>
