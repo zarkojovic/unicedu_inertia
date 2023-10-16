@@ -35,7 +35,7 @@ const labelProgressClasses = computed(() => ({
 <template>
     <div class="py-6 mt-6">
         <div class="mx-auto bg-white rounded-3xl shadow-md overflow-hidden p-5 lg:px-8">
-            <h2 class="text-center mb-2 text-lg md:text-left md:text-xl">Student Profile</h2>
+            <h2 class="text-center mb-5 text-lg md:text-left md:text-xl">Student Profile</h2>
             <div class="md:flex md:justify-left">
                 <div class="mx-auto md:mx-0 w-32">
                     <img class="h-auto max-w-full rounded-full" :src="img" alt="Student profile image"/>

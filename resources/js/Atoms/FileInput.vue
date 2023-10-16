@@ -118,7 +118,7 @@ const clearFile = function () {
 </script>
 <template>
     <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" v-if="label">{{ label }} <span
+        <label class="text-slate-600 block text-sm font-medium dark:text-gray-300" v-if="label">{{ label }} <span
             class="text-sm text-red-600" v-if="is_required">*</span></label>
         <div class="mt-1 flex">
             <label :for="inputName" v-if="!upload" @mouseenter="handleHover" @mouseleave="handleMove"

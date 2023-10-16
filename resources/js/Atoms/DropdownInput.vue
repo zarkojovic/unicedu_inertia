@@ -40,7 +40,7 @@ const handleUpdate = (event) => {
 
 <template>
 
-    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" v-if="label">
+    <label class="text-slate-600 block text-sm font-medium dark:text-gray-300" v-if="label">
         {{ props.label }}
         <span class="text-sm text-red-600" v-if="props.is_required">*</span>
     </label>

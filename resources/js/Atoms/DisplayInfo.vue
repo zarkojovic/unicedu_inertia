@@ -31,13 +31,13 @@ const filePath = computed(() => {
 </script>
 
 <template>
-    <div>
-        <p class="font-bold text-sm">{{ props.fieldInfo.title }} <span v-if="!!props.fieldInfo.is_required"
-                                                                       class="italic text-gray-400 text-sm">(required)</span>
+    <div class="mt-4">
+        <p class="font-medium text-slate-900 text-md">{{ props.fieldInfo.title }} <span v-if="!!props.fieldInfo.is_required"
+                                                                       class="italic text-gray-400 text-sm font-thin">(required)</span>
         </p>
-        <span v-if="getDisplayValue === null" class="italic text-gray-400 text-sm">empty</span>
-        <span v-if="props.fieldInfo.file_name !== ''" class="text-orange-400 text-sm"><a target="_blank"
+        <span v-if="getDisplayValue === null" class="italic text-gray-400 text-sm mt-3">empty</span>
+        <span v-if="props.fieldInfo.file_name !== ''" class="text-orange-400 text-sm mt-3"><a target="_blank"
             :href="filePath">{{ getDisplayValue }}</a></span>
-        <span v-else class=" text-gray-400 text-sm">{{ getDisplayValue }}</span>
+        <span v-else class=" text-slate-600 text-sm mt-3">{{ getDisplayValue }}</span>
     </div>
 </template>

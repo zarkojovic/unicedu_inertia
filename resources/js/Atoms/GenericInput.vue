@@ -62,12 +62,12 @@ const handleUpdate = (event) => {
 </script>
 <template>
     <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" v-if="label">
+        <label class="text-slate-600 block text-sm font-medium dark:text-gray-300" v-if="label">
             {{ label }}
             <span class="text-sm text-red-600" v-if="props.is_required">*</span>
         </label>
         <input
-            class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-orange-300 dark:focus:border-orange-400 focus:ring-orange-300 dark:focus:orange-400 rounded-lg shadow-sm transition ease-in-out delay-100 mt-1 block w-full userFormField"
+            class="border-gray-300 text-slate-900 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-orange-300 dark:focus:border-orange-400 focus:ring-orange-300 dark:focus:orange-400 rounded-lg shadow-sm transition ease-in-out delay-100 mt-1 mb-1  block w-full userFormField"
             v-model="inputValue"
             @input="handleUpdate"
             :class="{ 'border-red-500': error }"
