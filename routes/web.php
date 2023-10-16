@@ -54,6 +54,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [UserController::class, 'show'])->name("home");
 
         Route::get('/profile', [UserController::class, 'show'])->name('profile');
+        Route::get('/applications',function (){
+            return Inertia::render("Student/Applications");
+        })->name('applications');
 
         Route::get('/dashboard', function () {
             return Inertia::render('Dashboard');
