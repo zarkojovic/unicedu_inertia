@@ -48,6 +48,7 @@ const formItems = inject('formItems');
 
 // Function to handle file upload
 const handleUpload = (event) => {
+    console.log(event.target.files[0])
     if (event.target.files[0]) {
         fileValue.value = event.target.files[0];
 
@@ -157,7 +158,7 @@ const clearFile = function () {
                     class="ms-2"
                     :icon="'delete'"
                     :type="'danger'"
-                    @click="clearFile()"
+                    @click="clearFile"
                 ></Button>
             </Transition>
         </div>

@@ -52,7 +52,8 @@ const submitForm = () => {
             toast.add({
                 message: props.categoryInfo.category_name + ' category is updated!',
                 type: 'success'
-            })
+            });
+            formItems.value ={formItems: {}};
         },
         preserveScroll : true,
     });

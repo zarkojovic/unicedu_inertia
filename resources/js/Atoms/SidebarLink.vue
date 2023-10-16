@@ -14,7 +14,6 @@ import {
 } from '@tabler/icons-vue';
 import {defineAsyncComponent} from 'vue'
 
-
 const props = defineProps({
     modelValue: {
         type: Object
@@ -53,6 +52,7 @@ const iconComponentName = computed(() => {
 })
 
 const page = usePage();
+
 
 const activeLink = computed(() => {
     if(page.props.current_route_uri === '/'){

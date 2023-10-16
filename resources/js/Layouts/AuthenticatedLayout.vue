@@ -1,12 +1,12 @@
 <script setup>
-import {ref, provide} from 'vue';
+import {ref, provide, onMounted} from 'vue';
 import Sidebar from '@/Organisms/Sidebar.vue';
 import ToastList from "@/Molecules/ToastList.vue";
+import {usePage} from "@inertiajs/vue3";
 
 
 const isSidebarOpen = ref(false);
 provide("isSidebarOpen", isSidebarOpen);
-
 
 </script>
 

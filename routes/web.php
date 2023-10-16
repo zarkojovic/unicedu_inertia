@@ -15,11 +15,8 @@ use function App\Models\filterObjectsByFieldCategoryId;
 | Web Routes
 |--------------------------------------------------------------------------
 |
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
 */
+
 Route::fallback(function () {
     return Inertia::render('404');
 });
@@ -28,23 +25,12 @@ Route::get('/welcome', function () {
     echo __('messages.welcome');
 });
 
-
 Route::post('/change-lang', function (\Illuminate\Http\Request $request) {
     $lang = $request->lang;
     App()->setLocale($lang);
     Session::put('locale', $lang);
 })->name('change-lang');
 
-//Route::get('/', function () {
-//    $message = __('messages.welcome');
-//    return Inertia::render('Welcome', [
-//        'canLogin' => Route::has('login'),
-//        'canRegister' => Route::has('register'),
-//        'laravelVersion' => Application::VERSION,
-//        'phpVersion' => PHP_VERSION,
-//        'message' => $message
-//    ]);
-//})->name("home");
 
 //FOR AUTHENTICATED USERS
 Route::middleware('auth')->group(function () {
@@ -65,13 +51,20 @@ Route::middleware('auth')->group(function () {
         Route::post('/userFieldsUpdate', [UserController::class, 'updateUserInfo']);
         //EDIT IMAGE
         Route::match(['post', 'put', 'patch'], '/image/edit', [UserController::class, 'updateImage'])->name("user.image.update");
+
+        Route::group(['admin'],function (){
+           Route::get('/',function (){
+              echo 'alooe';
+           });
+        });
+
     });
 
-    //LARAVEL STARTER KIT DEFAULT ROUTES {
+    //LARAVEL STARTER KIT DEFAULT ROUTES
     Route::get('/profile-edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    // }
+
 });
 
 Route::get('/test', function () {

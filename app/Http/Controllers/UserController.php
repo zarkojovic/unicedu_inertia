@@ -31,9 +31,6 @@ class UserController extends RootController
     public function show()
     {
         $user = Auth::user();
-        if ($user->role_id === 3) {
-            return redirect()->route("admin_home");
-        }
 
         $categoriesWithFields = FieldCategory::getAllCategoriesWithFields('/profile');
         return Inertia::render("Student/Profile", [
