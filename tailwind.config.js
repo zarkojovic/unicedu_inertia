@@ -25,6 +25,9 @@ export default {
             screens: {
                 '3xl': '1900px',
             },
+            blur: {
+                'x': '1.5px',
+            }
         }
     },
 

@@ -33,11 +33,11 @@ const btnStyleClass = computed(() => {
             switch
                 (type) {
                 case "primary":
-                    return 'bg-orange-500 text-white hover:bg-orange-700 focus:bg-orange-700 focus:ring-orange-300'
+                    return 'justify-around px-5 rounded-r-2xl rounded-b-2xl rounded-edit bg-orange-500 text-white hover:bg-orange-700 focus:bg-orange-700 focus:ring-orange-300'
                 case "danger":
-                    return 'bg-red-500 text-white hover:bg-red-700  focus:bg-red-700 focus:ring-red-300'
+                    return 'inline-flex px-3 rounded-2xl bg-red-500 text-white hover:bg-red-700  focus:bg-red-700 focus:ring-red-300'
                 case 'success':
-                    return 'bg-green-500 text-white hover:bg-green-700 focus:bg-green-700 focus:ring-green-300'
+                    return 'inline-flex px-3 rounded-r-2xl rounded-b-2xl bg-green-500 text-white hover:bg-green-700 focus:bg-green-700 focus:ring-green-300'
                 default :
                     return 'bg-orange-500 text-white hover:bg-orange-700 focus:bg-orange-700 focus:ring-orange-300'
             }
@@ -96,7 +96,7 @@ const handleClick = () => {
 
 <template>
     <button
-        class="inline-flex items-center px-4 py-2 dark:bg-gray-200 border border-transparent rounded-lg font-semibold text-xs dark:text-gray-800 uppercase tracking-widest dark:hover:bg-white dark:active:bg-gray-300 focus:outline-none focus:ring-2  focus:ring-offset-2 transition ease-in-out duration-150 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center "
+        class="items-center py-2 dark:bg-gray-200 border border-transparent font-medium text-xs dark:text-gray-800 uppercase tracking-widest dark:hover:bg-white dark:active:bg-gray-300 focus:outline-none focus:ring-2  focus:ring-offset-2 transition ease-in-out duration-150 disabled:opacity-50 disabled:pointer-events-none flex items-center"
         :class="[btnStyleClass,btnWidthClass]"
         :disabled="disabled || isLoading"
         type="button"

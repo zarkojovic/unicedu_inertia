@@ -92,13 +92,13 @@ const submitForm = () => {
     <div class="bg-white rounded-3xl shadow-md mb-6">
         <div class="p-6">
             <div class="flex justify-between items-center">
-                <div class="font-bold text-neutral-800 text-lg mb-2">{{ props.categoryInfo.category_name }}</div>
+                <div class="font-bold text-neutral-800 text-sm sm:text-md md:text-lg mb-2">{{ props.categoryInfo.category_name }}</div>
                 <div class="flex" v-if="display">
                     <Button
                         icon="edit"
                         @click="display = !display"
                     >
-                        Edit
+                        <span class="pr-1">Edit</span>
                     </Button>
                 </div>
                 <div v-else>
