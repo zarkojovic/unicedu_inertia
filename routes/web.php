@@ -22,7 +22,7 @@ use function App\Models\filterObjectsByFieldCategoryId;
 */
 Route::fallback(function () {
     return Inertia::render('404');
-});
+})->name("fallback");
 
 Route::get('/welcome', function () {
     echo __('messages.welcome');
