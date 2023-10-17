@@ -74,7 +74,7 @@ onMounted(() => {
                                 class="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
                                 type="button"
                                 @click="toggleUserMenu">
-                            <img alt="user photo" class="w-8 h-8 rounded-full" src="{{ page.props.auth.img }}">
+                            <img alt="user photo" class="w-8 h-8 rounded-full" :src="page.props.auth.img">
                         </button>
                     </div>
                 </div>

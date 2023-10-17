@@ -19,7 +19,7 @@ use function App\Models\filterObjectsByFieldCategoryId;
 
 Route::fallback(function () {
     return Inertia::render('404');
-})->name("fallback");
+});
 
 Route::get('/welcome', function () {
     echo __('messages.welcome');
@@ -52,8 +52,8 @@ Route::middleware('auth')->group(function () {
         //EDIT IMAGE
         Route::match(['post', 'put', 'patch'], '/image/edit', [UserController::class, 'updateImage'])->name("user.image.update");
 
-        Route::group(['admin'],function (){
-           Route::get('/',function (){
+        Route::middleware('admin')->group(function (){
+           Route::get('/admin',function (){
               echo 'alooe';
            });
         });
