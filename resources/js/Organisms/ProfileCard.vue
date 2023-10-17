@@ -3,12 +3,7 @@ import {useForm, usePage} from '@inertiajs/vue3';
 import {computed} from "vue";
 
 defineProps({
-//     firstName: String,
-//     lastName: String,
-//     email: String,
-    phone: String,
     img: String,
-//     csrfToken: String
 })
 
 const page = usePage();

@@ -1,11 +1,11 @@
 <script setup>
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import {Head} from "@inertiajs/vue3";
-import Modal from "@/Molecules/Modal.vue";
-import Button from "@/Atoms/Button.vue";
-import {ref} from "vue";
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import {Head} from '@inertiajs/vue3';
+import {provide, ref} from 'vue';
 
 const openModal = ref(false);
+
+provide('navBtnType', 'applicationsPage');
 
 </script>
 
@@ -20,18 +20,11 @@ const openModal = ref(false);
             <div class="mx-auto bg-white rounded-xl shadow-md overflow-hidden w-5/6">
                 <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
-                        <Button @click="openModal = true">
-                            Open modal
-                        </Button>
-                        <Modal v-if="openModal" @close="openModal = false"
-                        >
-                            <template v-slot:modalTitle>Create new Deal</template>
-                        </Modal>
+                        <h1 class="text-2xl bold antialiased font-bold">Here is for applications</h1>
                     </div>
                 </div>
             </div>
         </div>
-
     </AuthenticatedLayout>
 </template>
 

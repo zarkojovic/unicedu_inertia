@@ -13,7 +13,9 @@
                                 <div class="sm:flex sm:items-start">
 
                                     <div class="mt-3 text-center  sm:mt-0 sm:text-left">
-                                        <DialogTitle as="h3" class="text-base font-semibold leading-6 text-gray-900"><slot name="modalTitle">Default Title</slot></DialogTitle>
+                                        <DialogTitle as="h3" class="text-base font-semibold leading-6 text-gray-900">
+                                            <slot name="modalTitle">Default Title</slot>
+                                        </DialogTitle>
                                         <div class="mt-2">
                                             <slot name="modalContent">Default Content</slot>
                                         </div>
