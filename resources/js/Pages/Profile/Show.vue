@@ -1,9 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import {Head} from '@inertiajs/vue3';
-import UpdatePasswordForm from "@/Pages/Profile/Partials/UpdatePasswordForm.vue";
-import UpdateProfileInformationForm from "@/Pages/Profile/Partials/UpdateProfileInformationForm.vue";
-import DeleteUserForm from "@/Pages/Profile/Partials/DeleteUserForm.vue";
 import ProfileCard from "@/Organisms/ProfileCard.vue";
 import CategorySection from "@/Organisms/CategorySection.vue";
 
@@ -22,7 +19,7 @@ defineProps({
     <AuthenticatedLayout>
 
 
-        <ProfileCard :email="email" :img="img" :csrfToken="csrfToken"/>
+        <ProfileCard :img="img"/>
 
 
         <CategorySection

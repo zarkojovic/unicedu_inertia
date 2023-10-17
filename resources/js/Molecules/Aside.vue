@@ -21,8 +21,8 @@ const logOutBtn = ref({
                 <SidebarLink v-for="(item,key) in pages" :key="key" :model-value="item"/>
 
                 <Link
-                    class="w-full flex items-center p-2 text-gray-900 hover:bg-orange-100 rounded-lg dark:text-white hover:text-orange-500 dark:hover:bg-gray-700 group transition"
-                    :href="route('logout')" method="post" as="button" type="button">Logout
+                    class="lg:hidden w-full flex items-center p-2 text-gray-900 hover:bg-orange-100 rounded-lg dark:text-white hover:text-orange-500 dark:hover:bg-gray-700 group transition"
+                    :href="route('logout')" method="post" as="button" type="button">Sign out
                 </Link>
             </ul>
 

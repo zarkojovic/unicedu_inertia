@@ -48,6 +48,7 @@ const formItems = inject('formItems');
 
 // Function to handle file upload
 const handleUpload = (event) => {
+    console.log(event.target.files[0])
     if (event.target.files[0]) {
         fileValue.value = event.target.files[0];
 
@@ -124,14 +125,16 @@ const clearFile = function () {
             <label :for="inputName" v-if="!upload" @mouseenter="handleHover" @mouseleave="handleMove"
                    class="py-3 px-6  rounded-lg  border border-gray-300 hover:bg-orange-500 hover:cursor-pointer hover:text-white hover:border-transparent transition">
                 <div>
-                    <span v-if="isReplace">Replace Document</span>
-                    <span v-else>Upload Document</span>
-                    <Transition
-                        enter-from-class=" opacity-0"
-                        leave-to-class="opacity-0"
-                    >
-                        <v-icon v-if="isHover" class="ms-2" name="pr-upload" fill="#FFF"/>
-                    </Transition>
+                    <span v-if="isReplace" class="justify-center">Replace Document</span>
+                    <span v-else class="">Upload Document</span>
+                    <v-icon class="ms-2 hidden" name="pr-upload" fill="#FFF"/>
+
+<!--                    <Transition-->
+<!--                        enter-from-class=" opacity-0"-->
+<!--                        leave-to-class="opacity-0"-->
+<!--                    >-->
+<!--                        <v-icon v-if="isHover" class="ms-2" name="pr-upload" fill="#FFF"/>-->
+<!--                    </Transition>-->
                 </div>
             </label>
             <label :for="inputName" v-else
@@ -157,7 +160,7 @@ const clearFile = function () {
                     class="ms-2"
                     :icon="'delete'"
                     :type="'danger'"
-                    @click="clearFile()"
+                    @click="clearFile"
                 ></Button>
             </Transition>
         </div>

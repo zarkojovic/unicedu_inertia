@@ -31,15 +31,11 @@ class UserController extends RootController
     public function show()
     {
         $user = Auth::user();
-        if ($user->role_id === 3) {
-            return redirect()->route("admin_home");
-        }
 
         $categoriesWithFields = FieldCategory::getAllCategoriesWithFields('/profile');
-        return Inertia::render("Profile/Show", [
+        return Inertia::render("Student/Profile", [
             'categoriesWithFields' => $categoriesWithFields,
-            "img" => asset("storage/profile/thumbnail/" . $user->profile_image),
-
+            "img" => asset("storage/profile/thumbnail/".$user->profile_image),
         ]);
     }
 
@@ -82,9 +78,11 @@ class UserController extends RootController
             try {
                 DB::beginTransaction();
 //            GETTING THE FIELD_ID BASE ON FIELD_NAME FROM REQUEST
-                $field_id = DB::table('fields')->select('field_name', 'title', 'field_id')->where('field_name', $value['field_name'])->first();
+                $field_id = DB::table('fields')->select('field_name', 'title', 'field_id')->where('field_name',
+                    $value['field_name'])->first();
 //            CHECKING IF THE INFO ALREADY EXISTS IN TABLE
-                $user_info = UserInfo::where("user_id", (int)$user->user_id)->where("field_id", (int)$field_id->field_id)->first();
+                $user_info = UserInfo::where("user_id", (int) $user->user_id)->where("field_id",
+                    (int) $field_id->field_id)->first();
 
 //                dd($value);
 
@@ -93,7 +91,6 @@ class UserController extends RootController
 
 //                GETTING THE INFO FROM FILE
                     $storeFile = $value['value'];
-
 
                     $extension = $storeFile->extension();
 
@@ -107,7 +104,7 @@ class UserController extends RootController
 //                        throw new Exception("'$fieldName' File must be pdf!");
                         session(['toast' => ['message' => "'$fieldName' File must be pdf!", 'type' => 'danger']]);
                         throw ValidationException::withMessages([
-                            'error' =>  "'$fieldName' File must be pdf!",
+                            'error' => "'$fieldName' File must be pdf!",
                         ]);
                     }
 
@@ -116,7 +113,7 @@ class UserController extends RootController
                         session(['toast' => ['message' => "File too big (5mb limit)!", 'type' => 'danger']]);
                         // The file is over 8MB (8 * 1024 * 1024 bytes)
                         throw ValidationException::withMessages([
-                            'error' =>  "File too big (5mb limit)!",
+                            'error' => "File too big (5mb limit)!",
                         ]);
                         // Handle the validation error or other actions here
                     }
@@ -134,8 +131,8 @@ class UserController extends RootController
 //                IF IT IS A FILE
                     if (isset($value['is_file']) && $value['is_file']) {
                         UserInfo::create([
-                            'user_id' => (int)$user->user_id,
-                            'field_id' => (int)$field_id->field_id,
+                            'user_id' => (int) $user->user_id,
+                            'field_id' => (int) $field_id->field_id,
                             'file_name' => $fileName,
                             'file_path' => $fileNewName
                         ]);
@@ -146,8 +143,8 @@ class UserController extends RootController
                         if (!empty($value) && $value !== 'null' && $value != 0) {
                             if (isset($value['label'])) {
                                 UserInfo::create([
-                                    'user_id' => (int)$user->user_id,
-                                    'field_id' => (int)$field_id->field_id,
+                                    'user_id' => (int) $user->user_id,
+                                    'field_id' => (int) $field_id->field_id,
                                     'value' => $value['value'],
                                     'display_value' => $value['label']
                                 ]);
@@ -156,8 +153,8 @@ class UserController extends RootController
                                     $value = ucfirst($value['value']);
                                 }
                                 UserInfo::create([
-                                    'user_id' => (int)$user->user_id,
-                                    'field_id' => (int)$field_id->field_id,
+                                    'user_id' => (int) $user->user_id,
+                                    'field_id' => (int) $field_id->field_id,
                                     'value' => $value,
                                 ]);
                             }
@@ -209,7 +206,7 @@ class UserController extends RootController
             } catch (\Exception $ex) {
                 http_response_code(501);
                 Log::errorLog($ex->getMessage(), Auth::user()->user_id);
-                return redirect()->back()->with(['toast' =>['message'=> $ex->getMessage(),'type'=>'danger']]);
+                return redirect()->back()->with(['toast' => ['message' => $ex->getMessage(), 'type' => 'danger']]);
             }
 
         }
@@ -224,14 +221,14 @@ class UserController extends RootController
             foreach ($deals as $key => $val) {
                 // Make API call to create the deal in Bitrix24
                 $res = CRest::call("crm.deal.update", [
-                    'ID' => (string)$key,
+                    'ID' => (string) $key,
                     'FIELDS' => $fields
                 ]);
 
                 if ($res['result']) {
-                    Log::apiLog('Deal ' . $key . ' successfully updated!');
+                    Log::apiLog('Deal '.$key.' successfully updated!');
                 } else {
-                    Log::errorLog('Failed to update deal ' . $key);
+                    Log::errorLog('Failed to update deal '.$key);
                 }
             }
 
@@ -295,16 +292,24 @@ class UserController extends RootController
 
         $uniqueString = Str::uuid()->toString();
         $currentDate = now()->format('Y-m-d');
-        $newFileName = $currentDate . '_' . $uniqueString . '.' . $fileExtension;
+        $newFileName = $currentDate.'_'.$uniqueString.'.'.$fileExtension;
 
         if (!Storage::exists($pathOriginal)) {
             Log::errorLog("Original folder path not found.", Auth::user()->user_id);
-            return to_route('home')->with(['toast' => ['message' => 'Saving image on the server failed.', 'type' => 'danger']]);
+            return to_route('home')->with([
+                'toast' => [
+                    'message' => 'Saving image on the server failed.', 'type' => 'danger'
+                ]
+            ]);
         }
         $moved = Storage::putFileAs($pathOriginal, $file, $newFileName);
         if (!$moved) {
             Log::errorLog("Failed to move profile image to original folder.", Auth::user()->user_id);
-            return to_route('home')->with(['toast' => ['message' => 'Saving image on the server failed.', 'type' => 'danger']]);
+            return to_route('home')->with([
+                'toast' => [
+                    'message' => 'Saving image on the server failed.', 'type' => 'danger'
+                ]
+            ]);
         }
 
         #MAKE SMALL IMAGES
@@ -312,17 +317,21 @@ class UserController extends RootController
             #THUMBNAIL
             $size = 150;
             $thumbnail = Image::make($file)->fit($size, $size, null, "top");
-            Storage::put($pathThumbnail . '/' . $newFileName, (string)$thumbnail->encode());
+            Storage::put($pathThumbnail.'/'.$newFileName, (string) $thumbnail->encode());
 
             #TINY
             $size = 35;
             $tinyImage = Image::make($file)->fit($size, $size, null, "top");
-            Storage::put($pathTiny . '/' . $newFileName, (string)$tinyImage->encode());
+            Storage::put($pathTiny.'/'.$newFileName, (string) $tinyImage->encode());
 
         } catch (\Exception $e) {
             report($e);
             Log::errorLog("Failed to resize file image.", Auth::user()->user_id);
-            return to_route('home')->with(['toast' => ['message' => 'An error occurred while saving profile image.', 'type' => 'danger']]);
+            return to_route('home')->with([
+                'toast' => [
+                    'message' => 'An error occurred while saving profile image.', 'type' => 'danger'
+                ]
+            ]);
         }
 
         #INSERT INTO DATABASE
@@ -344,7 +353,11 @@ class UserController extends RootController
             if (!$user->save()) {
                 DB::rollback();
                 Log::errorLog("Profile image updating not saved.", Auth::user()->user_id);
-                return to_route('home')->with(['toast' => ['message' => 'An error occurred while saving profile image.', 'type' => 'danger']]);
+                return to_route('home')->with([
+                    'toast' => [
+                        'message' => 'An error occurred while saving profile image.', 'type' => 'danger'
+                    ]
+                ]);
             }
 
             $fieldId = Field::where('field_name', 'UF_CRM_1667336320092')->value('field_id');
@@ -353,7 +366,11 @@ class UserController extends RootController
             if (!$fieldId) {
                 DB::rollback();
                 Log::errorLog("Field id for 'UF_CRM_1667336320092' not found.", Auth::user()->user_id);
-                return to_route('home')->with(['toast' => ['message' => 'An error occurred while saving profile image.', 'type' => 'danger']]);
+                return to_route('home')->with([
+                    'toast' => [
+                        'message' => 'An error occurred while saving profile image.', 'type' => 'danger'
+                    ]
+                ]);
             }
 
             // Insert a row into the UserInfo table
@@ -385,7 +402,11 @@ class UserController extends RootController
         } catch (\Exception $e) {
             DB::rollback();
             Log::errorLog("Failed to update profile image.", Auth::user()->user_id);
-            return to_route('home')->with(['toast' => ['message' => 'An error occurred while saving profile image.', 'type' => 'danger']]);
+            return to_route('home')->with([
+                'toast' => [
+                    'message' => 'An error occurred while saving profile image.', 'type' => 'danger'
+                ]
+            ]);
         }
 
         #UF_CRM_1667336320092 - polje za sliku
@@ -410,7 +431,11 @@ class UserController extends RootController
 //            return "Error: " . $e->getMessage();
 //        }
 
-        return to_route('home')->with(['toast' => ['message' => 'Profile image updated successfully!', 'type' => 'success']]);
+        return to_route('home')->with([
+            'toast' => [
+                'message' => 'Profile image updated successfully!', 'type' => 'success'
+            ]
+        ]);
     }
 
     /**
@@ -423,18 +448,25 @@ class UserController extends RootController
 
     public function showUsers()
     {
-        $users = User::select('first_name', 'last_name', 'email', 'phone', 'email_verified_at', 'profile_image', 'contact_id', 'created_at', 'updated_at', 'user_id as id')->get();
+        $users = User::select('first_name', 'last_name', 'email', 'phone', 'email_verified_at', 'profile_image',
+            'contact_id', 'created_at', 'updated_at', 'user_id as id')->get();
         $columns = DB::getSchemaBuilder()->getColumnListing('users');
-        $columns = ['id', 'profile_image', 'first_name', 'last_name', 'email', 'phone', 'email_verified_at', 'contact_id', 'created_at', 'updated_at'];
-        return view("admin.table_data", ['pageTitle' => 'User', 'data' => $users, 'columns' => $columns, 'name' => 'Users']);
+        $columns = [
+            'id', 'profile_image', 'first_name', 'last_name', 'email', 'phone', 'email_verified_at', 'contact_id',
+            'created_at', 'updated_at'
+        ];
+        return view("admin.table_data",
+            ['pageTitle' => 'User', 'data' => $users, 'columns' => $columns, 'name' => 'Users']);
     }
 
     public function editUsers(string $id)
     {
-        $users = User::select('first_name', 'last_name', 'email_verified_at', 'profile_image', 'contact_id', 'created_at', 'phone', 'updated_at', "user_id as id")
+        $users = User::select('first_name', 'last_name', 'email_verified_at', 'profile_image', 'contact_id',
+            'created_at', 'phone', 'updated_at', "user_id as id")
             ->findOrFail($id);
         $history = Log::where('user_id', $id)->get();
-        return view('admin.users.edit', ['pageTitle' => 'User Info', 'history' => $history, 'data' => $users, 'name' => 'Users']);
+        return view('admin.users.edit',
+            ['pageTitle' => 'User Info', 'history' => $history, 'data' => $users, 'name' => 'Users']);
     }
 
     public function showMyApplications(Request $request)

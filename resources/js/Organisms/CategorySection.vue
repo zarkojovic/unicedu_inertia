@@ -20,17 +20,12 @@ const props = defineProps({
 const categoryFieldForm = ref(null);
 
 const formItems = ref({
-    formItems: {},
-    dropdown: {
-        label: 'Platinum',
-        value: null
-    }
+    formItems: {}
 })
 
 const form = useForm(formItems.value);
 
 provide('formItems', formItems);
-
 
 const submitForm = () => {
     form.dataValues = formItems.value;
@@ -57,9 +52,10 @@ const submitForm = () => {
             toast.add({
                 message: props.categoryInfo.category_name + ' category is updated!',
                 type: 'success'
-            })
+            });
+            formItems.value ={formItems: {}};
         },
-
+        preserveScroll : true,
     });
 
 
@@ -147,7 +143,7 @@ const submitForm = () => {
                             <DropdownInput
                                 v-else-if="field.type === 'enumeration'"
                                 :options="field.items"
-                                v-model="form.dropdown"
+                                :selected-item="field.value"
                                 :label="field.title"
                                 :input-name="field.field_name"
                             />
