@@ -2,34 +2,31 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\UploadedFile;
 use App\Models\Deal;
 use App\Models\Field;
 use App\Models\FieldCategory;
 use App\Models\Log;
-use App\Models\Page;
+use App\Models\User;
 use App\Models\UserInfo;
 use CRest;
+use Exception;
 use Illuminate\Http\Request;
-use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
-use Kafka0238\Crest\Src;
-use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Facades\Image;
-use Mockery\Exception;
+use Kafka0238\Crest\Src;
 
-class UserController extends RootController
-{
+class UserController extends RootController {
 
     /**
      * Display the specified resource.
      */
-    public function show()
-    {
+    public function show() {
         $user = Auth::user();
 
         $categoriesWithFields = FieldCategory::getAllCategoriesWithFields('/profile');
@@ -39,78 +36,93 @@ class UserController extends RootController
         ]);
     }
 
-
-    public function removeUserFile(Request $request)
-    {
+    public function removeUserFile(Request $request) {
         $user = Auth::user();
 
         $field_id = $request->field_id;
 
-        $info = UserInfo::where('field_id', $field_id)->where('user_id', $user->user_id)->first();
+        $info = UserInfo::where('field_id', $field_id)
+            ->where('user_id', $user->user_id)
+            ->first();
 
         if ($info) {
             if ($info->delete()) {
                 return response()->json(['message' => 'You removed this file!']);
-            } else {
+            }
+            else {
                 http_response_code(500);
                 return response()->json(['message' => 'Error occurred! File is not deleted!']);
             }
-        } else {
+        }
+        else {
             http_response_code(401);
             return response()->json(['message' => 'File not found!']);
         }
     }
 
+    public function updateUserInfo(Request $request) {
+        //        dd($request->all());
 
-    public function updateUserInfo(Request $request)
-    {
-
-//        dd($request->all());
-
-//        GET ALL OF THE DATA FROM REQUEST
+        //        GET ALL OF THE DATA FROM REQUEST
         $items = $request['formItems'];
-//        GET AUTH-ED USER FOR UPDATING HIS DATA
+        //        GET AUTH-ED USER FOR UPDATING HIS DATA
         $user = Auth::user();
 
-//        LOOPING THROUGH EACH ELEMENT IN REQUEST
+        //        LOOPING THROUGH EACH ELEMENT IN REQUEST
         foreach ($items as $key => $value) {
-
             try {
                 DB::beginTransaction();
-//            GETTING THE FIELD_ID BASE ON FIELD_NAME FROM REQUEST
-                $field_id = DB::table('fields')->select('field_name', 'title', 'field_id')->where('field_name',
-                    $value['field_name'])->first();
-//            CHECKING IF THE INFO ALREADY EXISTS IN TABLE
-                $user_info = UserInfo::where("user_id", (int) $user->user_id)->where("field_id",
-                    (int) $field_id->field_id)->first();
 
-//                dd($value);
+                //prebaci ovo gore i cuvaj u memoriji
 
-//            CHECKING IF THE REQUEST IS FILE
+                //            GETTING THE FIELD_ID BASE ON FIELD_NAME FROM REQUEST
+                $field_id = DB::table('fields')
+                    ->select('field_name', 'title', 'field_id')
+                    ->where('field_name',
+                        $value['field_name'])
+                    ->first();
+                //            CHECKING IF THE INFO ALREADY EXISTS IN TABLE
+                $user_info = UserInfo::where("user_id", (int) $user->user_id)
+                    ->where("field_id",
+                        (int) $field_id->field_id)
+                    ->first();
+
+                //                dd($value);
+
+                //            CHECKING IF THE REQUEST IS FILE
                 if ($value['value'] instanceof UploadedFile) {
-
-//                GETTING THE INFO FROM FILE
+                    //                GETTING THE INFO FROM FILE
                     $storeFile = $value['value'];
 
                     $extension = $storeFile->extension();
 
                     // Check if the file extension is 'pdf'
                     if ($extension !== 'pdf') {
-                        if ($field_id->title !== null) {
+                        if ($field_id->title !== NULL) {
                             $fieldName = $field_id->title;
-                        } else {
+                        }
+                        else {
                             $fieldName = $field_id->field_name;
                         }
-//                        throw new Exception("'$fieldName' File must be pdf!");
-                        session(['toast' => ['message' => "'$fieldName' File must be pdf!", 'type' => 'danger']]);
+                        //                        throw new Exception("'$fieldName' File must be pdf!");
+                        session([
+                            'toast' => [
+                                'message' => "'$fieldName' File must be pdf!",
+                                'type' => 'danger',
+                            ],
+                        ]);
                         throw ValidationException::withMessages([
                             'error' => "'$fieldName' File must be pdf!",
                         ]);
                     }
 
-
                     if ($storeFile->getSize() > 5 * 1024 * 1024) {
-                        session(['toast' => ['message' => "File too big (5mb limit)!", 'type' => 'danger']]);
+                        session([
+                            'toast' => [
+                                'message' => "File too big (5mb limit)!",
+                                'type' => 'danger',
+                            ],
+                        ]);
                         // The file is over 8MB (8 * 1024 * 1024 bytes)
                         throw ValidationException::withMessages([
                             'error' => "File too big (5mb limit)!",
@@ -120,35 +132,38 @@ class UserController extends RootController
 
                     $fileName = $storeFile->getClientOriginalName();
                     // Store the uploaded file
-                    $storedPath = $storeFile->store('profile/documents', 'public');
-//                GETTING THE NEW NAME OF FILE
+                    $storedPath = $storeFile->store('profile/documents',
+                        'public');
+                    //                GETTING THE NEW NAME OF FILE
                     $fileNewName = basename($storedPath);
                 }
                 //IF INFO DOESNT EXIST
                 $fieldCheck = Field::findOrFail($field_id->field_id);
 
                 if (!$user_info) {
-//                IF IT IS A FILE
+                    //                IF IT IS A FILE
                     if (isset($value['is_file']) && $value['is_file']) {
                         UserInfo::create([
                             'user_id' => (int) $user->user_id,
                             'field_id' => (int) $field_id->field_id,
                             'file_name' => $fileName,
-                            'file_path' => $fileNewName
+                            'file_path' => $fileNewName,
                         ]);
-                        Log::informationLog("User updated $key.", Auth::user()->user_id);
-                    } else {
-
-//                    IF IT'S NOT FILE
+                        Log::informationLog("User updated $key.",
+                            Auth::user()->user_id);
+                    }
+                    else {
+                        //                    IF IT'S NOT FILE
                         if (!empty($value) && $value !== 'null' && $value != 0) {
                             if (isset($value['label'])) {
                                 UserInfo::create([
                                     'user_id' => (int) $user->user_id,
                                     'field_id' => (int) $field_id->field_id,
                                     'value' => $value['value'],
-                                    'display_value' => $value['label']
+                                    'display_value' => $value['label'],
                                 ]);
-                            } else {
+                            }
+                            else {
                                 if (is_string($value['value'])) {
                                     $value = ucfirst($value['value']);
                                 }
@@ -158,103 +173,124 @@ class UserController extends RootController
                                     'value' => $value,
                                 ]);
                             }
-                            Log::informationLog("User updated $key.", Auth::user()->user_id);
+                            Log::informationLog("User updated $key.",
+                                Auth::user()->user_id);
                         }
                     }
-                } else {
-//                IF ITS AN UPDATING
+                }
+                else {
+                    //                IF ITS AN UPDATING
                     if ($value['value'] instanceof UploadedFile) {
                         #REMOVE OLD IMAGE FROM FOLDERS
                         $oldProfileImage = $user_info->file_path;
 
-//                        dd($oldProfileImage);
+                        //                        dd($oldProfileImage);
 
                         Storage::delete([
-                            "public/profile/documents/$oldProfileImage"
+                            "public/profile/documents/$oldProfileImage",
                         ]);
 
-//                    UPDATE INFO
+                        //                    UPDATE INFO
                         $user_info->file_name = $fileName;
                         $user_info->file_path = $fileNewName;
                         $user_info->save();
-                    } else {
+                    }
+                    else {
                         if (!empty($value)) {
                             if ($value['value'] != 0 && $value['value'] !== 'null') {
                                 if (isset($value['label'])) {
                                     $user_info->value = $value['value'];
                                     $user_info->display_value = $value['label'];
-                                } else {
+                                }
+                                else {
                                     if (is_string($value['value'])) {
                                         $value = ucfirst($value['value']);
                                     }
                                     $user_info->value = $value;
                                 }
-                            } else {
-                                $user_info->value = null;
-                                $user_info->display_value = null;
+                            }
+                            else {
+                                $user_info->value = NULL;
+                                $user_info->display_value = NULL;
                             }
                             $user_info->save();
-                        } else {
-                            $user_info->value = null;
-                            $user_info->display_value = null;
+                        }
+                        else {
+                            $user_info->value = NULL;
+                            $user_info->display_value = NULL;
                             $user_info->save();
-                            session(['toast' => ['message' => "Field Category updated!!", 'type' => 'success']]);
+                            session([
+                                'toast' => [
+                                    'message' => "Field Category updated!!",
+                                    'type' => 'success',
+                                ],
+                            ]);
                         }
                     }
                 }
                 DB::commit();
-            } catch (\Exception $ex) {
+            }
+            catch (Exception $ex) {
                 http_response_code(501);
                 Log::errorLog($ex->getMessage(), Auth::user()->user_id);
-                return redirect()->back()->with(['toast' => ['message' => $ex->getMessage(), 'type' => 'danger']]);
+                return redirect()
+                    ->back()
+                    ->with([
+                        'toast' => [
+                            'message' => $ex->getMessage(),
+                            'type' => 'danger',
+                        ],
+                    ]);
             }
-
         }
 
-
-        $deals = Deal::where('user_id', $user->user_id)->pluck('user_id', 'bitrix_deal_id')->toArray();
+        $deals = Deal::where('user_id', $user->user_id)
+            ->pluck('user_id', 'bitrix_deal_id')
+            ->toArray();
 
         if (count($deals) > 0) {
-
             $fields = User::getAllUserFieldsValue();
 
             foreach ($deals as $key => $val) {
-                // Make API call to create the deal in Bitrix24
+                // Make API call t*3o create the deal in Bitrix24
                 $res = CRest::call("crm.deal.update", [
                     'ID' => (string) $key,
-                    'FIELDS' => $fields
+                    'FIELDS' => $fields,
                 ]);
 
                 if ($res['result']) {
                     Log::apiLog('Deal '.$key.' successfully updated!');
-                } else {
+                }
+                else {
                     Log::errorLog('Failed to update deal '.$key);
                 }
             }
-
         }
-
     }
 
-    public function getUserInfo()
-    {
+    public function getUserInfo() {
         $user = Auth::user();
         $info = Db::table("user_infos")
             ->selectRaw("`field_id`, `value`, `display_value`, `file_name`,`file_path`")
             ->where("user_id", $user->user_id)
-            ->groupBy("field_id", "value", "display_value", "file_name", 'file_path')
+            ->groupBy("field_id", "value", "display_value", "file_name",
+                'file_path')
             ->get();
 
         echo json_encode($info);
     }
 
-    public function updateImage(Request $request)
-    {
+    public function updateImage(Request $request) {
         #INPUTS
         if (!$request->hasFile('profileImage')) {
-            return to_route('home')->with(['toast' => ['message' => 'No file uploaded.', 'type' => 'danger']]);
+            return to_route('home')->with([
+                'toast' => [
+                    'message' => 'No file uploaded.',
+                    'type' => 'danger',
+                ],
+            ]);
         }
-//            return Inertia::render("404");
+        //            return Inertia::render("404");
 
         $pathOriginal = "public/profile/original";
         $pathThumbnail = "public/profile/thumbnail";
@@ -282,9 +318,15 @@ class UserController extends RootController
         }
 
         if (!empty($errors)) {
-            $errorMessages = implode('\n', $errors); // Concatenate error messages
+            $errorMessages = implode('\n',
+                $errors); // Concatenate error messages
             Log::errorLog("Bad file for profile image.", Auth::user()->user_id);
-            return to_route("home")->with(['toast' => ['message' => $errorMessages, 'type' => 'danger']]);
+            return to_route("home")->with([
+                'toast' => [
+                    'message' => $errorMessages,
+                    'type' => 'danger',
+                ],
+            ]);
         }
 
         #QUESTION: DA LI SU OVDE PRISTUPACNE SLIKE? DA LI MOGU DA SE PRIKAZU IZ STORAGEA? MOZDA MORA SOFTLINK...
@@ -295,20 +337,24 @@ class UserController extends RootController
         $newFileName = $currentDate.'_'.$uniqueString.'.'.$fileExtension;
 
         if (!Storage::exists($pathOriginal)) {
-            Log::errorLog("Original folder path not found.", Auth::user()->user_id);
+            Log::errorLog("Original folder path not found.",
+                Auth::user()->user_id);
             return to_route('home')->with([
                 'toast' => [
-                    'message' => 'Saving image on the server failed.', 'type' => 'danger'
-                ]
+                    'message' => 'Saving image on the server failed.',
+                    'type' => 'danger',
+                ],
             ]);
         }
         $moved = Storage::putFileAs($pathOriginal, $file, $newFileName);
         if (!$moved) {
-            Log::errorLog("Failed to move profile image to original folder.", Auth::user()->user_id);
+            Log::errorLog("Failed to move profile image to original folder.",
+                Auth::user()->user_id);
             return to_route('home')->with([
                 'toast' => [
-                    'message' => 'Saving image on the server failed.', 'type' => 'danger'
-                ]
+                    'message' => 'Saving image on the server failed.',
+                    'type' => 'danger',
+                ],
             ]);
         }
 
@@ -316,21 +362,25 @@ class UserController extends RootController
         try {
             #THUMBNAIL
             $size = 150;
-            $thumbnail = Image::make($file)->fit($size, $size, null, "top");
-            Storage::put($pathThumbnail.'/'.$newFileName, (string) $thumbnail->encode());
+            $thumbnail = Image::make($file)->fit($size, $size, NULL, "top");
+            Storage::put($pathThumbnail.'/'.$newFileName,
+                (string) $thumbnail->encode());
 
             #TINY
             $size = 35;
-            $tinyImage = Image::make($file)->fit($size, $size, null, "top");
-            Storage::put($pathTiny.'/'.$newFileName, (string) $tinyImage->encode());
-
-        } catch (\Exception $e) {
+            $tinyImage = Image::make($file)->fit($size, $size, NULL, "top");
+            Storage::put($pathTiny.'/'.$newFileName,
+                (string) $tinyImage->encode());
+        }
+        catch (Exception $e) {
             report($e);
-            Log::errorLog("Failed to resize file image.", Auth::user()->user_id);
+            Log::errorLog("Failed to resize file image.",
+                Auth::user()->user_id);
             return to_route('home')->with([
                 'toast' => [
-                    'message' => 'An error occurred while saving profile image.', 'type' => 'danger'
-                ]
+                    'message' => 'An error occurred while saving profile image.',
+                    'type' => 'danger',
+                ],
             ]);
         }
 
@@ -352,24 +402,29 @@ class UserController extends RootController
             $user->profile_image = $newFileName;
             if (!$user->save()) {
                 DB::rollback();
-                Log::errorLog("Profile image updating not saved.", Auth::user()->user_id);
+                Log::errorLog("Profile image updating not saved.",
+                    Auth::user()->user_id);
                 return to_route('home')->with([
                     'toast' => [
-                        'message' => 'An error occurred while saving profile image.', 'type' => 'danger'
-                    ]
+                        'message' => 'An error occurred while saving profile image.',
+                        'type' => 'danger',
+                    ],
                 ]);
             }
 
-            $fieldId = Field::where('field_name', 'UF_CRM_1667336320092')->value('field_id');
-//                $imageContent = Storage::get($pathOriginal.'/'.$newFileName);
+            $fieldId = Field::where('field_name', 'UF_CRM_1667336320092')
+                ->value('field_id');
+            //                $imageContent = Storage::get($pathOriginal.'/'.$newFileName);
 
             if (!$fieldId) {
                 DB::rollback();
-                Log::errorLog("Field id for 'UF_CRM_1667336320092' not found.", Auth::user()->user_id);
+                Log::errorLog("Field id for 'UF_CRM_1667336320092' not found.",
+                    Auth::user()->user_id);
                 return to_route('home')->with([
                     'toast' => [
-                        'message' => 'An error occurred while saving profile image.', 'type' => 'danger'
-                    ]
+                        'message' => 'An error occurred while saving profile image.',
+                        'type' => 'danger',
+                    ],
                 ]);
             }
 
@@ -393,19 +448,23 @@ class UserController extends RootController
                 ]);
             }
 
-//                DB::rollback();
-//                Log::errorLog("Photo in User Info table not updated.", Auth::user()->user_id);
-//                return redirect()->route('profile')->with(["errors" => ['An error occurred while saving profile image.']]);
+            //                DB::rollback();
+            //                Log::errorLog("Photo in User Info table not updated.", Auth::user()->user_id);
+            //                return redirect()->route('profile')->with(["errors" => ['An error occurred while saving profile image.']]);
 
-            Log::informationLog("Profile image updated.", Auth::user()->user_id);
+            Log::informationLog("Profile image updated.",
+                Auth::user()->user_id);
             DB::commit();
-        } catch (\Exception $e) {
+        }
+        catch (Exception $e) {
             DB::rollback();
-            Log::errorLog("Failed to update profile image.", Auth::user()->user_id);
+            Log::errorLog("Failed to update profile image.",
+                Auth::user()->user_id);
             return to_route('home')->with([
                 'toast' => [
-                    'message' => 'An error occurred while saving profile image.', 'type' => 'danger'
-                ]
+                    'message' => 'An error occurred while saving profile image.',
+                    'type' => 'danger',
+                ],
             ]);
         }
 
@@ -413,78 +472,93 @@ class UserController extends RootController
         #6533 - DEAL ID
 
         #IF UPDATED IN DATABASE, UPDATE IN BITRIX24
-//        try {
-//            $imageContent = Storage::get($pathOriginal.'/'.$newFileName);
-//
-//            CRest::call("crm.deal.update", [
-//                'id' => '6533',//test deal
-//                'fields' => [
-//                    'UF_CRM_1667336320092' => [
-//                        'fileData' => [
-//                            $newFileName,
-//                            base64_encode($imageContent)
-//                        ]
-//                    ]
-//                ]
-//            ]);
-//        } catch (\Exception $e) {
-//            return "Error: " . $e->getMessage();
-//        }
+        //        try {
+        //            $imageContent = Storage::get($pathOriginal.'/'.$newFileName);
+        //
+        //            CRest::call("crm.deal.update", [
+        //                'id' => '6533',//test deal
+        //                'fields' => [
+        //                    'UF_CRM_1667336320092' => [
+        //                        'fileData' => [
+        //                            $newFileName,
+        //                            base64_encode($imageContent)
+        //                        ]
+        //                    ]
+        //                ]
+        //            ]);
+        //        } catch (\Exception $e) {
+        //            return "Error: " . $e->getMessage();
+        //        }
 
         return to_route('home')->with([
             'toast' => [
-                'message' => 'Profile image updated successfully!', 'type' => 'success'
-            ]
+                'message' => 'Profile image updated successfully!',
+                'type' => 'success',
+            ],
         ]);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
-    {
+    public function destroy(string $id) {
         //
     }
 
-    public function showUsers()
-    {
-        $users = User::select('first_name', 'last_name', 'email', 'phone', 'email_verified_at', 'profile_image',
+    public function showUsers() {
+        $users = User::select('first_name', 'last_name', 'email', 'phone',
+            'email_verified_at', 'profile_image',
             'contact_id', 'created_at', 'updated_at', 'user_id as id')->get();
         $columns = DB::getSchemaBuilder()->getColumnListing('users');
         $columns = [
-            'id', 'profile_image', 'first_name', 'last_name', 'email', 'phone', 'email_verified_at', 'contact_id',
-            'created_at', 'updated_at'
+            'id',
+            'profile_image',
+            'first_name',
+            'last_name',
+            'email',
+            'phone',
+            'email_verified_at',
+            'contact_id',
+            'created_at',
+            'updated_at',
         ];
         return view("admin.table_data",
-            ['pageTitle' => 'User', 'data' => $users, 'columns' => $columns, 'name' => 'Users']);
+            [
+                'pageTitle' => 'User',
+                'data' => $users,
+                'columns' => $columns,
+                'name' => 'Users',
+            ]);
     }
 
-    public function editUsers(string $id)
-    {
-        $users = User::select('first_name', 'last_name', 'email_verified_at', 'profile_image', 'contact_id',
+    public function editUsers(string $id) {
+        $users = User::select('first_name', 'last_name', 'email_verified_at',
+            'profile_image', 'contact_id',
             'created_at', 'phone', 'updated_at', "user_id as id")
             ->findOrFail($id);
         $history = Log::where('user_id', $id)->get();
         return view('admin.users.edit',
-            ['pageTitle' => 'User Info', 'history' => $history, 'data' => $users, 'name' => 'Users']);
+            [
+                'pageTitle' => 'User Info',
+                'history' => $history,
+                'data' => $users,
+                'name' => 'Users',
+            ]);
     }
 
-    public function showMyApplications(Request $request)
-    {
+    public function showMyApplications(Request $request) {
         $user = Auth::user();
         $userDeals = Deal::where('user_id', $user->user_id)
             ->where('active', 1)
             ->get();
         $showModal = $request->input('showModal');
 
-
         // Return a view with the user's deals
         return view('student.applications', [
             'userDeals' => $userDeals, // User-specific deals data
-            'showModal' => $showModal
+            'showModal' => $showModal,
         ]);
     }
-
 
 }
 

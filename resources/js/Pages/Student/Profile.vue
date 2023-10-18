@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import {Head} from '@inertiajs/vue3';
 import ProfileCard from '@/Organisms/ProfileCard.vue';
 import CategorySection from '@/Organisms/CategorySection.vue';
+import {provide} from 'vue';
 
 defineProps({
     img: String,
@@ -11,7 +12,7 @@ defineProps({
     },
 });
 
-// pr/ovide('navBtnType', 'Testingg');
+provide('navBtnType', 'studentProfile');
 
 </script>
 

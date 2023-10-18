@@ -1,9 +1,10 @@
 <script setup>
-import {defineProps, inject, onMounted, ref} from 'vue';
+import {defineProps, inject, onMounted, provide, ref} from 'vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import {Link, usePage} from '@inertiajs/vue3';
 import Button from '@/Atoms/Button.vue';
 import Modal from '@/Molecules/Modal.vue';
+import FieldsForm from '@/Molecules/FieldsForm.vue';
 
 const page = usePage();
 
@@ -19,7 +20,13 @@ const openModal = ref(false);
 
 const navIcon = ref(null);
 
-const navBtnType = inject('navBtnType', ref('studentProfile'));
+const navBtnType = inject('navBtnType', ref(''));
+
+const formItems = ref({
+    formItems: {},
+});
+
+provide('formItems', formItems);
 
 onMounted(() => {
     document.addEventListener('click', (e) => {
@@ -56,25 +63,35 @@ onMounted(() => {
                     </a>
                 </div>
                 <div class="flex">
+
                     <Link v-if="navBtnType === 'studentProfile'" :href="route('applications')">
                         <Button :type="'primary'" class="me-3">
                             Apply Now
                         </Button>
                     </Link>
+
                     <div v-else-if="navBtnType === 'applicationsPage'">
                         <Button class="me-3" @click="openModal = true">
                             Open modal
                         </Button>
                         <Modal v-if="openModal" @close="openModal = false">
-                            <template v-slot:modalTitle>Create new Deal</template>
+                            <template v-slot:modalTitle>
+                                <h2 class="text-lg">Add new application</h2>
+                            </template>
+                            <template v-slot:modalContent>
+                                <div class="grid col-span-2  grid-cols-2 sm:grid-cols-2 gap-4">
+                                    <FieldsForm :items="page.props.sidebar_fields"/>
+                                </div>
+                            </template>
                         </Modal>
                     </div>
+
                     <div class="hidden lg:block">
                         <button ref="navIcon"
                                 class="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
                                 type="button"
                                 @click="toggleUserMenu">
-                            <img alt="user photo" class="w-8 h-8 rounded-full" src="{{ page.props.auth.img }}">
+                            <img :src="page.props.auth.img " alt="user photo" class="w-8 h-8 rounded-full">
                         </button>
                     </div>
                 </div>
