@@ -22,7 +22,7 @@ class AdminMiddleware
             return $next($request); // User has the "admin" role, allow access
         }
 //        // Redirect or respond with an error message for unauthorized users
-        return redirect()->route('home')->with(['toast' => ['message' => 'You are not allowed to be here!', 'type' => 'danger']]);
+        return redirect()->route('home');//->with(['toast' => ['message' => 'You are not allowed to be here!', 'type' => 'danger']]);
 
     }
 }
