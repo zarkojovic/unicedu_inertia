@@ -17,6 +17,12 @@ class FieldCategory extends Model {
         'category_name',
     ];
 
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d',
+        'updated_at' => 'datetime:Y-m-d',
+        'is_visible' => 'boolean',
+    ];
+
     public static function getAllDealFields() {
         $fields = DB::table('fields')
             ->where('fields.field_category_id', '4')
@@ -97,7 +103,7 @@ class FieldCategory extends Model {
                 DB::raw('COALESCE(user_infos.file_name, "") as file_name'),
                 DB::raw('COALESCE(user_infos.file_path, "") as file_path')
             )
-            ->get()->toArray();
+            ->orderBy('order', 'asc')->get()->toArray();
 
         for ($i = 0; $i < count($fields); $i++) {
             if ($fields[$i]->type == 'enumeration') {

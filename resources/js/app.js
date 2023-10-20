@@ -17,6 +17,7 @@ createInertiaApp({
         import.meta.glob('./Pages/**/*.vue')),
     setup({el, App, props, plugin}) {
         const captchaKey = props.initialPage.props.recaptcha_site_key;
+        
         return createApp({render: () => h(App, props)}).
             use(plugin).
             component('v-icon', OhVueIcon).
@@ -35,7 +36,7 @@ createInertiaApp({
         delay: 250,
 
         // The color of the progress bar...
-        color: '#fcb822',
+        color: '#4c5a9a',
 
         // Whether to include the default NProgress styles...
         includeCSS: true,

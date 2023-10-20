@@ -1,6 +1,17 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import {Head} from '@inertiajs/vue3';
+import ModelDataDisplay from '@/Organisms/ModelDataDisplay.vue';
+
+const props = defineProps({
+    data: {
+        type: Array,
+    },
+    columns: {
+        type: Array,
+    },
+});
+
 </script>
 
 <template>
@@ -12,10 +23,9 @@ import {Head} from '@inertiajs/vue3';
 
         <div class="mt-20">
             <div class="mx-auto bg-white rounded-xl shadow-md overflow-hidden w-5/6">
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-gray-900 dark:text-gray-100">
-                        <h1 class="text-2xl bold antialiased font-bold">Admin Dashboard</h1>
-                    </div>
+                <div class="bg-white overflow-hidden dark:bg-gray-800  shadow-sm sm:rounded-lg">
+                    <ModelDataDisplay :columns="props.columns" :data="props.data"
+                                      section-title="Fields Categories"/>
                 </div>
             </div>
         </div>

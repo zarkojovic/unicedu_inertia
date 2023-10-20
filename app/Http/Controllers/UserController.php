@@ -30,6 +30,9 @@ class UserController extends RootController {
         $user = Auth::user();
 
         $categoriesWithFields = FieldCategory::getAllCategoriesWithFields('/profile');
+        if ($user->role_id === 3) {
+            return redirect()->route('admin_home');
+        }
         return Inertia::render("Student/Profile", [
             'categoriesWithFields' => $categoriesWithFields,
             "img" => asset("storage/profile/thumbnail/".$user->profile_image),
@@ -505,10 +508,8 @@ class UserController extends RootController {
         //
     }
 
-    public function showUsers() {
-        $users = User::select('first_name', 'last_name', 'email', 'phone',
-            'email_verified_at', 'profile_image',
-            'contact_id', 'created_at', 'updated_at', 'user_id as id')->get();
+    public function showUser() {
+        $users = User::paginate(10);
         $columns = DB::getSchemaBuilder()->getColumnListing('users');
         $columns = [
             'id',
@@ -522,12 +523,10 @@ class UserController extends RootController {
             'created_at',
             'updated_at',
         ];
-        return view("admin.table_data",
+        return Inertia::render("Admin/Application/Show",
             [
-                'pageTitle' => 'User',
                 'data' => $users,
                 'columns' => $columns,
-                'name' => 'Users',
             ]);
     }
 

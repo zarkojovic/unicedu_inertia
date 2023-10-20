@@ -18,17 +18,17 @@ class Recaptcha implements ValidationRule {
         mixed $value,
         Closure $fail
     ): void {
-        $endpoint = config('services.google_recaptcha');
+        $endpoint = config('services.recaptcha');
 
         $response = Http::asForm()->post($endpoint['url'], [
             'secret' => $endpoint['secret_key'],
             'response' => $value,
         ])->json();
 
-        if ($response['success'] && $response['score'] > 0.5) {
+        if (!$response['success'] || !$response['score'] > 0.5) {
+            session(['toast' => ['message' => 'failed to authenticate'.$response]]);
+            $fail('You are not a valid user!');
         }
-
-        return redirect();
     }
 
 }

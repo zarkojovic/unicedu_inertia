@@ -13,6 +13,12 @@ class Page extends Model {
 
     protected $primaryKey = 'page_id';
 
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d',
+        'updated_at' => 'datetime:Y-m-d',
+        'is_editable' => 'boolean',
+    ];
+
     protected $fillable = [
         'route',
         'title',
@@ -26,8 +32,7 @@ class Page extends Model {
             ->get();
     }
 
-    public function categories(
-    ): BelongsToMany {
+    public function categories(): BelongsToMany {
         return $this->belongsToMany(FieldCategory::class,
             'field_category_page');
     }

@@ -17,13 +17,14 @@ defineProps({
 const form = useForm({
     email: '',
     password: '',
-    // captcha_token: null,
+    recaptcha: '',
 });
 //
 const {executeRecaptcha, recaptchaLoaded} = useReCaptcha();
+
 const recaptcha = async () => {
     await recaptchaLoaded();
-    form.captcha_token = await executeRecaptcha('login');
+    form.recaptcha = await executeRecaptcha('login');
     submit();
 };
 
@@ -33,7 +34,7 @@ const submit = () => {
         preserveScroll: true,
     });
 };
-
+//
 
 </script>
 
@@ -69,7 +70,7 @@ const submit = () => {
                     :input-name="'password'"
                     :label="'Password'"
                     :type="'password'"
-                    @keyup.enter="submit"
+                    @keyup.enter="recaptcha"
                 />
             </div>
 
@@ -80,7 +81,7 @@ const submit = () => {
                     :disabled="form.processing"
                     :type="'primary'"
                     :width="100"
-                    @click="submit"
+                    @click="recaptcha"
                 >
                     Log in
                 </Button>
