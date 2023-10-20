@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Models\Field;
@@ -52,10 +53,11 @@ Route::middleware('auth')->group(function () {
         //EDIT IMAGE
         Route::match(['post', 'put', 'patch'], '/image/edit', [UserController::class, 'updateImage'])->name("user.image.update");
 
-        Route::middleware('admin')->group(function (){
-           Route::get('/admin',function (){
-              echo 'alooe';
-           });
+        Route::middleware('admin')->prefix("admin")->group(function (){
+//            Route::get('/fields',function (){
+//                return Inertia::render('Admin/Fields');
+//            });
+            Route::get('/fields', [AdminController::class, "home"]);
         });
 
     });

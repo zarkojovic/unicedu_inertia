@@ -7,6 +7,8 @@ use App\Models\FieldCategory;
 use App\Models\Log;
 use App\Models\Page;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use function Termwind\render;
 
 class AdminController extends RootController
 {
@@ -15,7 +17,11 @@ class AdminController extends RootController
         $categories = FieldCategory::all();
         //$fields = Field::where('is_active', '1')->get();//->where('order', '<>', NULL)
         $sortedFields = Field::where('is_active', '1')->orderBy("order", "asc")->get();
-        return view("admin.fields", ["fields" => $sortedFields, "categories" => $categories]);
+        return Inertia::render("Admin/Fields", [
+            "fields" => $sortedFields,
+            "categories" => $categories
+        ]);
+//        return view("admin.fields", ["fields" => $sortedFields, "categories" => $categories]);
     }
 
     public function fieldSelect()
