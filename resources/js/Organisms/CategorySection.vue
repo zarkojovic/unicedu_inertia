@@ -1,27 +1,25 @@
 <script setup>
 
 import toast from '@/Stores/toast.js';
-import Button from "@/Atoms/Button.vue";
-import {onMounted, provide, ref} from "vue";
-import GenericInput from "@/Atoms/GenericInput.vue";
-import FileInput from "@/Atoms/FileInput.vue";
-import DropdownInput from "@/Atoms/DropdownInput.vue";
-import DisplayInfo from "@/Atoms/DisplayInfo.vue";
-import {useForm} from "@inertiajs/vue3";
+import Button from '@/Atoms/Button.vue';
+import {provide, ref} from 'vue';
+import DisplayInfo from '@/Atoms/DisplayInfo.vue';
+import {useForm} from '@inertiajs/vue3';
+import FieldsForm from '@/Molecules/FieldsForm.vue';
 
 const display = ref(true);
 
 const props = defineProps({
     categoryInfo: {
-        type: Object
-    }
-})
+        type: Object,
+    },
+});
 
 const categoryFieldForm = ref(null);
 
 const formItems = ref({
-    formItems: {}
-})
+    formItems: {},
+});
 
 const form = useForm(formItems.value);
 
@@ -34,7 +32,7 @@ const submitForm = () => {
         display.value = !display.value;
         toast.add({
             message: 'No changes made.',
-            type: 'warning'
+            type: 'warning',
         });
         return;
     }
@@ -51,16 +49,14 @@ const submitForm = () => {
             display.value = !display.value;
             toast.add({
                 message: props.categoryInfo.category_name + ' category is updated!',
-                type: 'success'
+                type: 'success',
             });
-            formItems.value ={formItems: {}};
+            formItems.value = {formItems: {}};
         },
-        preserveScroll : true,
+        preserveScroll: true,
     });
 
-
     // console.log(arrayOfUpdateFields)
-
 
     // const formFields = document.querySelectorAll('.userFormField');
     //
@@ -84,17 +80,18 @@ const submitForm = () => {
     //     console.log(obj)
     // })
 
-
     // display.value = !display.value;
-}
+};
 </script>
 
 <template>
     <div class="bg-white rounded-3xl shadow-md mb-6">
         <div class="p-6">
             <div class="flex justify-between items-center">
-                <div class="font-bold text-neutral-800 text-sm sm:text-md md:text-lg mb-2">{{ props.categoryInfo.category_name }}</div>
-                <div class="flex" v-if="display">
+                <div class="font-bold text-neutral-800 text-sm sm:text-md md:text-lg mb-2">
+                    {{ props.categoryInfo.category_name }}
+                </div>
+                <div v-if="display" class="flex">
                     <Button
                         icon="edit"
                         @click="display = !display"
@@ -104,18 +101,18 @@ const submitForm = () => {
                 </div>
                 <div v-else>
                     <Button
-                        type="success"
-                        icon="save"
                         :disabled="form.processing"
+                        icon="save"
+                        type="success"
                         @click="submitForm"
                     >
                     </Button>
                     <Button
-                        type="danger"
-                        icon="close"
-                        class="ms-2"
-                        @click="display = !display"
                         :disabled="form.processing"
+                        class="ms-2"
+                        icon="close"
+                        type="danger"
+                        @click="display = !display"
                     >
                     </Button>
                 </div>
@@ -123,41 +120,12 @@ const submitForm = () => {
             <div class="grid grid-cols-3 sm:grid-cols-3 gap-4 mt-3">
                 <div class="grid col-span-2  grid-cols-2 sm:grid-cols-2 gap-4">
                     <DisplayInfo
-                        v-if="display"
                         v-for="(field,key) in props.categoryInfo.fields"
+                        v-if="display"
                         :key="key"
                         :field-info="field"
                     />
-                    <div v-else v-for="(field,key) in props.categoryInfo.fields" :key="field.field_name">
-
-                        <form ref="categoryFieldForm">
-                            <FileInput v-if="field.type === 'file'"
-                                       :key="key"
-                                       :label="field.title"
-                                       :input-name="field.field_name"
-                                       :input-id="field.field_name"
-                                       :is-category-field="true"
-                                       :valid-types="['application/pdf']"
-                            />
-
-                            <DropdownInput
-                                v-else-if="field.type === 'enumeration'"
-                                :options="field.items"
-                                :selected-item="field.value"
-                                :label="field.title"
-                                :input-name="field.field_name"
-                            />
-
-                            <GenericInput v-else
-                                          :type="field.type === 'string' ? 'text' : field.type"
-                                          :label="field.title"
-                                          :is_required="!!field.is_required"
-                                          v-model="field.value"
-                                          :is-category-field="true"
-                                          :input-name="field.field_name"
-                            />
-                        </form>
-                    </div>
+                    <FieldsForm v-else :items="props.categoryInfo.fields"/>
                 </div>
                 <!-- Third Column (Empty on smaller screens) -->
                 <div class="col-span-1 md:col-span-0">

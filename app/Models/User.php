@@ -4,16 +4,16 @@ namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\hasMany;
+use Illuminate\Database\Eloquent\Relations\hasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Contracts\Auth\CanResetPassword;
+use Laravel\Sanctum\HasApiTokens;
 
 //use Illuminate\Auth\Passwords\CanResetPassword;
-use Laravel\Sanctum\HasApiTokens;
-use App\Models\Role;
 
-class User extends Authenticatable implements MustVerifyEmail
-{
+class User extends Authenticatable implements MustVerifyEmail {
+
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
@@ -30,7 +30,12 @@ class User extends Authenticatable implements MustVerifyEmail
     ];
 
     protected $visible = [
-        'email', 'first_name', 'last_name', 'user_id', 'phone'
+        'email',
+        'first_name',
+        'last_name',
+        'user_id',
+        'phone',
+        'profile_image',
     ];
 
     protected $fillable = [
@@ -64,27 +69,23 @@ class User extends Authenticatable implements MustVerifyEmail
 
     //Relationships
 
-    public function role(): \Illuminate\Database\Eloquent\Relations\hasOne
-    {
+    public function role(): hasOne {
         return $this->hasOne(Role::class, 'role_id');
     }
 
-    public function info(): \Illuminate\Database\Eloquent\Relations\hasMany
-    {
+    public function info(): hasMany {
         return $this->hasMany(UserInfo::class, 'user_id');
     }
 
-    public function package(): \Illuminate\Database\Eloquent\Relations\hasOne
-    {
+    public function package(): hasOne {
         return $this->hasONe(Package::class);
     }
 
-//    public function getUserById($id) {
-//        return $this->find($id);
-//    }
+    //    public function getUserById($id) {
+    //        return $this->find($id);
+    //    }
 
-    public function updateUser($id, $data)
-    {
+    public function updateUser($id, $data) {
         return $this->where('id', $id)->update($data);
     }
 

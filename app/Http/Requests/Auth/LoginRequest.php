@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Rules\Recaptcha;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -9,14 +10,13 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
-class LoginRequest extends FormRequest
-{
+class LoginRequest extends FormRequest {
+
     /**
      * Determine if the user is authorized to make this request.
      */
-    public function authorize(): bool
-    {
-        return true;
+    public function authorize(): bool {
+        return TRUE;
     }
 
     /**
@@ -24,11 +24,11 @@ class LoginRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\Rule|array|string>
      */
-    public function rules(): array
-    {
+    public function rules(): array {
         return [
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
+            'recaptcha' => [new Recaptcha()],
         ];
     }
 
@@ -37,18 +37,24 @@ class LoginRequest extends FormRequest
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function authenticate(): void
-    {
+    public function authenticate(): void {
         $this->ensureIsNotRateLimited();
 
-        if (!Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        if (!Auth::attempt($this->only('email', 'password'),
+            $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
-            session(['toast' => ['message' => __('auth.failed'), 'type' => 'danger']]);
+            session([
+                'toast' => [
+                    'message' => __('auth.failed'),
+                    'type' => 'danger',
+                ],
+            ]);
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
             ]);
-        }else{
+        }
+        else {
             $this->session()->forget('toast');
         }
 
@@ -60,8 +66,7 @@ class LoginRequest extends FormRequest
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function ensureIsNotRateLimited(): void
-    {
+    public function ensureIsNotRateLimited(): void {
         if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             return;
         }
@@ -81,8 +86,8 @@ class LoginRequest extends FormRequest
     /**
      * Get the rate limiting throttle key for the request.
      */
-    public function throttleKey(): string
-    {
-        return Str::transliterate(Str::lower($this->input('email')) . '|' . $this->ip());
+    public function throttleKey(): string {
+        return Str::transliterate(Str::lower($this->input('email')).'|'.$this->ip());
     }
+
 }

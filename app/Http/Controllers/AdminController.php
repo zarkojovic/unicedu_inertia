@@ -12,6 +12,10 @@ use function Termwind\render;
 
 class AdminController extends RootController
 {
+
+    public function show() {
+        return Inertia::render("Admin/Dashboard");
+    }
     public function home()
     {
         $categories = FieldCategory::all();

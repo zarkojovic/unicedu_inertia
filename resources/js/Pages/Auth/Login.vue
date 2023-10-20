@@ -2,10 +2,8 @@
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import Button from '@/Atoms/Button.vue';
 import {Head, Link, useForm} from '@inertiajs/vue3';
-import GenericInput from "@/Atoms/GenericInput.vue";
-import toast from '@/Stores/toast.js';
-import ListInput from "@/Atoms/ListInput.vue";
-import {ref} from "vue";
+import GenericInput from '@/Atoms/GenericInput.vue';
+import {useReCaptcha} from 'vue-recaptcha-v3';
 
 defineProps({
     canResetPassword: {
@@ -16,21 +14,27 @@ defineProps({
     },
 });
 
-
-
 const form = useForm({
     email: '',
     password: '',
-    remember: false,
-
+    recaptcha: '',
 });
+//
+const {executeRecaptcha, recaptchaLoaded} = useReCaptcha();
+
+const recaptcha = async () => {
+    await recaptchaLoaded();
+    form.recaptcha = await executeRecaptcha('login');
+    submit();
+};
 
 const submit = () => {
     form.post(route('login'), {
         onFinish: () => form.reset('password'),
+        preserveScroll: true,
     });
 };
-
+//
 
 </script>
 
@@ -46,27 +50,27 @@ const submit = () => {
             <h2 class="text-sm text-gray-400 text-center">Please enter your details</h2>
         </div>
 
-        <form @submit.prevent="submit" class="grid grid-cols-1 md:gap-x-8 gap-2 gap-y-4">
+        <form class="grid grid-cols-1 md:gap-x-8 gap-2 gap-y-4" @submit.prevent="recaptcha">
             <div>
                 <GenericInput
-                    :type="'email'"
-                    :label="'Email'"
                     v-model="form.email"
                     :error="form.errors.email"
-                    :input-name="'email'"
                     :input-id="'email'"
+                    :input-name="'email'"
+                    :label="'Email'"
+                    :type="'email'"
                 />
             </div>
 
             <div>
                 <GenericInput
-                    :input-name="'password'"
-                    :input-id="'password'"
-                    :type="'password'"
-                    :label="'Password'"
                     v-model="form.password"
                     :error="form.errors.password"
-                    @keyup.enter="submit"
+                    :input-id="'password'"
+                    :input-name="'password'"
+                    :label="'Password'"
+                    :type="'password'"
+                    @keyup.enter="recaptcha"
                 />
             </div>
 
@@ -75,15 +79,16 @@ const submit = () => {
                 <Button
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
-                    :width="100"
                     :type="'primary'"
-                    @click="submit"
+                    :width="100"
+                    @click="recaptcha"
                 >
                     Log in
                 </Button>
             </div>
         </form>
         <div class="mx-auto mt-2 w-max">
+
             <span class="text-sm">New to Poland Study? </span>
             <Link
                 :href="route('register')"
