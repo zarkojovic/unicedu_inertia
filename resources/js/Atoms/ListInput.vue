@@ -1,5 +1,5 @@
 <script setup>
-import {ref, defineProps, defineEmits} from 'vue';
+import {defineEmits, defineProps, onMounted, ref} from 'vue';
 
 const {
     label,
@@ -8,7 +8,7 @@ const {
     type,
     name,
     id,
-    is_required
+    is_required,
 } = defineProps(['label', 'items', 'modelValue', 'type', 'name', 'id', 'is_required']);
 
 const emits = defineEmits(['update:modelValue']);
@@ -23,32 +23,37 @@ const toggleSelection = (item) => {
         if (isChecked(item)) {
             selectedItems.value = selectedItems.value.filter((selectedItem) => selectedItem !== item);
         } else {
-            selectedItems.value.push(item);
+            // selectedItems.value = [];
+            selectedItems.value.push(item.field_category_id);
         }
     }
     emits('update:modelValue', selectedItems.value);
 };
+
+onMounted(() => {
+    console.log(items);
+});
 </script>
 
 
 <template>
     <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" v-if="label">{{ label }} <span
-            class="text-sm text-red-600" v-if="is_required">*</span></label>
+        <label v-if="label" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ label }} <span
+            v-if="is_required" class="text-sm text-red-600">*</span></label>
         <ul>
             <li v-for="(item, index) in items" :key="index">
                 <input
-                    :type="type === 'radio' ? 'radio' : 'checkbox'"
                     :id="name + '-' + index"
-                    :value="item"
-                    class="dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-orange-500 shadow-sm focus:ring-0 focus:ring-offset-0 transition ease-in-out"
+                    :checked="isChecked(item.field_category_id)"
                     :class="type === 'radio' ? 'rounded-full' : 'rounded'"
                     :name="type === 'radio' ? name : null"
-                    :checked="isChecked(item)"
+                    :type="type === 'radio' ? 'radio' : 'checkbox'"
+                    :value="item.field_category_id"
+                    class="dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-orange-500 shadow-sm focus:ring-0 focus:ring-offset-0 transition ease-in-out"
                     @change="toggleSelection(item)"
 
                 />
-                <label :for="'input-' + index" class="ms-2">{{ item }}</label>
+                <label :for="'input-' + index" class="ms-2">{{ item.category_name }}</label>
             </li>
         </ul>
         <p>Selected Items: {{ selectedItems.length > 0 ? selectedItems : '' }}</p>

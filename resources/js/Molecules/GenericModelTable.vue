@@ -10,6 +10,7 @@ const props = defineProps({
     },
     columns: {
         type: Array,
+        default: null,
     },
     isEditable: {
         type: Boolean,
@@ -22,11 +23,11 @@ const props = defineProps({
 });
 
 const formattedData = computed(() => {
-
+    if (props.columns === null) {
+        return props.data.data.map((obj) => Object.values(obj));
+    }
     return props.data.data.map((obj) => props.columns.map((colName) => obj[colName]));
 });
-
-
 </script>
 
 <template>
@@ -34,15 +35,15 @@ const formattedData = computed(() => {
         <thead
             class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
         <tr>
-            <th v-for="(column,index) in props.columns" :key="index" class="px-6 py-3"
+            <th v-for="(column,index) in props.columns" v-if="props.columns" :key="index" class="px-6 py-3"
                 scope="col">
                 {{ column }}
             </th>
-            <th v-if="props.isEditable"
+            <th v-if="props.isEditable && props.columns"
                 class="px-6 py-3" scope="col">
                 Edit
             </th>
-            <th v-if="props.isDeletable"
+            <th v-if="props.isDeletable && props.columns"
                 class="px-6 py-3" scope="col">
                 Delete
             </th>

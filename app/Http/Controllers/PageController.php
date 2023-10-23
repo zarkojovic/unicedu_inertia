@@ -129,9 +129,12 @@ class PageController extends Controller {
         //            fn($icon) => str_contains($icon, 'ti') && $icon != 'ti');
 
         // Fetch all roles and field categories
-        $roles = Role::all()->toArray();
-        $categories = FieldCategory::all();
+        $roles = Role::select('role_name',
+            'role_id')->get();
+        $categories = FieldCategory::select('category_name',
+            'field_category_id')->get();
 
+        //        dd($categories);
         // Return the edit view for inserting a new page with necessary data
         return Inertia::render('Admin/Page/Insert', [
             'roles' => $roles,            // All available roles
