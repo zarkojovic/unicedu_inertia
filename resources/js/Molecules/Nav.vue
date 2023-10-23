@@ -113,7 +113,7 @@ provide('formItems', formItems);
                   'group flex w-full items-center rounded-md px-2 py-2 text-sm',
                 ]"
                                     >
-                                        <Link :href="route('logout')" as="a"
+                                        <Link :href="route('logout')" as="button"
                                               method="post">
                                         <v-icon name="md-lockreset" class="mr-2 h-5 w-5"/>
                                         Change password
@@ -132,7 +132,7 @@ provide('formItems', formItems);
                   'group flex w-full items-center rounded-md px-2 py-2 text-sm',
                 ]"
                                     >
-                                        <Link :href="route('logout')" as="a"
+                                        <Link :href="route('logout')" as="button"
                                               method="post">
                                         <v-icon name="md-logout-outlined" class="mr-2 h-5 w-5"/>
                                         Sign out
