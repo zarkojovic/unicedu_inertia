@@ -1,24 +1,21 @@
 <script setup>
-import {defineProps, inject, onMounted, provide, ref} from 'vue';
+import {defineProps, inject, provide, ref} from 'vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import {Link, usePage} from '@inertiajs/vue3';
 import Button from '@/Atoms/Button.vue';
 import Modal from '@/Molecules/Modal.vue';
 import FieldsForm from '@/Molecules/FieldsForm.vue';
+import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue'
+import {addIcons} from "oh-vue-icons";
+import { MdLogoutOutlined, MdLockreset} from "oh-vue-icons/icons";
+addIcons(MdLogoutOutlined, MdLockreset);
+
 
 const page = usePage();
 
 const {toggleSidebar} = defineProps(['toggleSidebar']);
 
-const isUserMenuOpen = ref(false);
-
-const toggleUserMenu = () => {
-    isUserMenuOpen.value = !isUserMenuOpen.value;
-};
-
 const openModal = ref(false);
-
-const navIcon = ref(null);
 
 const navBtnType = inject('navBtnType', ref(''));
 
@@ -28,15 +25,7 @@ const formItems = ref({
 
 provide('formItems', formItems);
 
-onMounted(() => {
-    document.addEventListener('click', (e) => {
-        if (e.target === navIcon.value || e.target.parentNode === navIcon.value) {
-            return;
-        }
-        isUserMenuOpen.value = false;
-    });
 
-});
 
 </script>
 
@@ -62,64 +51,100 @@ onMounted(() => {
                         <span class="self-center text-md font-semibold sm:text-md whitespace-nowrap dark:text-white">Student Platform</span>
                     </a>
                 </div>
-                <div class="flex">
 
-                    <Link v-if="navBtnType === 'studentProfile'" :href="route('applications')">
-                        <Button :type="'primary'" class="me-3">
-                            Apply Now
-                        </Button>
-                    </Link>
+                <div class="flex justify-center">
+                <Link v-if="navBtnType === 'studentProfile'" :href="route('applications')">
+                    <Button :type="'primary'" class="me-3">
+                        Apply Now
+                    </Button>
+                </Link>
 
-                    <div v-else-if="navBtnType === 'applicationsPage'">
-                        <Button class="me-3" @click="openModal = true">
-                            Open modal
-                        </Button>
-                        <Modal v-if="openModal" @close="openModal = false">
-                            <template v-slot:modalTitle>
-                                <h2 class="text-lg">Add new application</h2>
-                            </template>
-                            <template v-slot:modalContent>
-                                <div class="grid col-span-2  grid-cols-2 sm:grid-cols-2 gap-4">
-                                    <FieldsForm :items="page.props.sidebar_fields"/>
-                                </div>
-                            </template>
-                        </Modal>
+                <div v-else-if="navBtnType === 'applicationsPage'">
+                    <Button class="me-3" @click="openModal = true">
+                        Open modal
+                    </Button>
+                    <Modal v-if="openModal" @close="openModal = false">
+                        <template v-slot:modalTitle>
+                            <h2 class="text-lg">Add new application</h2>
+                        </template>
+                        <template v-slot:modalContent>
+                            <div class="grid col-span-2  grid-cols-2 sm:grid-cols-2 gap-4">
+                                <FieldsForm :items="page.props.sidebar_fields"/>
+                            </div>
+                        </template>
+                    </Modal>
+                </div>
+
+                <Menu as="div" class="relative hidden lg:inline-block text-left justify-center">
+
+                    <div class="flex justify-center">
+                        <MenuButton
+                            class="inline-flex w-full justify-center text-sm font-medium text-white"
+                        >
+
+                            <img :src="page.props.auth.img " alt="user photo" class="w-8 h-8 rounded-full hover:ring-2 ring-orange-500 transition ease-in-out">
+
+                        </MenuButton>
                     </div>
 
-                    <div class="hidden lg:block">
-                        <button ref="navIcon"
-                                class="flex text-sm bg-gray-800 rounded-full focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
-                                type="button"
-                                @click="toggleUserMenu">
-                            <img :src="page.props.auth.img " alt="user photo" class="w-8 h-8 rounded-full">
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="flex">
-            <div v-if="isUserMenuOpen"
-                 class="z-50 right-10 absolute text-base list-none bg-white divide-y divide-gray-100 rounded shadow">
-                <div class="px-4 py-3">
-                    <p class="text-sm text-gray-900">
-                        {{ page.props.auth.user.first_name }} {{ page.props.auth.user.last_name }}
-                    </p>
-                    <p class="text-sm font-medium text-gray-900 truncate dark:text-gray-300" role="none">
-                        {{ page.props.auth.user.email }}
-                    </p>
-                </div>
-                <ul class="py-1" role="none">
-                    <li>
-                        <Link :href="route('logout')" as="button"
-                              class="flex w-full block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
-                              method="post"
-                              role="menuitem"
-                              type="button">
-                            Sign out
-                        </Link>
-                    </li>
+                    <transition
+                        enter-active-class="transition duration-100 ease-out"
+                        enter-from-class="transform scale-95 opacity-0"
+                        enter-to-class="transform scale-100 opacity-100"
+                        leave-active-class="transition duration-75 ease-in"
+                        leave-from-class="transform scale-100 opacity-100"
+                        leave-to-class="transform scale-95 opacity-0"
+                    >
+                        <MenuItems
+                            class="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                        >
+                            <div class="px-1 py-1 px-2 py-2">
+                                <p class="text-sm text-gray-900 mb-1">
+                                    {{ page.props.auth.user.first_name }} {{ page.props.auth.user.last_name }}
+                                </p>
+                                <p class="text-sm font-medium text-gray-400 leading-tight" role="none">
+                                    {{ page.props.auth.user.email }}
+                                </p>                            </div>
+                            <div class="px-1 py-1">
+                                <MenuItem v-slot="{ active }">
+                                    <button
+                                        :class="[
+                  active ? 'bg-orange-500 text-white' : 'text-gray-900',
+                  'group flex w-full items-center rounded-md px-2 py-2 text-sm',
+                ]"
+                                    >
+                                        <Link :href="route('logout')" as="a"
+                                              method="post">
+                                        <v-icon name="md-lockreset" class="mr-2 h-5 w-5"/>
+                                        Change password
+                                        </Link>
+                                    </button>
+                                </MenuItem>
 
-                </ul>
+                            </div>
+
+                            <div class="px-1 py-1">
+                                <MenuItem v-slot="{ active }">
+
+                                    <button
+                                        :class="[
+                  active ? 'bg-orange-500 text-white' : 'text-gray-900',
+                  'group flex w-full items-center rounded-md px-2 py-2 text-sm',
+                ]"
+                                    >
+                                        <Link :href="route('logout')" as="a"
+                                              method="post">
+                                        <v-icon name="md-logout-outlined" class="mr-2 h-5 w-5"/>
+                                        Sign out
+                                        </Link>
+                                    </button>
+                                </MenuItem>
+                            </div>
+                        </MenuItems>
+                    </transition>
+                </Menu>
+                </div>
+
             </div>
         </div>
     </nav>
