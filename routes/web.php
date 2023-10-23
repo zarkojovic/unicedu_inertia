@@ -50,7 +50,9 @@ Route::middleware('auth')->group(function() {
         Route::match(['post', 'put', 'patch'], '/image/edit',
             [UserController::class, 'updateImage'])->name("user.image.update");
 
+        //ADMIN
         Route::middleware('admin')->prefix('admin')->group(function() {
+            Route::get('/fields', [AdminController::class, "home"]);
             Route::get('/dashboard',
                 [AdminController::class, 'show'])->name('admin_home');
             //PAGES ROUTES
