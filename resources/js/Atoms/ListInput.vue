@@ -1,5 +1,5 @@
 <script setup>
-import {defineEmits, defineProps, onMounted, ref} from 'vue';
+import {computed, defineEmits, defineProps, ref} from 'vue';
 
 const {
     label,
@@ -9,7 +9,8 @@ const {
     name,
     id,
     is_required,
-} = defineProps(['label', 'items', 'modelValue', 'type', 'name', 'id', 'is_required']);
+    error,
+} = defineProps(['label', 'items', 'modelValue', 'type', 'name', 'id', 'is_required', 'error']);
 
 const emits = defineEmits(['update:modelValue']);
 const selectedItems = ref([...modelValue]);
@@ -24,14 +25,14 @@ const toggleSelection = (item) => {
             selectedItems.value = selectedItems.value.filter((selectedItem) => selectedItem !== item);
         } else {
             // selectedItems.value = [];
-            selectedItems.value.push(item.field_category_id);
+            selectedItems.value.push(item);
         }
     }
     emits('update:modelValue', selectedItems.value);
 };
 
-onMounted(() => {
-    console.log(items);
+const elementKey = computed(() => {
+    return Object.keys(items);
 });
 </script>
 
@@ -44,19 +45,19 @@ onMounted(() => {
             <li v-for="(item, index) in items" :key="index">
                 <input
                     :id="name + '-' + index"
-                    :checked="isChecked(item.field_category_id)"
+                    :checked="isChecked(elementKey[index - 1])"
                     :class="type === 'radio' ? 'rounded-full' : 'rounded'"
                     :name="type === 'radio' ? name : null"
                     :type="type === 'radio' ? 'radio' : 'checkbox'"
-                    :value="item.field_category_id"
+                    :value="elementKey[index - 1]"
                     class="dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-orange-500 shadow-sm focus:ring-0 focus:ring-offset-0 transition ease-in-out"
-                    @change="toggleSelection(item)"
-
+                    @change="toggleSelection(elementKey[index - 1])"
                 />
-                <label :for="'input-' + index" class="ms-2">{{ item.category_name }}</label>
+                <label :for="name +'-' + index" class="ms-2">{{ item }}</label>
             </li>
         </ul>
         <p>Selected Items: {{ selectedItems.length > 0 ? selectedItems : '' }}</p>
+        <p v-if="error" class=" text-sm text-red-500">{{ error }}</p>
     </div>
 </template>
 

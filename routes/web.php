@@ -58,6 +58,10 @@ Route::middleware('auth')->group(function() {
                 [PageController::class, 'showPageListView'])->name('showPage');
             Route::get('/pages/new', [PageController::class, 'createNewPage'])
                 ->name('createNewPage');
+            Route::post('/pages/insertNew',
+                [PageController::class, 'addNewPage'])
+                ->name('addNewPage');
+
             //CATEGORIES ROUTES
             Route::get('/categories',
                 [FieldCategoryController::class, 'showCategory'])

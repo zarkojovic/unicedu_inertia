@@ -129,12 +129,12 @@ class PageController extends Controller {
         //            fn($icon) => str_contains($icon, 'ti') && $icon != 'ti');
 
         // Fetch all roles and field categories
-        $roles = Role::select('role_name',
-            'role_id')->get();
-        $categories = FieldCategory::select('category_name',
-            'field_category_id')->get();
 
-        //        dd($categories);
+        $roles = Role::pluck('role_name', 'role_id'
+        )->toArray();
+        $categories = FieldCategory::pluck('category_name', 'field_category_id'
+        )->toArray();
+
         // Return the edit view for inserting a new page with necessary data
         return Inertia::render('Admin/Page/Insert', [
             'roles' => $roles,            // All available roles
@@ -250,11 +250,11 @@ class PageController extends Controller {
                 'title' => 'required|string|unique:pages',
                 'route' => [
                     'required',
-                    'string',
                     'unique:pages',
                     'regex:/^\/(?:[a-z0-9_]+\/)*[a-z0-9_]+$/',
                 ],
-                'icon' => 'required',
+                //                'icon' => 'required',
+                'roles' => 'required',
             ], [
                 'route.regex' => "Route must start with / and can contain characters, numbers, and '_'",
             ]);
@@ -268,11 +268,17 @@ class PageController extends Controller {
             $newPage = new Page();
             $newPage->title = $request->title;
             $newPage->route = $request->route;
-            $newPage->icon = $request->icon;
-            $newPage->role_id = $request->role_id;
+            $newPage->icon = 'ti ti-user';
+            $newPage->role_id = $request->roles;
 
             // If page creation fails, throw an exception
             if (!$newPage->save()) {
+                session([
+                    'toast' => [
+                        'message' => 'Something went wrong!',
+                        'type' => 'danger',
+                    ],
+                ]);
                 throw new Exception("Page creation failed.");
             }
 
@@ -291,20 +297,24 @@ class PageController extends Controller {
 
             // Commit the transaction as everything was successful
             DB::commit();
-
             // Redirect to the showPages route
-            return redirect()->route('showPages');
+            return redirect()->route('showPage');
         }
         catch (Exception $e) {
             // Rollback the transaction on exception
             DB::rollback();
-
+            session([
+                'toast' => [
+                    'message' => 'Something went wrong!',
+                    'type' => 'danger',
+                ],
+            ]);
             // Log the error and handle it appropriately
             Log::errorLog("Error adding new page");
 
             // Redirect to the showPages route with an error message
             return redirect()
-                ->route('showPages')
+                ->route('showPage')
                 ->withErrors(['error' => 'An error occurred while adding the page.']);
         }
     }

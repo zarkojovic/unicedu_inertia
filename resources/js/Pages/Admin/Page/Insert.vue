@@ -5,7 +5,7 @@ import {Head, Link, useForm} from '@inertiajs/vue3';
 import Button from '@/Atoms/Button.vue';
 import GenericInput from '@/Atoms/GenericInput.vue';
 import ListInput from '@/Atoms/ListInput.vue';
-import {onMounted} from 'vue';
+import toast from '@/Stores/toast.js';
 
 const props = defineProps({
     data: {
@@ -15,21 +15,31 @@ const props = defineProps({
         type: Array,
     },
     roles: {
-        type: Array,
+        type: Object,
     },
     categories: {
         type: Object,
     },
 });
 
-onMounted(() => {
-    console.log(props.categories);
-});
-
 const form = useForm({
-    category: [],
+    title: '',
+    route: '',
+    categories: [],
     roles: [],
 });
+
+const submit = () => {
+    console.log('pozz');
+    form.post('/admin/pages/insertNew', {
+        onSuccess: () => {
+            toast.add({
+                message: 'Hello!',
+                type: 'success',
+            });
+        },
+    });
+};
 
 </script>
 
@@ -50,13 +60,29 @@ const form = useForm({
                                 <Button>Go Back</Button>
                             </Link>
                         </div>
-                        <GenericInput :is_required='true' label="Insert page name"/>
-                        <ListInput v-model="form.category" :items="props.categories"
-                                   label="Select categories you want to display here"
-                                   type="checkbox"/>
-                        <ListInput v-model="form.roles" :items="props.roles"
-                                   label="Select roles"
-                                   type="radio"/>
+                        <form @submit="submit">
+                            <GenericInput v-model="form.title" :error="form.errors.roles" :is_required='true'
+                                          label="Insert page name"/>
+                            <GenericInput v-model="form.route" :error="form.errors.route" :is_required='true'
+                                          class="mt-4"
+                                          label="Insert page route"/>
+                            <ListInput v-model="form.categories" :is_required="true"
+                                       :items="props.categories"
+                                       class="mt-4"
+                                       label="Select categories you want to display here"
+                                       type="checkbox"
+                            />
+                            <ListInput v-model="form.roles"
+                                       :error="form.errors.roles"
+                                       :is_required="true"
+                                       :items="props.roles"
+                                       class="mt-4"
+                                       label="Select roles"
+                                       name="role_radio"
+                                       type="radio"
+                            />
+                            <Button :disabled="form.processing" class="mt-5" @click="submit">Add new Page</Button>
+                        </form>
                     </div>
                 </div>
             </div>

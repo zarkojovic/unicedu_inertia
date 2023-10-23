@@ -73,8 +73,6 @@ const submit = () => {
                     @keyup.enter="recaptcha"
                 />
             </div>
-
-
             <div>
                 <Button
                     :class="{ 'opacity-25': form.processing }"
