@@ -3,8 +3,6 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import {Head} from '@inertiajs/vue3';
 import ListInput from "@/Atoms/ListInput.vue";
 import {onMounted, ref} from "vue";
-import Sidebar from "@/Components/Sidebar.vue";
-
 const radioItems = ['Item 1', 'Item 2', 'Item 3'];
 const selectedRadioItem = ref([]);
 
