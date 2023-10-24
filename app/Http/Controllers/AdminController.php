@@ -18,14 +18,25 @@ class AdminController extends RootController
     }
     public function home()
     {
-        $categories = FieldCategory::all();
-        //$fields = Field::where('is_active', '1')->get();//->where('order', '<>', NULL)
-        $sortedFields = Field::where('is_active', '1')->orderBy("order", "asc")->get();
+        $categories = FieldCategory::where("category_name", "<>", "Hidden")->get();
+        $sortedFields = Field::whereNotIn('field_category_id', [5])->where('is_active', '1')->orderBy("order", "asc")->get()->toArray();
+        $categoriesFields = [];
+
+        foreach ($categories as $category) {
+            $categoryFields = array_filter($sortedFields, function ($field) use ($category) {
+                return $field['field_category_id'] === $category->field_category_id;
+            });
+
+            $categoryData = $category->toArray();
+            $categoryData['fields'] = array_values($categoryFields);
+
+            $categoriesFields[] = $categoryData;
+        }
+
         return Inertia::render("Admin/Fields", [
-            "fields" => $sortedFields,
-            "categories" => $categories
+//            "fields" => $sortedFields,
+            "categories" => $categoriesFields
         ]);
-//        return view("admin.fields", ["fields" => $sortedFields, "categories" => $categories]);
     }
 
     public function fieldSelect()
