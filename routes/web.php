@@ -6,6 +6,7 @@ use App\Http\Controllers\FieldCategoryController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
+use App\Models\Page;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Session;
@@ -36,6 +37,31 @@ Route::post('/change-lang', function(Request $request) {
 Route::middleware('auth')->group(function() {
     //FOR VERIFIED USERS
     Route::middleware('verified')->group(function() {
+        //DYNAMIC ROUTES
+        $routeNames = Page::all();
+        foreach ($routeNames as $route) {
+            if (!empty($route->role->role_name)) {
+                switch ($route->role->role_name) {
+                    case 'admin':
+                        Route::middleware(["admin"])->group(function() use (
+                            $route
+                        ) {
+                            //ADMIN ROUTES
+                            Route::get($route->route,
+                                function() use ($route) {
+                                    return Inertia::render('Dashboard');
+                                });
+                        });
+                        break;
+                    default :
+                        Route::get($route->route, function() use ($route) {
+                            return Inertia::render('Dashboard');
+                        });
+                        break;
+                }
+            }
+        }
+
         Route::get('/', [UserController::class, 'show'])->name("home");
 
         Route::get('/profile', [UserController::class, 'show'])
@@ -55,14 +81,23 @@ Route::middleware('auth')->group(function() {
             Route::get('/fields', [AdminController::class, "home"]);
             Route::get('/dashboard',
                 [AdminController::class, 'show'])->name('admin_home');
+
             //PAGES ROUTES
             Route::get('/pages',
                 [PageController::class, 'showPageListView'])->name('showPage');
             Route::get('/pages/new', [PageController::class, 'createNewPage'])
                 ->name('createNewPage');
+
             Route::post('/pages/insertNew',
-                [PageController::class, 'addNewPage'])
+                [PageController::class, 'createPage'])
                 ->name('addNewPage');
+
+            Route::post('/pages/deletePage',
+                [PageController::class, 'deletePage']);
+            Route::get('/pages/edit/{id}', [PageController::class, 'editPage'])
+                ->name('editPage');
+            Route::post('/pages/update', [PageController::class, 'updatePage'])
+                ->name('updatePage');
 
             //CATEGORIES ROUTES
             Route::get('/categories',
@@ -71,6 +106,7 @@ Route::middleware('auth')->group(function() {
             Route::get('/categories/new',
                 [FieldCategoryController::class, 'createNewCategory'])
                 ->name('createNewCategory');
+
             //APPLICATION ROUTES
             Route::get('/applications',
                 [DealController::class, 'showApplication'])
@@ -92,7 +128,12 @@ Route::middleware('auth')->group(function() {
 });
 
 Route::get('/test', function() {
-    dd(FieldCategory::getAllDealFields());
+    $broze_package_pages = ['/profile', '/applications'];
+
+    $page_ids = Page::whereIn('route', $broze_package_pages)
+        ->pluck('page_id')->toArray();
+
+    dd($page_ids);
 });
 
 //LARAVEL STARTER KIT DEFAULT ROUTES {

@@ -1,17 +1,8 @@
 <script setup>
 import {Link, usePage} from '@inertiajs/vue3';
 import {computed, defineAsyncComponent, ref} from 'vue';
-import {
-    IconApiApp,
-    IconBoxMultiple,
-    IconDashboard,
-    IconLogout,
-    IconRowInsertTop,
-    IconSchool,
-    IconUser,
-    IconUsers,
-    IconWallpaper,
-} from '@tabler/icons-vue';
+
+import {Icon} from '@iconify/vue';
 
 const props = defineProps({
     modelValue: {
@@ -20,12 +11,9 @@ const props = defineProps({
 });
 
 // Dynamically import the Tabler Icon component based on the received icon name
-const iconComponent = computed(() => {
-
-    return defineAsyncComponent(() => import(`tabler-icons-vue/${iconComponentName.value}.vue`).catch(() => {
-    })); // Handle errors gracefully
-});
-
+const AsyncComp = defineAsyncComponent(() =>
+    import('@tabler/icons-vue'),
+);
 const item = ref(props.modelValue);
 
 const iconComponentName = computed(() => {
@@ -66,17 +54,7 @@ const activeLink = computed(() => {
         :class="activeLink ? 'flex items-center rounded-lg p-2 bg-orange-500 text-white hover:bg-orange-500 hover:text-white' : '' + 'flex items-center p-2 text-gray-900 hover:bg-orange-100 rounded-lg dark:text-white hover:text-orange-500 dark:hover:bg-gray-700 group transition'"
         :href="item.route"
     >
-        <component :is="IconDashboard" v-if="iconComponentName === 'IconDashboard'" class="me-3"/>
-        <component :is="IconWallpaper" v-else-if="iconComponentName === 'IconWallpaper'" class="me-3"/>
-        <component :is="IconBoxMultiple" v-else-if="iconComponentName === 'IconBoxMultiple'" class="me-3"/>
-        <component :is="IconRowInsertTop" v-else-if="iconComponentName === 'IconRowInsertTop'" class="me-3"/>
-        <component :is="IconUsers" v-else-if="iconComponentName === 'IconUsers'" class="me-3"/>
-        <component :is="IconApiApp" v-else-if="iconComponentName === 'IconApiApp'" class="me-3"/>
-        <component :is="IconUser" v-else-if="iconComponentName === 'IconUser'" class="me-3"/>
-        <component :is="IconSchool" v-else-if="iconComponentName === 'IconSchool'" class="me-3"/>
-        <component :is="IconLogout" v-else-if="iconComponentName === 'IconLogout'" class="me-3"/>
-        <component :is="IconWallpaper" v-else class="me-3"/>
-
+        <Icon :icon="'tabler:'+item.icon" class="text-2xl me-2" inline/>
         {{ item.title }}
 
     </Link>

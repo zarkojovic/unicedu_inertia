@@ -105,6 +105,23 @@ class FieldCategory extends Model {
             )
             ->orderBy('order', 'asc')->get()->toArray();
 
+        //THIS IS FOR OPTIMIZING QUERIES
+
+        //        $fields_ids = [];
+        //
+        //        for ($i = 0; $i < count($fields); $i++) {
+        //            if ($fields[$i]->type == 'enumeration') {
+        //                $fields_ids[] = $fields[$i]->field_id;
+        //            }
+        //        }
+        //
+        //        $FieldItems = FieldItem::whereIn('field_id',
+        //            $fields_ids)
+        //            ->select('item_value as label', 'item_id as value')
+        //            ->get()
+        //            ->toArray();
+        //        $fields[$i]->items = $FieldItems;
+
         for ($i = 0; $i < count($fields); $i++) {
             if ($fields[$i]->type == 'enumeration') {
                 $FieldItems = FieldItem::where('field_id',

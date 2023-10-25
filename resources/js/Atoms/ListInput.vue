@@ -31,6 +31,11 @@ const toggleSelection = (item) => {
     emits('update:modelValue', selectedItems.value);
 };
 
+// onMounted(() => {
+//     var id = String(modelValue);
+//     toggleSelection(elementKey.value[elementKey.value.indexOf(id)]);
+// });
+
 const elementKey = computed(() => {
     return Object.keys(items);
 });

@@ -5,10 +5,10 @@ import ModelDataDisplay from '@/Organisms/ModelDataDisplay.vue';
 
 const props = defineProps({
     data: {
-        type: Array,
+        type: Object,
     },
     columns: {
-        type: Array,
+        type: Object,
     },
 });
 

@@ -64,35 +64,37 @@ class UserController extends RootController {
     }
 
     public function updateUserInfo(Request $request) {
-        //        dd($request->all());
-
-        //        GET ALL OF THE DATA FROM REQUEST
+        //GET ALL OF THE DATA FROM REQUEST
         $items = $request['formItems'];
         //        GET AUTH-ED USER FOR UPDATING HIS DATA
         $user = Auth::user();
-
-        //        LOOPING THROUGH EACH ELEMENT IN REQUEST
-        foreach ($items as $key => $value) {
-            try {
-                DB::beginTransaction();
-
+        // GETTING FIELD NAME VALUES
+        $field_names = array_column($items, 'field_name');
+        // GETTING ALL THE FIELDS WITH THAT FIELD NAME
+        $field_id_array = DB::table('fields')
+            ->select('field_name', 'title', 'field_id')
+            ->whereIn('field_name',
+                $field_names)
+            ->orderBy('field_id')
+            ->get();
+        // GETTING JUST THE IDS OF THEM
+        $field_ids = array_column($field_id_array->toArray(), 'field_id');
+        // GETTING THE USER INFO FROM THE FIELD IDS
+        $user_info_array = UserInfo::where("user_id", (int) $user->user_id)
+            ->whereIn("field_id", $field_ids)
+            ->orderBy('field_id')
+            ->get();
+        //        dd($user_info_array, $field_id_array);
+        try {
+            DB::beginTransaction();
+            //LOOPING THROUGH EACH ELEMENT IN REQUEST
+            foreach ($items as $key => $value) {
                 //prebaci ovo gore i cuvaj u memoriji
+                //GET THE CURRENT USER INFO AND THE FIELD ID
+                $field_id = $field_id_array[$key];
 
-                //            GETTING THE FIELD_ID BASE ON FIELD_NAME FROM REQUEST
-                $field_id = DB::table('fields')
-                    ->select('field_name', 'title', 'field_id')
-                    ->where('field_name',
-                        $value['field_name'])
-                    ->first();
-                //            CHECKING IF THE INFO ALREADY EXISTS IN TABLE
-                $user_info = UserInfo::where("user_id", (int) $user->user_id)
-                    ->where("field_id",
-                        (int) $field_id->field_id)
-                    ->first();
-
-                //                dd($value);
-
-                //            CHECKING IF THE REQUEST IS FILE
+                $user_info = $user_info_array[$key] ?? NULL;
+                //CHECKING IF THE REQUEST IS FILE
                 if ($value['value'] instanceof UploadedFile) {
                     //                GETTING THE INFO FROM FILE
                     $storeFile = $value['value'];
@@ -187,13 +189,11 @@ class UserController extends RootController {
                         #REMOVE OLD IMAGE FROM FOLDERS
                         $oldProfileImage = $user_info->file_path;
 
-                        //                        dd($oldProfileImage);
-
                         Storage::delete([
                             "public/profile/documents/$oldProfileImage",
                         ]);
 
-                        //                    UPDATE INFO
+                        // UPDATE INFO
                         $user_info->file_name = $fileName;
                         $user_info->file_path = $fileNewName;
                         $user_info->save();
@@ -233,18 +233,18 @@ class UserController extends RootController {
                 }
                 DB::commit();
             }
-            catch (Exception $ex) {
-                http_response_code(501);
-                Log::errorLog($ex->getMessage(), Auth::user()->user_id);
-                return redirect()
-                    ->back()
-                    ->with([
-                        'toast' => [
-                            'message' => $ex->getMessage(),
-                            'type' => 'danger',
-                        ],
-                    ]);
-            }
+        }
+        catch (Exception $ex) {
+            http_response_code(501);
+            Log::errorLog($ex->getMessage(), Auth::user()->user_id);
+            return redirect()
+                ->back()
+                ->with([
+                    'toast' => [
+                        'message' => $ex->getMessage(),
+                        'type' => 'danger',
+                    ],
+                ]);
         }
 
         $deals = Deal::where('user_id', $user->user_id)

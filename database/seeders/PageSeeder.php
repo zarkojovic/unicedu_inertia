@@ -3,72 +3,75 @@
 namespace Database\Seeders;
 
 use App\Models\Page;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class PageSeeder extends Seeder
-{
+class PageSeeder extends Seeder {
+
     /**
      * Run the database seeds.
      */
-    public function run(): void
-    {
+    public function run(): void {
         $pages = [
             [
-                'route' => '/dashboard',
+                'route' => '/admin/dashboard',
                 'title' => 'Dashboard',
-                'icon' => 'ti ti-dashboard',
+                'icon' => 'dashboard',
                 'role_id' => '3',
-                'is_editable' => false
+                'is_editable' => FALSE,
             ],
             [
                 'route' => '/profile',
                 'title' => 'My Information',
-                'icon' => 'ti ti-user',
+                'icon' => 'user',
                 'role_id' => '1',
-                'is_editable' => false
-            ], [
-                'route' => '/pages',
+                'is_editable' => FALSE,
+            ],
+            [
+                'route' => '/admin/pages',
                 'title' => 'Pages',
-                'icon' => 'ti ti-wallpaper',
+                'icon' => 'wallpaper',
                 'role_id' => '3',
-                'is_editable' => false
-            ], [
-                'route' => '/categories',
+                'is_editable' => FALSE,
+            ],
+            [
+                'route' => '/admin/categories',
                 'title' => 'Categories',
-                'icon' => 'ti ti-box-multiple',
+                'icon' => 'box-multiple',
                 'role_id' => '3',
-                'is_editable' => false
-            ], [
-                'route' => '/fields',
+                'is_editable' => FALSE,
+            ],
+            [
+                'route' => '/admin/fields',
                 'title' => 'Fields',
-                'icon' => 'ti ti-row-insert-top',
+                'icon' => 'row-insert-top',
                 'role_id' => '3',
-                'is_editable' => false
-            ], [
-                'route' => '/users',
+                'is_editable' => FALSE,
+            ],
+            [
+                'route' => '/admin/users',
                 'title' => 'Users',
-                'icon' => 'ti ti-users',
+                'icon' => 'users',
                 'role_id' => '3',
-                'is_editable' => false
-            ], [
+                'is_editable' => FALSE,
+            ],
+            [
                 'route' => '/applications',
                 'title' => 'Applications',
-                'icon' => 'ti ti-school',
+                'icon' => 'school',
                 'role_id' => '1',
-                'is_editable' => false
-            ], [
-                'route' => '/applications',
+                'is_editable' => FALSE,
+            ],
+            [
+                'route' => '/admin/applications',
                 'title' => 'Applications',
-                'icon' => 'ti ti-api-app',
+                'icon' => 'api-app',
                 'role_id' => '3',
-                'is_editable' => false
-            ]
+                'is_editable' => FALSE,
+            ],
         ];
 
         foreach ($pages as $page) {
-
             $new = new Page();
             $new->route = $page['route'];
             $new->title = $page['title'];
@@ -79,7 +82,6 @@ class PageSeeder extends Seeder
             $new->save();
 
             if ($page['route'] == '/profile') {
-
                 $ids = ['1', '2', '3'];
                 foreach ($ids as $id) {
                     DB::table('field_category_page')->insert([
@@ -88,8 +90,7 @@ class PageSeeder extends Seeder
                     ]);
                 }
             }
-
         }
-
     }
+
 }
