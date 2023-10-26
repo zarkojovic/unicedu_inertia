@@ -107,29 +107,27 @@ class FieldCategory extends Model {
 
         //THIS IS FOR OPTIMIZING QUERIES
 
-        //        $fields_ids = [];
-        //
-        //        for ($i = 0; $i < count($fields); $i++) {
-        //            if ($fields[$i]->type == 'enumeration') {
-        //                $fields_ids[] = $fields[$i]->field_id;
-        //            }
-        //        }
-        //
-        //        $FieldItems = FieldItem::whereIn('field_id',
-        //            $fields_ids)
-        //            ->select('item_value as label', 'item_id as value')
-        //            ->get()
-        //            ->toArray();
-        //        $fields[$i]->items = $FieldItems;
+        $fields_ids = [];
+
+        for ($i = 0; $i < count($fields); $i++) {
+            if ($fields[$i]->type === 'enumeration') {
+                $fields_ids[] = $fields[$i]->field_id;
+            }
+        }
+
+        $fieldItems = FieldItem::whereIn('field_id',
+            $fields_ids)
+            ->select('item_value as label', 'item_id as value', 'field_id')
+            ->get()
+            ->toArray();
 
         for ($i = 0; $i < count($fields); $i++) {
             if ($fields[$i]->type == 'enumeration') {
-                $FieldItems = FieldItem::where('field_id',
-                    $fields[$i]->field_id)
-                    ->select('item_value as label', 'item_id as value')
-                    ->get()
-                    ->toArray();
-                $fields[$i]->items = $FieldItems;
+                $items = array_filter($fieldItems,
+                    function($el) use ($fields, $i) {
+                        return $el['field_id'] === $fields[$i]->field_id;
+                    });
+                $fields[$i]->items = $items;
             }
         }
 

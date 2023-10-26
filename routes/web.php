@@ -6,6 +6,7 @@ use App\Http\Controllers\FieldCategoryController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
+use App\Models\FieldCategory;
 use App\Models\Page;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -128,6 +129,11 @@ Route::middleware('auth')->group(function() {
 });
 
 Route::get('/test', function() {
+    //    $fieldItems = FieldItem::with('field')->get();
+
+    dd('ee');
+    FieldCategory::getAllCategoriesWithFields('/profile');
+
     $broze_package_pages = ['/profile', '/applications'];
 
     $page_ids = Page::whereIn('route', $broze_package_pages)
