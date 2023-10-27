@@ -67,9 +67,10 @@ Route::middleware('auth')->group(function() {
 
         Route::get('/profile', [UserController::class, 'show'])
             ->name('profile');
-        Route::get('/applications', function() {
-            return Inertia::render("Student/Applications");
-        })->name('applications');
+        Route::get('/applications', [DealController::class, 'showUserDeals'])
+            ->name('applications');
+        Route::post('/applications/addNew', [DealController::class, 'apply'])
+            ->name('newApplication');
 
         Route::post('/userFieldsUpdate',
             [UserController::class, 'updateUserInfo']);

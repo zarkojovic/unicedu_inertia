@@ -45,7 +45,7 @@ class HandleInertiaRequests extends Middleware {
             'sidebar_pages' => auth()->check() ? Page::getCurrentPagesForSidebar() : [],
             'current_route_uri' => Route::current()->uri,
             'documents_root' => asset("storage/profile/documents/").'/',
-            'sidebar_fields' => Route::current()->uri === 'applications' ? FieldCategory::getAllDealFields() : NULL,
+            'deal_fields' => Route::current()->uri === 'applications' ? FieldCategory::getAllDealFields() : NULL,
             'recaptcha_site_key' => config('services.recaptcha.site_key'),
         ];
     }
