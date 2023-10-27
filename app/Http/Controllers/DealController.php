@@ -47,15 +47,44 @@ class DealController extends RootController {
 
     public function showUserDeals() {
         $user = auth()->user();
-        $applications = Deal::where('user_id', $user->user_id)->get();
-        $intakes = Deal::where('user_id', $user->user_id)
-            ->select('user_intake_package_id')
-            ->distinct()
+        $applications = Deal::where('user_id', $user->user_id)
             ->get()
             ->toArray();
-        //        dd($intakes);
+
+        $intakes = DB::table('user_intake_packages')
+            ->where('user_id', $user->user_id)
+            ->join('intakes', 'user_intake_packages.intake_id', '=',
+                'intakes.intake_id')
+            ->join('packages', 'user_intake_packages.package_id', '=',
+                'packages.package_id')
+            ->select('intakes.intake_name', 'packages.package_name',
+                'user_intake_packages.user_intake_package_id')
+            ->get()->toArray();
+
+        // Create a new array to store the result
+        $result = [];
+
+        // Iterate through the $intakePackages array
+        foreach ($intakes as $intakePackage) {
+            $userIntakePackageId = $intakePackage->user_intake_package_id;
+
+            // Find the corresponding deal in the $deals array based on user_intake_package_id
+            $deal = array_filter($applications,
+                function($deal) use ($userIntakePackageId) {
+                    return $deal['user_intake_package_id'] === $userIntakePackageId;
+                });
+
+            // If a deal is found, add it to the result with a "deals" property
+            if (!empty($deal)) {
+                $intakePackage->deals = $deal;
+            }
+
+            // Add the updated item to the result array
+            $result[] = $intakePackage;
+        }
+        //        dd($result);
         return Inertia::render("Student/Applications", [
-            'applications' => $applications,
+            'applications' => $result,
         ]);
     }
 
@@ -108,7 +137,7 @@ class DealController extends RootController {
                 if ($checkIntakePackage) {
                     $numberOfDealsInIntake = Deal::where('user_intake_package_id',
                         $checkIntakePackage->user_intake_package_id)->count();
-                    //                    dd($numberOfDealsInIntake);
+
                     if ($numberOfDealsInIntake >= 5) {
                         throw new Exception('You reach the limit of the possible applications!');
                     }

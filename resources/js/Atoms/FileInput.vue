@@ -124,22 +124,19 @@ const clearFile = function () {
         <div class="mt-1 flex">
             <label :for="inputName" v-if="!upload" @mouseenter="handleHover" @mouseleave="handleMove"
                    class="py-3 px-6  rounded-lg  border border-gray-300 hover:bg-orange-500 hover:cursor-pointer hover:text-white hover:border-transparent transition">
-                <div>
+                <div class="">
                     <span v-if="isReplace" class="justify-center">Replace Document</span>
                     <span v-else class="">Upload Document</span>
-                    <v-icon class="ms-2 hidden" name="pr-upload" fill="#FFF"/>
+<!--                    <v-icon class="ms-2 hidden" name="pr-upload" fill="#FFF" v-show="handleHover"/>-->
 
-<!--                    <Transition-->
-<!--                        enter-from-class=" opacity-0"-->
-<!--                        leave-to-class="opacity-0"-->
-<!--                    >-->
-<!--                        <v-icon v-if="isHover" class="ms-2" name="pr-upload" fill="#FFF"/>-->
-<!--                    </Transition>-->
+
                 </div>
             </label>
             <label :for="inputName" v-else
                    class="py-3 px-6  rounded-lg  bg-orange-500 text-white hover:cursor-pointer transition">
-                <span class="text-white">Document uploaded <v-icon name="md-done-round"/></span>
+                <span class="text-white">Document uploaded
+<!--                    <v-icon name="md-done-round"/>-->
+                </span>
             </label>
             <input
                 type="file"

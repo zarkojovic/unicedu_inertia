@@ -34,6 +34,42 @@ const submit = () => {
         preserveScroll: true,
     });
 };
+
+const validateEmail = () => {
+    const email = form.email;
+    const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+
+    if (!email) {
+        form.errors.email = 'The email field is required.';
+    } else if (!emailRegex.test(email)) {
+        form.errors.email = 'Invalid email format';
+    } else {
+        form.errors.email = '';
+    }
+};
+
+const validatePassword = () => {
+    const password = form.password;
+
+    if (!password) {
+        form.errors.password = 'The password field is required.';
+    } else if (password.length < 8) {
+        form.errors.password = 'Password must be at least 8 characters long';
+    } else {
+        form.errors.password = '';
+    }
+};
+
+const validateForm = () => {
+    validatePassword();
+    validateEmail();
+
+    if (form.errors.password === '' && form.errors.email === '') {
+        recaptcha();
+    }
+
+};
+
 </script>
 
 <template>
@@ -48,7 +84,7 @@ const submit = () => {
             <h2 class="text-sm text-gray-400 text-center">Please enter your details</h2>
         </div>
 
-        <form class="grid grid-cols-1 md:gap-x-8 gap-2 gap-y-4" @submit.prevent="recaptcha">
+        <form class="grid grid-cols-1 md:gap-x-8 gap-2 gap-y-4" @submit.prevent="validateForm">
             <div>
                 <GenericInput
                     v-model="form.email"
@@ -57,6 +93,7 @@ const submit = () => {
                     :input-name="'email'"
                     :label="'Email'"
                     :type="'email'"
+                    @focusout="validateEmail"
                 />
             </div>
 
@@ -68,16 +105,19 @@ const submit = () => {
                     :input-name="'password'"
                     :label="'Password'"
                     :type="'password'"
-                    @keyup.enter="recaptcha"
+                    @focusout="validatePassword"
+                    @keyup.enter="validateForm"
                 />
             </div>
+
+
             <div>
                 <Button
                     :class="{ 'opacity-25': form.processing }"
                     :disabled="form.processing"
                     :type="'primary'"
                     :width="100"
-                    @click="recaptcha"
+                    @click="validateForm"
                 >
                     Log in
                 </Button>

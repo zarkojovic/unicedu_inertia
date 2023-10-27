@@ -10,6 +10,7 @@ import ApplicationModal from '@/Organisms/ApplicationModal.vue';
 
 addIcons(MdLogoutOutlined, MdLockreset);
 
+
 const page = usePage();
 
 const {toggleSidebar} = defineProps(['toggleSidebar']);
@@ -103,26 +104,29 @@ const navBtnType = inject('navBtnType', ref(''));
 
                                 </div>
 
-                                <div class="px-1 py-1">
-                                    <MenuItem v-slot="{ active }">
+                            <div class="px-1 py-1">
 
+                                <MenuItem v-slot="{ active }">
+                                    <Link class="w-full" :href="route('logout')" as="button"
+                                          method="post">
                                         <button
                                             :class="[
                   active ? 'bg-orange-500 text-white' : 'text-gray-900',
                   'group flex w-full items-center rounded-md px-2 py-2 text-sm',
                 ]"
                                         >
-                                            <Link :href="route('logout')" as="a"
-                                                  method="post">
-                                                <v-icon class="mr-2 h-5 w-5" name="md-logout-outlined"/>
-                                                Sign out
-                                            </Link>
+
+                                            <v-icon name="md-logout-outlined" class="mr-2 h-5 w-5"/>
+                                            Sign out
                                         </button>
-                                    </MenuItem>
-                                </div>
-                            </MenuItems>
-                        </transition>
-                    </Menu>
+                                    </Link>
+
+                                </MenuItem>
+
+                            </div>
+                        </MenuItems>
+                    </transition>
+                </Menu>
                 </div>
 
             </div>

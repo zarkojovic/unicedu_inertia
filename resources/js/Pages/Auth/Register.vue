@@ -20,6 +20,93 @@ const submit = () => {
         onFinish: () => form.reset('password', 'password_confirmation'),
     });
 };
+
+const validateFirstName = () => {
+    const name = form.first_name;
+
+    if (!name) {
+        form.errors.first_name = 'The name field is required.';
+    } else {
+        form.errors.first_name = '';
+    }
+};
+
+const validateLastName = () => {
+    const surname = form.last_name;
+
+    if (!surname) {
+        form.errors.last_name = 'The surname field is required.';
+    } else {
+        form.errors.last_name = '';
+    }
+};
+
+const validateEmail = () => {
+    const email = form.email;
+    const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+
+    if (!email) {
+        form.errors.email = 'The email field is required.';
+    } else if (!emailRegex.test(email)) {
+        form.errors.email = 'Invalid email format';
+    } else {
+        form.errors.email = '';
+    }
+};
+
+const validatePhone = () => {
+    const phone = form.phone;
+
+    if (!phone) {
+        form.errors.phone = 'The phone number field is required.';
+    } else {
+        form.errors.phone = '';
+    }
+};
+
+const validatePassword = () => {
+    const password = form.password;
+
+    if (!password) {
+        form.errors.password = 'The password field is required.';
+    } else if (password.length < 8) {
+        form.errors.password = 'Password must be at least 8 characters long';
+    } else {
+        form.errors.password = '';
+    }
+};
+const validateRepeatPassword = () => {
+    const password = form.password;
+    const repeatPassword = form.password_confirmation;
+
+    if (!repeatPassword) {
+        form.errors.password_confirmation = 'The repeat password field is required.';
+    } else if (repeatPassword !== password) {
+        form.errors.password_confirmation = 'Passwords do not match';
+    } else {
+        form.errors.password_confirmation = '';
+    }
+};
+
+const validateRegistrationForm = () => {
+    validateFirstName();
+    validateLastName();
+    validateEmail();
+    validatePhone();
+    validatePassword();
+    validateRepeatPassword();
+
+    if (
+        form.errors.first_name === '' &&
+        form.errors.last_name === '' &&
+        form.errors.email === '' &&
+        form.errors.phone === '' &&
+        form.errors.password === '' &&
+        form.errors.password_confirmation === ''
+    ) {
+        submit();
+    }
+};
 </script>
 
 <template>
@@ -31,21 +118,19 @@ const submit = () => {
             <h2 class="text-sm text-gray-400 text-center">Please enter your details</h2>
         </div>
 
-        <form class="grid grid-cols-2 md:gap-x-8 gap-2 gap-y-5" @submit.prevent="submit">
+        <form class="grid grid-cols-2 md:gap-x-8 gap-2 gap-y-5" @submit.prevent="validateRegistrationForm">
             <div>
-                <InputLabel for="name" value="Name"/>
+                <InputLabel for="first-name" value="Name"/>
 
                 <TextInput
                     id="first-name"
                     v-model="form.first_name"
-                    autocomplete="name"
-                    autofocus
                     class="mt-1 block w-full"
-                    required
                     type="text"
+                    @focusout="validateFirstName"
                 />
 
-                <InputError :message="form.errors.name" class="mt-2"/>
+                <InputError :message="form.errors.first_name" class="mt-2"/>
             </div>
 
             <div>
@@ -54,14 +139,12 @@ const submit = () => {
                 <TextInput
                     id="last-name"
                     v-model="form.last_name"
-                    autocomplete="lastName"
-                    autofocus="autofocus"
                     class="mt-1 block w-full"
-                    required="required"
                     type="text"
+                    @focusout="validateLastName"
                 />
 
-                <InputError :message="form.errors.name" class="mt-2"/>
+                <InputError :message="form.errors.last_name" class="mt-2"/>
             </div>
 
             <div class="col-span-2">
@@ -71,10 +154,9 @@ const submit = () => {
                 <TextInput
                     id="email"
                     v-model="form.email"
-                    autocomplete="username"
                     class="mt-1 block w-full"
-                    required
                     type="email"
+                    @focusout="validateEmail"
                 />
 
                 <InputError :message="form.errors.email" class="mt-2"/>
@@ -86,11 +168,9 @@ const submit = () => {
                 <TextInput
                     id="phone"
                     v-model="form.phone"
-                    autocomplete="phone"
-                    autofocus="autofocus"
                     class="mt-1 block w-full"
-                    required="required"
                     type="text"
+                    @focusout="validatePhone"
                 />
 
                 <InputError :message="form.errors.phone" class="mt-2"/>
@@ -102,10 +182,9 @@ const submit = () => {
                 <TextInput
                     id="password"
                     v-model="form.password"
-                    autocomplete="new-password"
                     class="mt-1 block w-full"
-                    required
                     type="password"
+                    @focusout="validatePassword"
                 />
 
                 <InputError :message="form.errors.password" class="mt-2"/>
@@ -117,10 +196,9 @@ const submit = () => {
                 <TextInput
                     id="password_confirmation"
                     v-model="form.password_confirmation"
-                    autocomplete="new-password"
                     class="mt-1 block w-full"
-                    required
                     type="password"
+                    @focusout="validateRepeatPassword"
                 />
 
                 <InputError :message="form.errors.password_confirmation" class="mt-2"/>

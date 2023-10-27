@@ -69,12 +69,15 @@ const changeValue = (value) => {
         </template>
 
         <template v-slot:modalFooter>
-            <Button class="ms-3" type="primary" @click="submit">
-                Submit
-            </Button>
-            <Button type="muted" @click="changeValue(false)">
-                Cancel
-            </Button>
+            <div class="flex justify-end">
+
+                <Button type="muted" @click="changeValue(false)">
+                    Cancel
+                </Button>
+                <Button class="ms-3" type="primary" @click="submit">
+                    Submit
+                </Button>
+            </div>
         </template>
     </Modal>
 </template>
