@@ -75,7 +75,7 @@ export default {
     computed: {
         dragOptions() {
             return {
-                animation: 200,
+                animation: 400,
                 disabled: false,
                 ghostClass: "ghost"
             };

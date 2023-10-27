@@ -26,7 +26,6 @@ const submitForm = ($event) => {
         // form.post("/image/edit");
         imagePreview.value = URL.createObjectURL(form.profileImage);
         showModal.value = true;
-        console.log(imagePreview.value)
     }
 }
 
