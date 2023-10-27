@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Field extends Model
-{
+class Field extends Model {
+
     use HasFactory;
 
     protected $primaryKey = 'field_id';
@@ -19,18 +20,16 @@ class Field extends Model
         'status',
         'is_active',
         'is_required',
-        'field'
+        'field',
     ];
 
-
-    public function category(): \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
+    public function category(
+    ): BelongsTo {
         return $this->belongsTo(FieldCategory::class, 'field_category_id');
     }
 
-    public function items(): HasMany
-    {
-        return $this->hasMany(FieldItem::class, 'field_id');
+    public function items(): HasMany {
+        return $this->hasMany(FieldItem::class, 'field_id', 'field_id');
     }
 
 }

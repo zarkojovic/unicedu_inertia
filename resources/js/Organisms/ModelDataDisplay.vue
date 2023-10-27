@@ -1,11 +1,15 @@
 <script setup>
 
+import GenericModelTable from '@/Molecules/GenericModelTable.vue';
+import {Link} from '@inertiajs/vue3';
+import Button from '@/Atoms/Button.vue';
+
 const props = defineProps({
     data: {
         type: Object,
     },
     columns: {
-        type: Array,
+        type: Object,
     },
     sectionTitle: {
         type: String,
@@ -15,13 +19,18 @@ const props = defineProps({
     },
     isDeletable: {
         type: Boolean,
-        default: true,
+
+    },
+    isEditable: {
+        type: Boolean,
+    },
+    deleteRoute: {
+        type: String,
+    },
+    editRoute: {
+        type: String,
     },
 });
-
-import {Link} from '@inertiajs/vue3';
-import GenericModelTable from '@/Molecules/GenericModelTable.vue';
-import Button from '@/Atoms/Button.vue';
 </script>
 
 <template>
@@ -33,8 +42,9 @@ import Button from '@/Atoms/Button.vue';
             </Link>
         </div>
         <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-            <GenericModelTable :columns="props.columns" :data="props.data" :is-deletable="props.isDeletable"
-                               :is-editable="props.isEditable"/>
+            <GenericModelTable :columns="props.columns" :data="props.data" :delete-route="props.deleteRoute"
+                               :edit-route="props.editRoute"
+                               :is-deletable="props.isDeletable" :is-editable="props.isEditable"/>
         </div>
     </div>
 </template>

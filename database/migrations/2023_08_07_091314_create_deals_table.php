@@ -4,14 +4,13 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
+
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
-        Schema::create('deals', function (Blueprint $table) {
+    public function up(): void {
+        Schema::create('deals', function(Blueprint $table) {
             $table->id('deal_id');
             $table->unsignedBigInteger('bitrix_deal_id');
             $table->string('university');
@@ -20,6 +19,7 @@ return new class extends Migration
             $table->string('program');
             $table->string('intake');
             $table->boolean('active')->default(1);
+            $table->unsignedBigInteger('user_intake_package_id');
             $table->timestamps();
         });
     }
@@ -27,8 +27,8 @@ return new class extends Migration
     /**
      * Reverse the migrations.
      */
-    public function down(): void
-    {
+    public function down(): void {
         Schema::dropIfExists('deals');
     }
+
 };

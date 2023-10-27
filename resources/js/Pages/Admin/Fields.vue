@@ -27,20 +27,13 @@
                                     <AdminField :drag="drag" :field_id="element.field_id" :title="element.title ?? element.field_name" :is_required="element.required"/>
                                 </template>
                             </draggable>
-                        <template class="w-5/12 add-category flex justify-between col border mb-3 me-4 p-3 rounded-xl position-relative cursor-pointer"
-                                  :id="'category_'+category.field_category_id">
-                            <div class="add-category-text">
-                                <label class="text-gray-400 cursor-pointer">Add new field</label>
-                            </div>
-                            <div class="add-category-icon">
-                                <IconPlus class="text-gray-400"/>
-                            </div>
-                        </template>
+                        <hr class="mb-3"/>
+                        <AddNewField :id="category.field_category_id"/>
 
 
 
 
-                        <br/>
+
                         <!--                                <AdminField :field_id="element.field_id" :title="element.title ?? element.field_name" :is_required="element.required"/>-->
                         <!--v-for="(field, key) in getCategoryFields(category.field_category_id)" :key="key"   v-for-> getCategoryFields(category.field_category_id)-->
 
@@ -57,6 +50,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import AdminField from "@/Molecules/AdminField.vue";
 import {IconPlus} from '@tabler/icons-vue';
 import draggable from "vuedraggable";
+import AddNewField from "@/Molecules/AddNewField.vue";
 
 
 export default {
@@ -66,25 +60,22 @@ export default {
         AuthenticatedLayout,
         Head,
         IconPlus,
-        draggable
+        draggable,
+        AddNewField
     },
     props: {
         categories: Array,
-        // fields: Array
     },
     data() {
         return {
             drag: false,
-            draggableFields: []
-            // localFields: this.fields
-            // localFields: (categoryId) => {return this.fields.filter((field) => field.field_category_id === categoryId)}
+            showAddNew: false
         };
     },
     computed: {
         dragOptions() {
             return {
                 animation: 200,
-                // group: "description",
                 disabled: false,
                 ghostClass: "ghost"
             };

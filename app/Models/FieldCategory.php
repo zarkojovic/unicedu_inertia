@@ -68,8 +68,8 @@ class FieldCategory extends Model {
                 'field_category_page.field_category_id', '=',
                 'field_category_page.field_category_id')
             ->join('pages', 'field_category_page.page_id', '=', 'pages.page_id')
-            ->where('pages.route', '=', $pageName)
             ->where('field_categories.is_visible', 1)
+            ->where('pages.route', $pageName)
             ->select('field_categories.category_name',
                 'field_categories.field_category_id')
             ->distinct()
@@ -105,14 +105,29 @@ class FieldCategory extends Model {
             )
             ->orderBy('order', 'asc')->get()->toArray();
 
+        //THIS IS FOR OPTIMIZING QUERIES
+
+        $fields_ids = [];
+
+        for ($i = 0; $i < count($fields); $i++) {
+            if ($fields[$i]->type === 'enumeration') {
+                $fields_ids[] = $fields[$i]->field_id;
+            }
+        }
+
+        $fieldItems = FieldItem::whereIn('field_id',
+            $fields_ids)
+            ->select('item_value as label', 'item_id as value', 'field_id')
+            ->get()
+            ->toArray();
+
         for ($i = 0; $i < count($fields); $i++) {
             if ($fields[$i]->type == 'enumeration') {
-                $FieldItems = FieldItem::where('field_id',
-                    $fields[$i]->field_id)
-                    ->select('item_value as label', 'item_id as value')
-                    ->get()
-                    ->toArray();
-                $fields[$i]->items = $FieldItems;
+                $items = array_filter($fieldItems,
+                    function($el) use ($fields, $i) {
+                        return $el['field_id'] === $fields[$i]->field_id;
+                    });
+                $fields[$i]->items = $items;
             }
         }
 

@@ -57,7 +57,7 @@ class PageController extends Controller {
         }
     }
 
-    public function editPages(string $id) {
+    public function editPage(string $id) {
         try {
             // Find the page by its ID
             $page = Page::findOrFail($id);
@@ -65,21 +65,8 @@ class PageController extends Controller {
             if (!$page->is_editable) {
                 throw new Exception('This page is not editable!');
             }
-            // Path to the resource/js directory
-            $jsPath = resource_path('js');
-
-            // Read the content of tabler.json file for icons
-            $cssContent = file_get_contents($jsPath."/tabler.json");
-            $icons = json_decode($cssContent);
-
-            // Filter icons based on certain criteria
-            $icons = array_filter($icons,
-                fn($icon) => str_contains($icon, 'ti') && $icon != 'ti');
 
             // Fetch all roles and field categories
-            $roles = Role::all();
-            $categories = FieldCategory::where('category_name', '<>', 'Hidden')
-                ->get();
 
             // Get selected field category IDs for the page
             $selectedCategories = DB::table('field_category_page')
@@ -87,17 +74,17 @@ class PageController extends Controller {
                 ->where('page_id', $id)
                 ->get();
 
+            $page->categories = $selectedCategories;
+            $roles = Role::pluck('role_name', 'role_id'
+            )->toArray();
+            $categories = FieldCategory::where('category_name', '<>', 'Hidden')
+                ->pluck('category_name', 'field_category_id'
+                )
+                ->toArray();
+
             // Return the edit view with necessary data
-            return view('admin.pages.edit', [
-                'pageTitle' => 'Edit Page',
-                // Page title for display
-                'selectedCategories' => $selectedCategories,
-                // Selected field categories for the page
-                'page' => $page,
-                // The page being edited
-                'name' => 'Page',
-                // Name of the entity being displayed
-                'icons' => $icons,
+            return Inertia::render('Admin/Page/Insert', [
+                'editPage' => $page,
                 // Filtered icon data
                 'roles' => $roles,
                 // All available roles
@@ -111,8 +98,13 @@ class PageController extends Controller {
 
             // Redirect to the showPages route with an error message
             return redirect()
-                ->route('showPages')
-                ->withErrors(['error' => 'Page not found.']);
+                ->route('showPage')
+                ->with([
+                    'toast' => [
+                        'message' => $e->getMessage(),
+                        'type' => 'danger',
+                    ],
+                ]);
         }
     }
 
@@ -129,8 +121,13 @@ class PageController extends Controller {
         //            fn($icon) => str_contains($icon, 'ti') && $icon != 'ti');
 
         // Fetch all roles and field categories
-        $roles = Role::all()->toArray();
-        $categories = FieldCategory::all();
+
+        $roles = Role::pluck('role_name', 'role_id'
+        )->toArray();
+        $categories = FieldCategory::where('category_name', '<>', 'Hidden')
+            ->pluck('category_name', 'field_category_id'
+            )
+            ->toArray();
 
         // Return the edit view for inserting a new page with necessary data
         return Inertia::render('Admin/Page/Insert', [
@@ -171,6 +168,7 @@ class PageController extends Controller {
                     'regex:/^\/(?:[a-z0-9_]+\/)*[a-z0-9_]+$/',
                 ],
                 'icon' => 'required',
+                'role_id' => 'required',
             ], [
                 'route.regex' => "Route must start with / and can contain characters, numbers, and '_'",
             ]);
@@ -218,7 +216,13 @@ class PageController extends Controller {
                 // Log the update and redirect to showPages route
                 Log::apiLog("Page ".$update->title." updated",
                     Auth::user()->user_id);
-                return redirect()->route('showPages');
+
+                return redirect()->route('showPage')->with([
+                    'toast' => [
+                        'message' => "Page ".$update->title." updated",
+                        'type' => 'success',
+                    ],
+                ]);
             }
             catch (Exception $e) {
                 // Rollback the transaction on exception
@@ -227,17 +231,28 @@ class PageController extends Controller {
                 // Log the error and redirect with error message
                 Log::errorLog("Error updating page: ".$e->getMessage());
                 return redirect()
-                    ->route('showPages')
-                    ->withErrors(['error' => 'An error occurred while updating the page.']);
+                    ->route('showPage')
+                    ->with([
+                        'toast' => [
+                            'message' => $e->getMessage(),
+                            'type' => 'danger',
+                        ],
+                    ]);
             }
         }
         catch (ValidationException $e) {
             // Redirect back with validation errors and input data
-            return redirect()->back()->withErrors($e->validator)->withInput();
+            return redirect()->back()->with([
+                'toast' => [
+                    'message' => $e->getMessage(),
+                    'type' => 'danger',
+                ],
+            ])->withInput();
         }
     }
 
-    public function addNewPage(Request $request) {
+    public function createPage(Request $request) {
+        //        dd('poz');
         // Start a database transaction
         DB::beginTransaction();
 
@@ -247,11 +262,11 @@ class PageController extends Controller {
                 'title' => 'required|string|unique:pages',
                 'route' => [
                     'required',
-                    'string',
                     'unique:pages',
                     'regex:/^\/(?:[a-z0-9_]+\/)*[a-z0-9_]+$/',
                 ],
                 'icon' => 'required',
+                'role_id' => 'required',
             ], [
                 'route.regex' => "Route must start with / and can contain characters, numbers, and '_'",
             ]);
@@ -270,6 +285,12 @@ class PageController extends Controller {
 
             // If page creation fails, throw an exception
             if (!$newPage->save()) {
+                session([
+                    'toast' => [
+                        'message' => 'Something went wrong!',
+                        'type' => 'danger',
+                    ],
+                ]);
                 throw new Exception("Page creation failed.");
             }
 
@@ -288,21 +309,30 @@ class PageController extends Controller {
 
             // Commit the transaction as everything was successful
             DB::commit();
-
             // Redirect to the showPages route
-            return redirect()->route('showPages');
+            return redirect()->route('showPage');
         }
         catch (Exception $e) {
             // Rollback the transaction on exception
             DB::rollback();
-
+            //            session([
+            //                'toast' => [
+            //                    'message' => 'Something went wrong!',
+            //                    'type' => 'danger',
+            //                ],
+            //            ]);
             // Log the error and handle it appropriately
             Log::errorLog("Error adding new page");
 
             // Redirect to the showPages route with an error message
             return redirect()
-                ->route('showPages')
-                ->withErrors(['error' => 'An error occurred while adding the page.']);
+                ->route('showPage')
+                ->with([
+                    'toast' => [
+                        'message' => $e->getMessage(),
+                        'type' => 'danger',
+                    ],
+                ]);
         }
     }
 
@@ -342,13 +372,23 @@ class PageController extends Controller {
 
                     // Redirect to the showPages route with an error message
                     return redirect()
-                        ->route('showPages')
-                        ->withErrors(['error' => 'An error occurred while deleting the page.']);
+                        ->route('showPage')
+                        ->with([
+                            'toast' => [
+                                'message' => 'There was an error during deleting!',
+                                'type' => 'danger',
+                            ],
+                        ]);
                 }
             }
 
             // Redirect to the showPages route after successful deletion or if the page was not found
-            return redirect()->route('showPages');
+            return redirect()->route('showPage')->with([
+                'toast' => [
+                    'message' => 'Page was deleted successfully!',
+                    'type' => 'success',
+                ],
+            ]);
         }
         catch (Exception $e) {
             // Log the error and handle it appropriately
@@ -356,8 +396,13 @@ class PageController extends Controller {
 
             // Redirect to the showPages route with an error message
             return redirect()
-                ->route('showPages')
-                ->withErrors(['error' => 'Page not found.']);
+                ->route('showPage')
+                ->with([
+                    'toast' => [
+                        'message' => 'There was an error during deleting!',
+                        'type' => 'danger',
+                    ],
+                ]);
         }
     }
 

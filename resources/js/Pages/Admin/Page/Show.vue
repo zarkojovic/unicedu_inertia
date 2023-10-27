@@ -8,7 +8,7 @@ const props = defineProps({
         type: Object,
     },
     columns: {
-        type: Array,
+        type: Object,
     },
 });
 
@@ -23,7 +23,10 @@ const props = defineProps({
         <div class="mt-20">
             <div class="mx-auto bg-white rounded-xl shadow-md overflow-hidden w-5/6">
                 <div class="bg-white overflow-hidden dark:bg-gray-800  shadow-sm sm:rounded-lg">
-                    <ModelDataDisplay :columns="props.columns" :data="props.data" :isDeletable="false"
+                    <ModelDataDisplay :columns="props.columns" :data="props.data" :is-deletable="true"
+                                      :is-editable="true"
+                                      delete-route="/admin/pages/deletePage"
+                                      edit-route="editPage"
                                       route-for-new="createNewPage" section-title="Custom Pages"/>
                 </div>
             </div>

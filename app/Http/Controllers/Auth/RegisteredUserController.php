@@ -14,31 +14,21 @@ use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class RegisteredUserController extends Controller
-{
-    /**
-     * Display the registration view.
-     */
-    public function create(): Response
-    {
-        return Inertia::render('Auth/Register');
-    }
+class RegisteredUserController extends Controller {
 
     /**
      * Handle an incoming registration request.
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request): RedirectResponse
-    {
+    public function store(Request $request): RedirectResponse {
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
-            'phone' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:' . User::class,
+            'phone' => 'required',
+            'email' => 'required|string|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
-
         $user = User::create([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
@@ -47,10 +37,20 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        event(new Registered($user));
+        //        event(new Registered($user));
+
+        Registered::dispatch($user);
 
         Auth::login($user);
 
         return redirect(RouteServiceProvider::HOME);
     }
+
+    /**
+     * Display the registration view.
+     */
+    public function create(): Response {
+        return Inertia::render('Auth/Register');
+    }
+
 }

@@ -14,7 +14,7 @@
                                      leave-from="opacity-100 translate-y-0 sm:scale-100"
                                      leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
                         <DialogPanel
-                            class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
+                            class="relative p-1 transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
                             <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
                                 <div class="sm:flex sm:items-start">
 
@@ -24,14 +24,15 @@
                                             <slot name="modalTitle"><p> Default Title</p></slot>
                                         </DialogTitle>
                                         <div class="mt-5">
-                                            <slot name="modalContent"><p>Default Content</p></slot>
+                                            <slot name="modalContent">
+                                            </slot>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                            <div class="bg-gray-50 px-4 py-3 sm:px-6">
                                 <slot name="modalFooter">
-                                    <Button :type="'danger'" @click="handleClose">Close me</Button>
+                                    <Button :type="'danger'" @click="handleClose">Cancel</Button>
                                 </slot>
 
                             </div>
@@ -46,13 +47,19 @@
 <script setup>
 import {ref} from 'vue';
 import {Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot} from '@headlessui/vue';
-import Button from '@/Atoms/Button.vue';
+import Button from "@/Atoms/Button.vue";
+// import Button from '@/Atoms/Button.vue';
 
-const emits = defineEmits(['close']);
+const emits = defineEmits(['close', 'confirmed']);
 
 const handleClose = (() => {
     open.value = false;
     emits('close');
+});
+
+const handleConfirmation = (() => {
+    open.value = false;
+    emits('confirmed');
 });
 
 const open = ref(true);

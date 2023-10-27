@@ -1,10 +1,18 @@
 <script setup>
 import {useForm, usePage} from '@inertiajs/vue3';
 import {computed} from "vue";
+import Modal from "@/Molecules/Modal.vue";
+import { ref } from 'vue'
+import Button from "@/Atoms/Button.vue";
 
 defineProps({
     img: String,
 })
+
+// const that = this;
+
+const showModal = ref(false);
+const imagePreview = ref(''); // Store the image preview URL
 
 const page = usePage();
 
@@ -15,8 +23,22 @@ const form = useForm({
 const submitForm = ($event) => {
     form.profileImage = $event.target.files[0];
     if (form.profileImage) {
-        form.post("/image/edit");
+        // form.post("/image/edit");
+        imagePreview.value = URL.createObjectURL(form.profileImage);
+        showModal.value = true;
+        console.log(imagePreview.value)
     }
+}
+
+// Handle the confirmation action
+const handleConfirmation = () => {
+    showModal.value = false;
+    form.post("/image/edit");
+}
+
+// Handle the modal close action
+const handleCloseModal = () => {
+    showModal.value = false;
 }
 
 const labelProgressClasses = computed(() => ({
@@ -49,12 +71,27 @@ const labelProgressClasses = computed(() => ({
                         <input type="file" class="hidden" name="profile-image"
                                id="profile-image-input" :disabled="form.progress !== null"
                                @change="submitForm($event)"/>
-                        <!--                        <input type="hidden" name="_token" :value="csrfToken" />-->
                         <label class="profile-image-label cursor-pointer md:text-left align-bottom "
                                for="profile-image-input" :class="labelProgressClasses">
                             Upload Profile Image</label>
                     </form>
-
+                    <Modal v-if="showModal" :imagePreview="imagePreview" @confirmed="handleConfirmation" @close="handleCloseModal">
+                        <template v-slot:modalTitle>
+                            <h1 class="text-center bg-amber-200 p-5 rounded-md">Warning! This image will be used for all your future college applications:</h1>
+                        </template>
+                        <template v-slot:modalContent>
+                            <div class="flex justify-center">
+                                <img :src="imagePreview" class="md:w-5/12 w-10/12 h-auto rounded-sm" alt="image preview"/>
+                            </div>
+                        </template>
+                        <template v-slot:modalFooter>
+                            <h1 class="text-center mb-3">Are you sure you want to upload this image to the server?</h1>
+                            <div class="flex justify-end">
+                                <Button :type="'success'" @click="handleConfirmation" class="me-2">Confirm</Button>
+                                <Button :type="'danger'" @click="handleCloseModal">Cancel</Button>
+                            </div>
+                        </template>
+                    </Modal>
                 </div>
             </div>
         </div>
