@@ -113,7 +113,7 @@ provide('formItems', formItems);
                   'group flex w-full items-center rounded-md px-2 py-2 text-sm',
                 ]"
                                     >
-                                        <Link :href="route('logout')" as="a"
+                                        <Link :href="route('logout')" as="button"
                                               method="post">
                                         <v-icon name="md-lockreset" class="mr-2 h-5 w-5"/>
                                         Change password
@@ -124,21 +124,24 @@ provide('formItems', formItems);
                             </div>
 
                             <div class="px-1 py-1">
-                                <MenuItem v-slot="{ active }">
 
+                                <MenuItem v-slot="{ active }">
+                                    <Link class="w-full" :href="route('logout')" as="button"
+                                          method="post">
                                     <button
                                         :class="[
                   active ? 'bg-orange-500 text-white' : 'text-gray-900',
                   'group flex w-full items-center rounded-md px-2 py-2 text-sm',
                 ]"
                                     >
-                                        <Link :href="route('logout')" as="a"
-                                              method="post">
+
                                         <v-icon name="md-logout-outlined" class="mr-2 h-5 w-5"/>
                                         Sign out
-                                        </Link>
                                     </button>
+                                    </Link>
+
                                 </MenuItem>
+
                             </div>
                         </MenuItems>
                     </transition>
