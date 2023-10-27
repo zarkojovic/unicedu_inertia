@@ -9,18 +9,15 @@
                         class="w-full border-none text-md text-gray-900 focus:ring-0 p-3"
                         :displayValue="(person) => person.name"
                         @change="query = $event.target.value"
+                        v-focus
+                        @blur="toggleCombobox"
                     />
 
                 </div>
-                <TransitionRoot
-                    leave="transition ease-in duration-100"
-                    leaveFrom="opacity-100"
-                    leaveTo="opacity-0"
-                    @after-leave="query = ''"
-                >
-                        <ComboboxOptions
+                <ComboboxOptions
                         class="absolute max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
-                    >
+                        :static="true"
+                        >
                         <div
                             v-if="filteredPeople.length === 0 && query !== ''"
                             class="relative cursor-default select-none py-2 px-4 text-gray-700"
@@ -57,14 +54,13 @@
                             </li>
                         </ComboboxOption>
                     </ComboboxOptions>
-                </TransitionRoot>
             </div>
         </Combobox>
     </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import {
     Combobox,
     ComboboxInput,
@@ -72,6 +68,8 @@ import {
     ComboboxOption,
     TransitionRoot,
 } from '@headlessui/vue'
+
+const emits = defineEmits(['hide', 'blur']);
 
 
 const people = [
@@ -82,6 +80,10 @@ const people = [
     { id: 5, name: 'Tanya Fox' },
     { id: 6, name: 'Hellen Schmidt' },
 ]
+
+const vFocus = {
+    mounted: (el) => el.focus()
+};
 
 let selected = ""
 let query = ref('')
@@ -96,4 +98,9 @@ let filteredPeople = computed(() =>
                 .includes(query.value.toLowerCase().replace(/\s+/g, ''))
         )
 )
+
+const toggleCombobox = (() => {
+    query = ''
+    emits("hide");
+});
 </script>

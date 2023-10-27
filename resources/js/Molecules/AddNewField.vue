@@ -10,7 +10,7 @@
             <IconPlus class="text-gray-400"/>
         </div>
     </div>
-    <Autocomplete v-else/>
+    <Autocomplete v-else @hide="toggleCombobox"/>
 
 </template>
 
@@ -30,6 +30,11 @@ export default {
     data() {
         return {
             showAddNew: false
+        }
+    },
+    methods: {
+        toggleCombobox(){
+            this.showAddNew = false
         }
     }
 }
