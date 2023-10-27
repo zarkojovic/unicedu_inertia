@@ -21,6 +21,94 @@ const submit = () => {
         onFinish: () => form.reset('password', 'password_confirmation'),
     });
 };
+
+const validateFirstName = () => {
+    const name = form.first_name;
+
+    if (!name) {
+        form.errors.first_name = 'The name field is required.';
+    } else {
+        form.errors.first_name = '';
+    }
+};
+
+const validateLastName = () => {
+    const surname = form.last_name;
+
+    if (!surname) {
+        form.errors.last_name = 'The surname field is required.';
+    } else {
+        form.errors.last_name = '';
+    }
+};
+
+const validateEmail = () => {
+    const email = form.email;
+    const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+
+    if (!email) {
+        form.errors.email = 'The email field is required.';
+    } else if (!emailRegex.test(email)) {
+        form.errors.email = 'Invalid email format';
+    } else {
+        form.errors.email = '';
+    }
+};
+
+const validatePhone = () => {
+    const phone = form.phone;
+
+    if (!phone) {
+        form.errors.phone = 'The phone number field is required.';
+    }
+    else {
+        form.errors.phone = '';
+    }
+};
+
+const validatePassword = () => {
+    const password = form.password;
+
+    if (!password) {
+        form.errors.password = 'The password field is required.';
+    } else if (password.length < 8) {
+        form.errors.password = 'Password must be at least 8 characters long';
+    } else {
+        form.errors.password = '';
+    }
+};
+const validateRepeatPassword = () => {
+    const password = form.password;
+    const repeatPassword = form.password_confirmation;
+
+    if (!repeatPassword) {
+        form.errors.password_confirmation = 'The repeat password field is required.';
+    } else if (repeatPassword !== password) {
+        form.errors.password_confirmation = 'Passwords do not match';
+    } else {
+        form.errors.password_confirmation = '';
+    }
+};
+
+const validateRegistrationForm = () => {
+    validateFirstName();
+    validateLastName();
+    validateEmail();
+    validatePhone();
+    validatePassword();
+    validateRepeatPassword();
+
+    if (
+        form.errors.first_name === '' &&
+        form.errors.last_name === '' &&
+        form.errors.email === '' &&
+        form.errors.phone === '' &&
+        form.errors.password === '' &&
+        form.errors.password_confirmation === ''
+    ) {
+        submit();
+    }
+};
 </script>
 
 <template>
@@ -32,37 +120,33 @@ const submit = () => {
             <h2 class="text-sm text-gray-400 text-center">Please enter your details</h2>
         </div>
 
-        <form @submit.prevent="submit" class="grid grid-cols-2 md:gap-x-8 gap-2 gap-y-5">
+        <form @submit.prevent="validateRegistrationForm" class="grid grid-cols-2 md:gap-x-8 gap-2 gap-y-5">
             <div>
-                <InputLabel for="name" value="Name"/>
+                <InputLabel for="first-name" value="Name"/>
 
                 <TextInput
+                    @focusout="validateFirstName"
                     id="first-name"
                     type="text"
                     class="mt-1 block w-full"
                     v-model="form.first_name"
-                    required
-                    autofocus
-                    autocomplete="name"
                 />
 
-                <InputError class="mt-2" :message="form.errors.name"/>
+                <InputError class="mt-2" :message="form.errors.first_name"/>
             </div>
 
             <div>
                 <InputLabel for="last-name" value="Last name"/>
 
                 <TextInput
+                    @focusout="validateLastName"
                     id="last-name"
                     type="text"
                     class="mt-1 block w-full"
                     v-model="form.last_name"
-                    required="required"
-                    autofocus="autofocus"
-                    autocomplete="lastName"
                 />
 
-                <InputError class="mt-2" :message="form.errors.name"/>
+                <InputError class="mt-2" :message="form.errors.last_name"/>
             </div>
 
             <div class="col-span-2">
@@ -70,12 +154,11 @@ const submit = () => {
 
 
                 <TextInput
+                    @focusout="validateEmail"
                     id="email"
                     type="email"
                     class="mt-1 block w-full"
                     v-model="form.email"
-                    required
-                    autocomplete="username"
                 />
 
                 <InputError class="mt-2" :message="form.errors.email"/>
@@ -85,28 +168,25 @@ const submit = () => {
                 <InputLabel for="phone" value="Phone"/>
 
                 <TextInput
+                    @focusout="validatePhone"
                     id="phone"
                     type="text"
                     class="mt-1 block w-full"
                     v-model="form.phone"
-                    required="required"
-                    autofocus="autofocus"
-                    autocomplete="phone"
                 />
 
-                <InputError class="mt-2" :message="form.errors.name"/>
+                <InputError class="mt-2" :message="form.errors.phone"/>
             </div>
 
             <div class="col-span-2">
                 <InputLabel for="password" value="Password"/>
 
                 <TextInput
+                    @focusout="validatePassword"
                     id="password"
                     type="password"
                     class="mt-1 block w-full"
                     v-model="form.password"
-                    required
-                    autocomplete="new-password"
                 />
 
                 <InputError class="mt-2" :message="form.errors.password"/>
@@ -116,12 +196,11 @@ const submit = () => {
                 <InputLabel for="password_confirmation" value="Confirm Password"/>
 
                 <TextInput
+                    @focusout="validateRepeatPassword"
                     id="password_confirmation"
                     type="password"
                     class="mt-1 block w-full"
                     v-model="form.password_confirmation"
-                    required
-                    autocomplete="new-password"
                 />
 
                 <InputError class="mt-2" :message="form.errors.password_confirmation"/>
