@@ -52,27 +52,19 @@ class AdminController extends RootController {
             ["fields" => $fields, "categories" => $categories]);
     }
 
-    public function search(Request $request) {
-        if ($request->ajax()) {
-            $searchQuery = $request->input('search');
+    public function fetchFields(Request $request) {
+            $fields = Field::whereNull("field_category_id")->get();
+            if (count($fields) > 0) {
+                $output = [];
 
-            $rows = Field::whereNull("field_category_id")->where(function($query
-            ) use ($searchQuery) {
-                $query->where('title', 'LIKE', '%'.$searchQuery.'%')
-                    ->orWhere('field_name', 'LIKE', '%'.$searchQuery.'%');
-            })->get();
-
-            if (count($rows) > 0) {
-                $output = "";
-                foreach ($rows as $row) {
-                    $text = $row->title ?? $row->field_name;
-                    $output .= "<option value='$row->field_id'>$text</option>";
+                foreach ($fields as $field) {
+                    $text = $field->title ?? $field->field_name;
+                    $output[] = ['id' => $field->field_id, 'title' => $text];
                 }
                 return $output;
             }
 
-            return "<option value='0'>No results found...</option>";
-        }
+            return ['id' => 0, 'title' => "No unassigned fields found..."];
     }
 
     public function setFieldCategory(Request $request) {
