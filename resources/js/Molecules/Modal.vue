@@ -30,11 +30,10 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="bg-gray-50 px-4 py-3 sm:px-6">
+                            <div class="bg-gray-50 px-4 py-3 sm:px-6 ">
                                 <slot name="modalFooter">
                                     <Button :type="'danger'" @click="handleClose">Cancel</Button>
                                 </slot>
-
                             </div>
                         </DialogPanel>
                     </TransitionChild>
@@ -47,7 +46,7 @@
 <script setup>
 import {ref} from 'vue';
 import {Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot} from '@headlessui/vue';
-import Button from "@/Atoms/Button.vue";
+import Button from '@/Atoms/Button.vue';
 // import Button from '@/Atoms/Button.vue';
 
 const emits = defineEmits(['close', 'confirmed']);

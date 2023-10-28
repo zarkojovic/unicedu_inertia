@@ -1,8 +1,9 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import {Head} from '@inertiajs/vue3';
-import {onMounted, provide, ref} from 'vue';
+import {provide, ref} from 'vue';
 import Button from '@/Atoms/Button.vue';
+import Modal from '@/Molecules/Modal.vue';
 
 const props = defineProps({
     applications: {
@@ -14,9 +15,9 @@ const openModal = ref(false);
 
 provide('navBtnType', 'applicationsPage');
 
-onMounted(() => {
-    // console.log(props.applications[0].deals);
-});
+const deleteDeal = () => {
+    console.log('pozdraav');
+};
 
 </script>
 
@@ -31,6 +32,7 @@ onMounted(() => {
             <div v-for="(deal,index) in applications"
                  id="applicationsContainerHeader" :key="index"
                  class="mx-auto bg-white rounded-3xl shadow-md overflow-hidden p-5 lg:px-8">
+
                 <div
                     class="flex border-b-2">
                     <div class="mr-10">
@@ -39,11 +41,13 @@ onMounted(() => {
                     </div>
                     <div>
                         <span class="text-gray-400 font-medium text-md mt-3">Package</span>
-                        <h4 class="text-center mb-5 text-sm md:text-left md:text-xl">{{ deal.package_name }}</h4>
+                        <h4 class="text-center capitalize mb-5 text-sm md:text-left md:text-xl">{{
+                                deal.package_name
+                            }}
+                        </h4>
                     </div>
                 </div>
-                <div id="dealsContainer" class="mt-2">
-
+                <div class="mt-2">
                     <div v-for="(item,key) in deal.deals" id="applicationsContainerHeader" :key="key"
                          class="grid grid-cols-4 grid-rows-2 gap-4 pb-5 border-b-2">
                         <div class="pt-4">
@@ -70,13 +74,28 @@ onMounted(() => {
                         <div class="pt-4">
                             <span class="text-gray-400 font-medium text-md mt-3">Delete</span>
                             <h5 class="text-md">
-                                <Button type="danger">Delete</Button>
+                                <Button type="danger" @click="openModal = true">Delete</Button>
                             </h5>
                         </div>
-                        <div></div>
+                        <Modal v-if="openModal" @close="openModal = false">
+                            <template #modalTitle>
+                                Confirm your action
+                            </template>
+                            <template #modalContent>
+                                <h2>Are you sure you want to delete this application {{ item.deal_id }}?</h2>
+                            </template>
+                            <template #modalFooter>
+                                <div class="flex justify-end">
+                                    <Button class="me-3" type="muted" @click="openModal = false">Close</Button>
+                                    <Button type="danger" @click="deleteDeal">Delete</Button>
+                                </div>
+                            </template>
+                        </Modal>
                     </div>
 
+
                 </div>
+
             </div>
         </div>
     </AuthenticatedLayout>

@@ -5,7 +5,6 @@ import Modal from '@/Molecules/Modal.vue';
 import Button from '@/Atoms/Button.vue';
 import {provide, ref} from 'vue';
 import {useForm, usePage} from '@inertiajs/vue3';
-import toast from '@/Stores/toast.js';
 
 const props = defineProps({
     modelValue: {
@@ -27,15 +26,17 @@ const page = usePage();
 
 const emits = defineEmits(['update:modelValue']);
 
+const errorsText = ref(null);
+
 const submit = () => {
     const keys = Object.keys(formItems.value.formItems);
     if (keys.length === 0) {
-        display.value = !display.value;
-        toast.add({
-            message: 'No changes made.',
-            type: 'warning',
-        });
+
+        errorsText.value = 'You must fill the fields!';
         return;
+    } else {
+        errorsText.value = null;
+
     }
     var arrayOfUpdateFields = [];
     keys.forEach(el => {
@@ -43,11 +44,33 @@ const submit = () => {
         arrayOfUpdateFields.push(formItems.value.formItems[el]);
     });
     form.items = arrayOfUpdateFields;
-    form.post('/applications/addNew', {
-        onSuccess: () => {
-            changeValue(false);
-        },
-    });
+
+    function validateArrayOfObjects(arr) {
+        // Check if the array has a length of 3
+        if (arr.length !== 3) {
+            return false;
+        }
+        // Check if each element has a non-empty .value property
+        for (let i = 0; i < arr.length; i++) {
+            const element = arr[i];
+            if (!element.hasOwnProperty('value') || typeof element.value !== 'string' || element.value.trim() === '') {
+                return false;
+            }
+        }
+        // If all checks pass, return true
+        return true;
+    }
+
+    if (validateArrayOfObjects(arrayOfUpdateFields)) {
+        errorsText.value = null;
+        form.post('/applications/addNew', {
+            onSuccess: () => {
+                changeValue(false);
+            },
+        });
+    } else {
+        errorsText.value = 'You didn\'t insert all of the fields!';
+    }
 };
 
 const changeValue = (value) => {
@@ -63,8 +86,9 @@ const changeValue = (value) => {
             <h2 class="text-lg">Add new application</h2>
         </template>
         <template v-slot:modalContent>
-            <div class="grid col-span-2  grid-cols-2 sm:grid-cols-2 gap-4">
+            <div class="grid col-span-2  grid-cols-1 sm:grid-cols-1 gap-4">
                 <FieldsForm :items="page.props.deal_fields"/>
+                <p v-if="errorsText !== null" class="text-red-500">{{ errorsText }}</p>
             </div>
         </template>
 

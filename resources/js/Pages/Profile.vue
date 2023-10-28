@@ -1,15 +1,15 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import {Head} from '@inertiajs/vue3';
-import ProfileCard from "@/Organisms/ProfileCard.vue";
-import CategorySection from "@/Organisms/CategorySection.vue";
+import ProfileCard from '@/Organisms/ProfileCard.vue';
+import CategorySection from '@/Organisms/CategorySection.vue';
 
 defineProps({
     img: String,
     categoriesWithFields: {
-        type: Object
-    }
-})
+        type: Object,
+    },
+});
 
 </script>
 
@@ -17,10 +17,7 @@ defineProps({
     <Head title="Profile"/>
 
     <AuthenticatedLayout>
-
-
         <ProfileCard :img="img"/>
-
 
         <CategorySection
             v-for="(category,key) in categoriesWithFields"
