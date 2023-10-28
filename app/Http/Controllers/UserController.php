@@ -8,7 +8,6 @@ use App\Models\FieldCategory;
 use App\Models\Log;
 use App\Models\User;
 use App\Models\UserInfo;
-use CRest;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -247,28 +246,28 @@ class UserController extends RootController {
                 ]);
         }
 
-        $deals = Deal::where('user_id', $user->user_id)
-            ->pluck('user_id', 'bitrix_deal_id')
-            ->toArray();
-
-        if (count($deals) > 0) {
-            $fields = User::getAllUserFieldsValue();
-
-            foreach ($deals as $key => $val) {
-                // Make API call t*3o create the deal in Bitrix24
-                $res = CRest::call("crm.deal.update", [
-                    'ID' => (string) $key,
-                    'FIELDS' => $fields,
-                ]);
-
-                if ($res['result']) {
-                    Log::apiLog('Deal '.$key.' successfully updated!');
-                }
-                else {
-                    Log::errorLog('Failed to update deal '.$key);
-                }
-            }
-        }
+        //        $deals = Deal::where('user_id', $user->user_id)
+        //            ->pluck('user_id', 'bitrix_deal_id')
+        //            ->toArray();
+        //
+        //        if (count($deals) > 0) {
+        //            $fields = User::getAllUserFieldsValue();
+        //
+        //            foreach ($deals as $key => $val) {
+        //                // Make API call t*3o create the deal in Bitrix24
+        //                $res = CRest::call("crm.deal.update", [
+        //                    'ID' => (string) $key,
+        //                    'FIELDS' => $fields,
+        //                ]);
+        //
+        //                if ($res['result']) {
+        //                    Log::apiLog('Deal '.$key.' successfully updated!');
+        //                }
+        //                else {
+        //                    Log::errorLog('Failed to update deal '.$key);
+        //                }
+        //            }
+        //        }
     }
 
     public function getUserInfo() {

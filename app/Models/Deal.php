@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Deal extends Model
-{
+class Deal extends Model {
+
     use HasFactory;
 
     protected $primaryKey = 'deal_id';
@@ -19,11 +19,15 @@ class Deal extends Model
         'degree',
         'program',
         'intake',
-        'date'
+        'date',
     ];
 
-    public function user(): \Illuminate\Database\Eloquent\Relations\BelongsTo
-    {
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d H:i:s',
+    ];
+
+    public function user(): BelongsTo {
         return $this->belongsTo(User::class);
     }
+
 }

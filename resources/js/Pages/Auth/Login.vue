@@ -4,7 +4,6 @@ import Button from '@/Atoms/Button.vue';
 import {Head, Link, useForm} from '@inertiajs/vue3';
 import GenericInput from '@/Atoms/GenericInput.vue';
 import {useReCaptcha} from 'vue-recaptcha-v3';
-import {computed} from "vue";
 
 defineProps({
     canResetPassword: {
@@ -61,13 +60,13 @@ const validatePassword = () => {
     }
 };
 
-
 const validateForm = () => {
-    validatePassword()
-    validateEmail()
-        if (form.errors.password === '' && form.errors.email === ''){
-            recaptcha();
-        }
+    validatePassword();
+    validateEmail();
+
+    if (form.errors.password === '' && form.errors.email === '') {
+        recaptcha();
+    }
 
 };
 
@@ -88,25 +87,25 @@ const validateForm = () => {
         <form class="grid grid-cols-1 md:gap-x-8 gap-2 gap-y-4" @submit.prevent="validateForm">
             <div>
                 <GenericInput
-                    @focusout="validateEmail"
                     v-model="form.email"
                     :error="form.errors.email"
                     :input-id="'email'"
                     :input-name="'email'"
                     :label="'Email'"
                     :type="'email'"
+                    @focusout="validateEmail"
                 />
             </div>
 
             <div>
                 <GenericInput
-                    @focusout="validatePassword"
                     v-model="form.password"
                     :error="form.errors.password"
                     :input-id="'password'"
                     :input-name="'password'"
                     :label="'Password'"
                     :type="'password'"
+                    @focusout="validatePassword"
                     @keyup.enter="validateForm"
                 />
             </div>

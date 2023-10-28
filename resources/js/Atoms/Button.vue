@@ -47,15 +47,15 @@ const btnStyleClass = computed(() => {
         case true:
             switch (type) {
                 case 'primary':
-                    return 'border border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white focus:ring-orange-300';
+                    return 'border border-orange-500 rounded-2xl px-3 text-orange-500 hover:bg-orange-500 hover:text-white focus:ring-orange-300';
                 case 'danger':
-                    return 'border border-red-500  text-red-500  hover:bg-red-500 hover:text-white focus:ring-red-300';
+                    return 'border border-red-500 rounded-2xl px-3 text-red-500  hover:bg-red-500 hover:text-white focus:ring-red-300';
                 case 'success':
-                    return 'border border-green-500  text-green-500 hover:bg-green-500 hover:text-white focus:ring-green-300';
+                    return 'border border-green-500 rounded-2xl px-3 text-green-500 hover:bg-green-500 hover:text-white focus:ring-green-300';
                 case 'muted':
-                    return 'border border-gray-500  text-gray-500 hover:bg-gray-500 hover:text-white focus:ring-gray-300';
+                    return 'border border-gray-500 rounded-2xl px-3 text-gray-500 hover:bg-gray-500 hover:text-white focus:ring-gray-300';
                 default :
-                    return 'border border-orange-500  text-orange-500 hover:bg-orange-500 hover:text-white focus:ring-orange-300';
+                    return 'border border-orange-500 rounded-2xl px-3 text-orange-500 hover:bg-orange-500 hover:text-white focus:ring-orange-300';
             }
             break;
     }

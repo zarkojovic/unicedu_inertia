@@ -5,7 +5,7 @@ import {Head, Link, useForm} from '@inertiajs/vue3';
 import Button from '@/Atoms/Button.vue';
 import GenericInput from '@/Atoms/GenericInput.vue';
 import ListInput from '@/Atoms/ListInput.vue';
-import {computed, watch} from 'vue';
+import {computed} from 'vue';
 
 const props = defineProps({
     data: {
@@ -54,12 +54,6 @@ const isAdmin = computed(() => {
         return 1;
     }
     return 0;
-});
-
-watch(isAdmin, (ex) => {
-    if (isAdmin.value) {
-        form.route = '/admin';
-    }
 });
 
 const submit = () => {

@@ -5,7 +5,6 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import {Head, Link, useForm} from '@inertiajs/vue3';
-import GenericInput from "@/Atoms/GenericInput.vue";
 
 const form = useForm({
     first_name: '',
@@ -60,8 +59,7 @@ const validatePhone = () => {
 
     if (!phone) {
         form.errors.phone = 'The phone number field is required.';
-    }
-    else {
+    } else {
         form.errors.phone = '';
     }
 };
@@ -120,33 +118,33 @@ const validateRegistrationForm = () => {
             <h2 class="text-sm text-gray-400 text-center">Please enter your details</h2>
         </div>
 
-        <form @submit.prevent="validateRegistrationForm" class="grid grid-cols-2 md:gap-x-8 gap-2 gap-y-5">
+        <form class="grid grid-cols-2 md:gap-x-8 gap-2 gap-y-5" @submit.prevent="validateRegistrationForm">
             <div>
                 <InputLabel for="first-name" value="Name"/>
 
                 <TextInput
-                    @focusout="validateFirstName"
                     id="first-name"
-                    type="text"
-                    class="mt-1 block w-full"
                     v-model="form.first_name"
+                    class="mt-1 block w-full"
+                    type="text"
+                    @focusout="validateFirstName"
                 />
 
-                <InputError class="mt-2" :message="form.errors.first_name"/>
+                <InputError :message="form.errors.first_name" class="mt-2"/>
             </div>
 
             <div>
                 <InputLabel for="last-name" value="Last name"/>
 
                 <TextInput
-                    @focusout="validateLastName"
                     id="last-name"
-                    type="text"
-                    class="mt-1 block w-full"
                     v-model="form.last_name"
+                    class="mt-1 block w-full"
+                    type="text"
+                    @focusout="validateLastName"
                 />
 
-                <InputError class="mt-2" :message="form.errors.last_name"/>
+                <InputError :message="form.errors.last_name" class="mt-2"/>
             </div>
 
             <div class="col-span-2">
@@ -154,61 +152,61 @@ const validateRegistrationForm = () => {
 
 
                 <TextInput
-                    @focusout="validateEmail"
                     id="email"
-                    type="email"
-                    class="mt-1 block w-full"
                     v-model="form.email"
+                    class="mt-1 block w-full"
+                    type="email"
+                    @focusout="validateEmail"
                 />
 
-                <InputError class="mt-2" :message="form.errors.email"/>
+                <InputError :message="form.errors.email" class="mt-2"/>
             </div>
 
             <div class="col-span-2">
                 <InputLabel for="phone" value="Phone"/>
 
                 <TextInput
-                    @focusout="validatePhone"
                     id="phone"
-                    type="text"
-                    class="mt-1 block w-full"
                     v-model="form.phone"
+                    class="mt-1 block w-full"
+                    type="text"
+                    @focusout="validatePhone"
                 />
 
-                <InputError class="mt-2" :message="form.errors.phone"/>
+                <InputError :message="form.errors.phone" class="mt-2"/>
             </div>
 
             <div class="col-span-2">
                 <InputLabel for="password" value="Password"/>
 
                 <TextInput
-                    @focusout="validatePassword"
                     id="password"
-                    type="password"
-                    class="mt-1 block w-full"
                     v-model="form.password"
+                    class="mt-1 block w-full"
+                    type="password"
+                    @focusout="validatePassword"
                 />
 
-                <InputError class="mt-2" :message="form.errors.password"/>
+                <InputError :message="form.errors.password" class="mt-2"/>
             </div>
 
             <div class="col-span-2">
                 <InputLabel for="password_confirmation" value="Confirm Password"/>
 
                 <TextInput
-                    @focusout="validateRepeatPassword"
                     id="password_confirmation"
-                    type="password"
-                    class="mt-1 block w-full"
                     v-model="form.password_confirmation"
+                    class="mt-1 block w-full"
+                    type="password"
+                    @focusout="validateRepeatPassword"
                 />
 
-                <InputError class="mt-2" :message="form.errors.password_confirmation"/>
+                <InputError :message="form.errors.password_confirmation" class="mt-2"/>
             </div>
 
             <div class="flex items-center justify-end mt-4 col-span-2">
-                <PrimaryButton class="w-full flex items-center justify-center text-white"
-                               :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
+                <PrimaryButton :class="{ 'opacity-25': form.processing }"
+                               :disabled="form.processing" class="w-full flex items-center justify-center text-white">
                     Register
                 </PrimaryButton>
             </div>

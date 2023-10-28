@@ -2,10 +2,22 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import {Head} from '@inertiajs/vue3';
 import {provide, ref} from 'vue';
+import Button from '@/Atoms/Button.vue';
+import Modal from '@/Molecules/Modal.vue';
+
+const props = defineProps({
+    applications: {
+        type: Object,
+    },
+});
 
 const openModal = ref(false);
 
 provide('navBtnType', 'applicationsPage');
+
+const deleteDeal = () => {
+    console.log('pozdraav');
+};
 
 </script>
 
@@ -17,35 +29,43 @@ provide('navBtnType', 'applicationsPage');
         </template>
 
         <div class="py-6 mt-6">
-        <div class="mx-auto bg-white rounded-3xl shadow-md overflow-hidden p-5 lg:px-8">
-                <div id="applicationsContainerHeader" class="flex border-b-2">
+            <div v-for="(deal,index) in applications"
+                 id="applicationsContainerHeader" :key="index"
+                 class="mx-auto bg-white rounded-3xl shadow-md overflow-hidden p-5 lg:px-8">
+
+                <div
+                    class="flex border-b-2">
                     <div class="mr-10">
                         <span class="text-gray-400 font-medium text-md mt-3">Intake</span>
-                        <h4 class="text-center mb-5 text-sm md:text-left md:text-xl">October 2023/2024</h4>
+                        <h4 class="text-center mb-5 text-sm md:text-left md:text-xl">{{ deal.intake_name }}</h4>
                     </div>
                     <div>
                         <span class="text-gray-400 font-medium text-md mt-3">Package</span>
-                        <h4 class="text-center mb-5 text-sm md:text-left md:text-xl">Bronze</h4>
+                        <h4 class="text-center capitalize mb-5 text-sm md:text-left md:text-xl">{{
+                                deal.package_name
+                            }}
+                        </h4>
                     </div>
                 </div>
-                <div id="dealsContainer" class="mt-2">
-                    <div class="grid grid-cols-4 grid-rows-2 gap-4 pb-5 border-b-2">
+                <div class="mt-2">
+                    <div v-for="(item,key) in deal.deals" id="applicationsContainerHeader" :key="key"
+                         class="grid grid-cols-4 grid-rows-2 gap-4 pb-5 border-b-2">
                         <div class="pt-4">
                             <span class="text-gray-400 font-medium text-md mt-3">University</span>
-                            <h5 class="text-md">University of Belgrade </h5>
+                            <h5 class="text-md">{{ item.university }}</h5>
                         </div>
                         <div class="pt-4">
                             <span class="text-gray-400 font-medium text-md mt-3">Degree</span>
-                            <h5 class="text-md">University of Belgrade </h5>
+                            <h5 class="text-md">{{ item.degree }}</h5>
                         </div>
                         <div class="pt-4">
                             <span class="text-gray-400 font-medium text-md mt-3">Applied</span>
-                            <h5 class="text-md">27.10.2024 13:48</h5>
+                            <h5 class="text-md">{{ item.created_at }}</h5>
                         </div>
                         <div></div>
                         <div class="pt-4">
                             <span class="text-gray-400 font-medium text-md mt-3">Program</span>
-                            <h5 class="text-md">University of Belgrade </h5>
+                            <h5 class="text-md">{{ item.program }}</h5>
                         </div>
                         <div class="pt-4">
                             <span class="text-gray-400 font-medium text-md mt-3">Status</span>
@@ -53,42 +73,31 @@ provide('navBtnType', 'applicationsPage');
                         </div>
                         <div class="pt-4">
                             <span class="text-gray-400 font-medium text-md mt-3">Delete</span>
-                            <h5 class="text-md">Button</h5>
+                            <h5 class="text-md">
+                                <Button type="danger" @click="openModal = true">Delete</Button>
+                            </h5>
                         </div>
-                        <div></div>
-                    </div>
-                    <div class="grid grid-cols-4 grid-rows-2 gap-4 pb-5 border-b-2">
-                        <div class="pt-4">
-                            <span class="text-gray-400 font-medium text-md mt-3">University</span>
-                            <h5 class="text-md">University of Belgrade </h5>
-                        </div>
-                        <div class="pt-4">
-                            <span class="text-gray-400 font-medium text-md mt-3">Degree</span>
-                            <h5 class="text-md">University of Belgrade </h5>
-                        </div>
-                        <div class="pt-4">
-                            <span class="text-gray-400 font-medium text-md mt-3">Applied</span>
-                            <h5 class="text-md">27.10.2024 13:48</h5>
-                        </div>
-                        <div></div>
-                        <div class="pt-4">
-                            <span class="text-gray-400 font-medium text-md mt-3">Program</span>
-                            <h5 class="text-md">University of Belgrade </h5>
-                        </div>
-                        <div class="pt-4">
-                            <span class="text-gray-400 font-medium text-md mt-3">Status</span>
-                            <h5 class="text-md">New Application</h5>
-                        </div>
-                        <div class="pt-4">
-                            <span class="text-gray-400 font-medium text-md mt-3">Delete</span>
-                            <h5 class="text-md">Button</h5>
-                        </div>
-                        <div></div>
+                        <Modal v-if="openModal" @close="openModal = false">
+                            <template #modalTitle>
+                                Confirm your action
+                            </template>
+                            <template #modalContent>
+                                <h2>Are you sure you want to delete this application {{ item.deal_id }}?</h2>
+                            </template>
+                            <template #modalFooter>
+                                <div class="flex justify-end">
+                                    <Button class="me-3" type="muted" @click="openModal = false">Close</Button>
+                                    <Button type="danger" @click="deleteDeal">Delete</Button>
+                                </div>
+                            </template>
+                        </Modal>
                     </div>
 
+
                 </div>
+
+            </div>
         </div>
-    </div>
     </AuthenticatedLayout>
 </template>
 
