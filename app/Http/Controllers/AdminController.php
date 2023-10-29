@@ -7,6 +7,7 @@ use App\Models\FieldCategory;
 use App\Models\Log;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class AdminController extends RootController {
@@ -17,9 +18,11 @@ class AdminController extends RootController {
 
     public function home() {
         $categories = FieldCategory::where("category_name", "<>", "Hidden")
+            ->select("field_category_id","category_name")
             ->get();
         $sortedFields = Field::whereNotIn('field_category_id', [5])
             ->where('is_active', '1')
+            ->select("field_id","field_name","title","is_required","order","field_category_id")
             ->orderBy("order", "asc")
             ->get()
             ->toArray();
@@ -53,21 +56,22 @@ class AdminController extends RootController {
     }
 
     public function fetchFields(Request $request) {
-            $fields = Field::whereNull("field_category_id")->get();
+            $fields = Field::whereNull("field_category_id")->select("field_id","field_name","title")->get();
             if (count($fields) > 0) {
                 $output = [];
-
                 foreach ($fields as $field) {
-                    $text = $field->title ?? $field->field_name;
-                    $output[] = ['id' => $field->field_id, 'title' => $text];
+                    $output[] = ['field_id' => $field->field_id, 'title' => $field->title ?? $field->field_name];
                 }
+
                 return $output;
             }
 
-            return ['id' => 0, 'title' => "No unassigned fields found..."];
+            return ['field_id' => 0, 'title' => "No uncategorized fields found..."];
     }
 
     public function setFieldCategory(Request $request) {
+        return redirect()
+            ->back();
         try {
             $fieldId = $request->input('field_id');
             $newCategoryId = $request->input('field_category_id');
@@ -80,11 +84,26 @@ class AdminController extends RootController {
             $record->save();
             $displayName = $record->title != NULL ? $record->title : $record->field_name;
             Log::apiLog("Added '".$displayName."' field to ".$record->category->category_name);
-            return response()->json(['message' => 'Record updated successfully']);
+            return redirect()
+                ->back()
+                ->with([
+                    'toast' => [
+                        'message' => "Successfully added field to category!",
+                        'type' => 'success',
+                    ],
+                ]);
         }
-        catch (Exception $e) {
-            return response()->json(['message' => 'Error updating record'],
-                Response::HTTP_INTERNAL_SERVER_ERROR);
+        catch (Exception $ex) {
+            http_response_code(500);
+            Log::errorLog($ex->getMessage(), Auth::user()->user_id);
+            return redirect()
+                ->back()
+                ->with([
+                    'toast' => [
+                        'message' => "An error occured on the server.",
+                        'type' => 'danger',
+                    ],
+                ]);
         }
     }
 

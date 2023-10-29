@@ -1,6 +1,6 @@
 <template>
     <div class="w-5/12 add-category flex justify-between col border mb-3 me-4 p-3 rounded-xl position-relative cursor-pointer"
-         :id="'category_'+id"
+         :id="'category_'+catId"
          v-if="!showAddNew"
          @click="showAddNew = true">
         <div class="add-category-text">
@@ -10,7 +10,7 @@
             <IconPlus class="text-gray-400"/>
         </div>
     </div>
-    <Autocomplete v-else @hide="toggleCombobox"/>
+    <Autocomplete v-else @hide="toggleCombobox" :catId="catId" :order="order"/>
 
 </template>
 
@@ -25,7 +25,8 @@ export default {
         Autocomplete
     },
     props: {
-        id: Number
+        catId: Number,
+        order: Number
     },
     data() {
         return {

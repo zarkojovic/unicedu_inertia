@@ -24,19 +24,11 @@
                                           pull: 'clone',
                                         }">
                                 <template #item="{ element }" class="">
-                                    <AdminField :drag="drag" :field_id="element.field_id" :title="element.title ?? element.field_name" :is_required="element.required"/>
+                                    <AdminField :field_id="element.field_id" :title="element.title ?? element.field_name" :is_required="element.required"/>
                                 </template>
                             </draggable>
                         <hr class="mb-3"/>
-                        <AddNewField :id="category.field_category_id"/>
-
-
-
-
-
-                        <!--                                <AdminField :field_id="element.field_id" :title="element.title ?? element.field_name" :is_required="element.required"/>-->
-                        <!--v-for="(field, key) in getCategoryFields(category.field_category_id)" :key="key"   v-for-> getCategoryFields(category.field_category_id)-->
-
+                        <AddNewField :catId="category.field_category_id" :order="category.fields.length + 1"/>
                     </form>
                 </div>
             </div>
@@ -51,6 +43,7 @@ import AdminField from "@/Molecules/AdminField.vue";
 import {IconPlus} from '@tabler/icons-vue';
 import draggable from "vuedraggable";
 import AddNewField from "@/Molecules/AddNewField.vue";
+// import { toRef, provide } from 'vue'
 
 
 export default {
@@ -81,6 +74,30 @@ export default {
             };
         }
     },
+    // setup(props){
+    //     const categoriesNew = toRef(props, "categories");
+    //     // console.log(categoriesNew.value[0]);
+    //
+    //     function addFieldToCategory(catId,field){
+    //         categoriesNew.value.forEach((category)=> {
+    //             if (category.field_category_id === catId){
+    //                 field.order = category.fields.length + 1;
+    //                 field.field_category_id = catId;
+    //                 field.is_required = false;
+    //
+    //                 category.fields.push(field);
+    //
+    //                 console.log(category.fields)
+    //             }
+    //         });
+    //     }
+    //
+    //     provide("addFieldFunction", addFieldToCategory);
+    //     return {
+    //         categoriesNew,
+    //         addFieldToCategory
+    //     }
+    // },
 }
 </script>
 

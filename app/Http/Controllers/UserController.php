@@ -234,7 +234,7 @@ class UserController extends RootController {
             }
         }
         catch (Exception $ex) {
-            http_response_code(501);
+            http_response_code(500);
             Log::errorLog($ex->getMessage(), Auth::user()->user_id);
             return redirect()
                 ->back()

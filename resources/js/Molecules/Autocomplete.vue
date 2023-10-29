@@ -1,5 +1,5 @@
 <template>
-    <div class="w-5/12 mb-3">
+    <div class="w-5/12 mb-3" ref="componentRef">
         <Combobox v-model="selected">
             <div class="relative">
                 <div
@@ -10,7 +10,7 @@
                         :displayValue="(item) => item.title"
                         @change="query = $event.target.value"
                         v-focus
-                        @blur="toggleCombobox"
+
                     />
                 </div>
                 <ComboboxOptions
@@ -27,17 +27,22 @@
                         <ComboboxOption
                             v-for="item in filteredItems"
                             as="template"
-                            :key="item.id"
+                            :key="item.field_id"
                             :value="item"
                             v-slot="{ selected, active }"
+                            @click="toggleCombobox"
                         >
-                            <li
-                                class="relative cursor-default select-none py-2 pl-10 pr-4"
+                            <Link
+                                href="/admin/fields-add"
+                                method="post"
+                                as="li"
+                                :data="{ field_id: item.field_id, field_category_id: props.catId, order: props.order}"
+                                class="relative cursor-pointer select-none py-2 pl-10 pr-4"
                                 :class="{
                                       'bg-orange-600 text-white': active,
                                       'text-gray-900': !active,
                                     }"
-                                                >
+                            >
                                     <span
                                         class="block truncate"
                                         :class="{ 'font-medium': selected, 'font-normal': !selected }"
@@ -50,7 +55,7 @@
                                         :class="{ 'text-white': active, 'text-orange-600': !active }"
                                     >
                                     </span>
-                            </li>
+                            </Link>
                         </ComboboxOption>
                     </ComboboxOptions>
             </div>
@@ -59,25 +64,34 @@
 </template>
 
 <script setup>
-import {ref, computed, onMounted, watch, nextTick} from 'vue';
+import {ref, computed, onMounted, onBeforeUnmount} from 'vue';
 import { useFetch } from '@/Composables/fetch.js';
-
+import { Link } from '@inertiajs/vue3'
 import {
     Combobox,
     ComboboxInput,
     ComboboxOptions,
     ComboboxOption,
-    TransitionRoot,
 } from '@headlessui/vue'
 
-const emits = defineEmits(['hide', 'blur']);
+const emits = defineEmits(['hide']);
 
-// let items = [];
-//[{id: 0, title: "naslov"}]
 let items = ref([]);
 let selected = ""
 let query = ref('')
-// let filteredItems = ref([]);
+const componentRef = ref(null);
+
+
+//INJECT
+// const addFieldToCategory = inject("addFieldFunction");
+// @click="addFieldToCategory(props.catId, item)"
+
+
+//PROPS
+const props = defineProps({
+    catId: Number,
+    order: Number
+})
 
 //CUSTOM DIRECTIVE
 const vFocus = {
@@ -91,25 +105,58 @@ onMounted(async () => {
     } catch (error) {
         console.error(error);
     }
+
+    document.addEventListener('click', handleClickOutside);
 });
 
+onBeforeUnmount(() => {
+    document.removeEventListener('click', handleClickOutside);
+});
+
+const handleClickOutside = (event) => {
+    if (componentRef.value && !componentRef.value.contains(event.target)) {
+        toggleCombobox();
+    }
+};
 
 //COMPUTED
-// return items ? items : [{id: 0, title: "naslov"}]
 let filteredItems = computed(() => {
     return query.value === ''
         ? items.value
         : items.value.filter((item) =>
-            item.title
-                .toLowerCase()
-                .replace(/\s+/g, '')
-                .includes(query.value.toLowerCase().replace(/\s+/g, ''))
-        ).slice(0, 20);
+                    item.title
+                        .toLowerCase()
+                        .replace(/\s+/g, '')
+                        .includes(query.value.toLowerCase().replace(/\s+/g, ''))
+                ).slice(0, 20);
 });
 
 //METHODS
+//UBACI @blur="toggleCombobox"
 const toggleCombobox = (() => {
     query = ''
     emits("hide");
 });
+
+// const addFieldToCategory = ((catId, fieldId, order) => {
+//
+// })
+
+// const delaySearch = (() => {
+//     let searchTimeout;
+//     let searchedItems = ref([]);
+//
+//     clearTimeout(searchTimeout);
+//     searchTimeout = setTimeout(function() {
+//         searchedItems.value = items.value.filter((item) =>
+//             item.title
+//                 .toLowerCase()
+//                 .replace(/\s+/g, '')
+//                 .includes(query.value.toLowerCase().replace(/\s+/g, ''))
+//         ).slice(0, 20);
+//     }, 400);
+//     console.log(searchedItems.value)
+//     return searchedItems.value;
+//     // console.log(filteredItems.value)
+// })
 </script>
