@@ -69,7 +69,7 @@ const submit = () => {
         }
     }
     if (check) {
-        form.post(isEdit ? editRoute : createRoute, {
+        form.post(isEdit.value ? editRoute : createRoute, {
             onSuccess: () => {
                 // toast.add({
                 //     message: 'You inserted successfully!',
@@ -81,7 +81,7 @@ const submit = () => {
 };
 
 onMounted(() => {
-    console.log(editRoute);
+    console.log();
 });
 </script>
 

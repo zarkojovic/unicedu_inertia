@@ -18,11 +18,12 @@ class AdminController extends RootController {
 
     public function home() {
         $categories = FieldCategory::where("category_name", "<>", "Hidden")
-            ->select("field_category_id","category_name")
+            ->select("field_category_id", "category_name")
             ->get();
         $sortedFields = Field::whereNotIn('field_category_id', [5])
             ->where('is_active', '1')
-            ->select("field_id","field_name","title","is_required","order","field_category_id")
+            ->select("field_id", "field_name", "title", "is_required", "order",
+                "field_category_id")
             ->orderBy("order", "asc")
             ->get()
             ->toArray();
@@ -56,22 +57,25 @@ class AdminController extends RootController {
     }
 
     public function fetchFields(Request $request) {
-            $fields = Field::whereNull("field_category_id")->select("field_id","field_name","title")->get();
-            if (count($fields) > 0) {
-                $output = [];
-                foreach ($fields as $field) {
-                    $output[] = ['field_id' => $field->field_id, 'title' => $field->title ?? $field->field_name];
-                }
-
-                return $output;
+        $fields = Field::whereNull("field_category_id")
+            ->select("field_id", "field_name", "title")
+            ->get();
+        if (count($fields) > 0) {
+            $output = [];
+            foreach ($fields as $field) {
+                $output[] = [
+                    'field_id' => $field->field_id,
+                    'title' => $field->title ?? $field->field_name,
+                ];
             }
 
-            return ['field_id' => 0, 'title' => "No uncategorized fields found..."];
+            return $output;
+        }
+
+        return ['field_id' => 0, 'title' => "No uncategorized fields found..."];
     }
 
     public function setFieldCategory(Request $request) {
-        return redirect()
-            ->back();
         try {
             $fieldId = $request->input('field_id');
             $newCategoryId = $request->input('field_category_id');

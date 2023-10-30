@@ -41,8 +41,6 @@ class RegisteredUserController extends Controller {
         ]);
 
         event(new Registered($user));
-        //http://localhost/verify-email/5/7c5f9d36d1b52b8d2ad7769429a25d64711b7e92?expires=1698585561&signature=ec726432c438706e37a8db4b1021d42418d76ef03277223c7cbb7b7778462cbe
-        //http://localhost/verify-email/5/7c5f9d36d1b52b8d2ad7769429a25d64711b7e92?expires=1698585635&signature=05662c5bc179480aa0a2b80d5707c3f8c4b0a5ba174fe4034030d9035755409e
         //        Registered::dispatch($user);
 
         Auth::login($user);

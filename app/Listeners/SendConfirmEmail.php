@@ -3,9 +3,8 @@
 namespace App\Listeners;
 
 use App\Models\Log;
-use Illuminate\Contracts\Queue\ShouldQueue;
 
-class SendConfirmEmail implements shouldQueue {
+class SendConfirmEmail {
 
     /**
      * Create the event listener.

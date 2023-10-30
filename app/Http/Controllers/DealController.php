@@ -56,9 +56,7 @@ class DealController extends RootController {
             ->where('user_id', $user->user_id)
             ->join('intakes', 'user_intake_packages.intake_id', '=',
                 'intakes.intake_id')
-            ->join('packages', 'user_intake_packages.package_id', '=',
-                'packages.package_id')
-            ->select('intakes.intake_name', 'packages.package_name',
+            ->select('intakes.intake_name', 'user_intake_packages.package_id',
                 'user_intake_packages.user_intake_package_id')
             ->get()->toArray();
 

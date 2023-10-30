@@ -92,13 +92,14 @@ const labelProgressClasses = computed(() => ({
                                 your future college applications:</h1>
                         </template>
                         <template v-slot:modalContent>
-                            <div class="flex justify-center">
+                            <div class="flex justify-center flex-col ">
                                 <img :src="imagePreview" alt="image preview"
-                                     class="md:w-5/12 w-10/12 h-auto rounded-sm"/>
+                                     class="md:w-5/12 w-10/12 mx-auto h-auto rounded-sm"/>
+                                <h1 class="text-center mt-3">Are you sure you want to upload this image to the
+                                    server?</h1>
                             </div>
                         </template>
                         <template v-slot:modalFooter>
-                            <h1 class="text-center mb-3">Are you sure you want to upload this image to the server?</h1>
                             <div class="flex justify-end">
                                 <Button :type="'success'" class="me-2" @click="handleConfirmation">Confirm</Button>
                                 <Button :type="'danger'" @click="handleCloseModal">Cancel</Button>
