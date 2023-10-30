@@ -28,16 +28,10 @@ export default {
         field_id: Number,
         title: String,
         is_required: Boolean,
-        drag: Boolean
     },
     components: {
         IconAdjustments
     },
-    // data() {
-    //     return {
-    //         drag: this.drag
-    //     }
-    // }
 }
 </script>
 

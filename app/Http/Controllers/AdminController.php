@@ -7,6 +7,7 @@ use App\Models\FieldCategory;
 use App\Models\Log;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class AdminController extends RootController {
@@ -17,9 +18,11 @@ class AdminController extends RootController {
 
     public function home() {
         $categories = FieldCategory::where("category_name", "<>", "Hidden")
+            ->select("field_category_id","category_name")
             ->get();
         $sortedFields = Field::whereNotIn('field_category_id', [5])
             ->where('is_active', '1')
+            ->select("field_id","field_name","title","is_required","order","field_category_id")
             ->orderBy("order", "asc")
             ->get()
             ->toArray();
@@ -52,30 +55,23 @@ class AdminController extends RootController {
             ["fields" => $fields, "categories" => $categories]);
     }
 
-    public function search(Request $request) {
-        if ($request->ajax()) {
-            $searchQuery = $request->input('search');
-
-            $rows = Field::whereNull("field_category_id")->where(function($query
-            ) use ($searchQuery) {
-                $query->where('title', 'LIKE', '%'.$searchQuery.'%')
-                    ->orWhere('field_name', 'LIKE', '%'.$searchQuery.'%');
-            })->get();
-
-            if (count($rows) > 0) {
-                $output = "";
-                foreach ($rows as $row) {
-                    $text = $row->title ?? $row->field_name;
-                    $output .= "<option value='$row->field_id'>$text</option>";
+    public function fetchFields(Request $request) {
+            $fields = Field::whereNull("field_category_id")->select("field_id","field_name","title")->get();
+            if (count($fields) > 0) {
+                $output = [];
+                foreach ($fields as $field) {
+                    $output[] = ['field_id' => $field->field_id, 'title' => $field->title ?? $field->field_name];
                 }
+
                 return $output;
             }
 
-            return "<option value='0'>No results found...</option>";
-        }
+            return ['field_id' => 0, 'title' => "No uncategorized fields found..."];
     }
 
     public function setFieldCategory(Request $request) {
+        return redirect()
+            ->back();
         try {
             $fieldId = $request->input('field_id');
             $newCategoryId = $request->input('field_category_id');
@@ -88,11 +84,26 @@ class AdminController extends RootController {
             $record->save();
             $displayName = $record->title != NULL ? $record->title : $record->field_name;
             Log::apiLog("Added '".$displayName."' field to ".$record->category->category_name);
-            return response()->json(['message' => 'Record updated successfully']);
+            return redirect()
+                ->back()
+                ->with([
+                    'toast' => [
+                        'message' => "Successfully added field to category!",
+                        'type' => 'success',
+                    ],
+                ]);
         }
-        catch (Exception $e) {
-            return response()->json(['message' => 'Error updating record'],
-                Response::HTTP_INTERNAL_SERVER_ERROR);
+        catch (Exception $ex) {
+            http_response_code(500);
+            Log::errorLog($ex->getMessage(), Auth::user()->user_id);
+            return redirect()
+                ->back()
+                ->with([
+                    'toast' => [
+                        'message' => "An error occured on the server.",
+                        'type' => 'danger',
+                    ],
+                ]);
         }
     }
 
