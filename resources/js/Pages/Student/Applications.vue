@@ -4,6 +4,10 @@ import {Head} from '@inertiajs/vue3';
 import {provide, ref} from 'vue';
 import Button from '@/Atoms/Button.vue';
 import Modal from '@/Molecules/Modal.vue';
+import PackageIndicator from "@/Atoms/PackageIndicator.vue";
+import {usePage} from '@inertiajs/vue3';
+
+const page = usePage();
 
 const props = defineProps({
     applications: {
@@ -41,10 +45,7 @@ const deleteDeal = () => {
                     </div>
                     <div>
                         <span class="text-gray-400 font-medium text-md mt-3">Package</span>
-                        <h4 class="text-center capitalize mb-5 text-sm md:text-left md:text-xl">{{
-                                deal.package_name
-                            }}
-                        </h4>
+                        <PackageIndicator :package-id="page.props.auth.user.package_id"/>
                     </div>
                 </div>
                 <div class="mt-2">

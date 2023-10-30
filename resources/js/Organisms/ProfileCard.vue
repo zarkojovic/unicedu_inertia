@@ -4,6 +4,7 @@ import {computed} from "vue";
 import Modal from "@/Molecules/Modal.vue";
 import { ref } from 'vue'
 import Button from "@/Atoms/Button.vue";
+import PackageIndicator from "@/Atoms/PackageIndicator.vue";
 
 defineProps({
     img: String,
@@ -62,8 +63,7 @@ const labelProgressClasses = computed(() => ({
                             {{ page.props.auth.user.first_name }} {{ page.props.auth.user.last_name }}</p>
                         <p class="text-md leading-tight font-medium text-gray-400 text-center md:text-left my-1">
                             {{ page.props.auth.user.email }}</p>
-                        <p class="text-md leading-tight font-medium text-gray-400 text-center md:text-left mt-1">
-                            {{ page.props.auth.user.phone }}</p>
+                        <PackageIndicator :package-id="page.props.auth.user.package_id"/>
 
                     </div>
                     <form @submit.prevent method="POST" enctype="multipart/form-data" class="flex justify-between mt-5">
