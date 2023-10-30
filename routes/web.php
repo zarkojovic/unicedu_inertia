@@ -6,7 +6,6 @@ use App\Http\Controllers\FieldCategoryController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
-use App\Models\FieldCategory;
 use App\Models\Page;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -71,6 +70,9 @@ Route::middleware('auth')->group(function() {
             ->name('applications');
         Route::post('/applications/addNew', [DealController::class, 'apply'])
             ->name('newApplication');
+        Route::post('/applications/removeDeal',
+            [DealController::class, 'deleteDeal'])
+            ->name('removeApplication');
 
         Route::post('/userFieldsUpdate',
             [UserController::class, 'updateUserInfo']);
@@ -85,9 +87,10 @@ Route::middleware('auth')->group(function() {
 
             //FIELDS
             Route::get('/fields', [AdminController::class, "home"]);
-            Route::get("/fields-fetch", [AdminController::class, "fetchFields"]);
-            Route::post("/fields-add", [AdminController::class, "setFieldCategory"]);
-
+            Route::get("/fields-fetch",
+                [AdminController::class, "fetchFields"]);
+            Route::post("/fields-add",
+                [AdminController::class, "setFieldCategory"]);
 
             //PAGES ROUTES
             Route::get('/pages',
@@ -137,15 +140,20 @@ Route::middleware('auth')->group(function() {
 Route::get('/test', function() {
     //    $fieldItems = FieldItem::with('field')->get();
 
-    dd('ee');
-    FieldCategory::getAllCategoriesWithFields('/profile');
+    $pages = Page::where('role_id', '1')->get();
 
-    $broze_package_pages = ['/profile', '/applications'];
+    //    $
 
-    $page_ids = Page::whereIn('route', $broze_package_pages)
-        ->pluck('page_id')->toArray();
+    dd($pages);
 
-    dd($page_ids);
+    //    FieldCategory::getAllCategoriesWithFields('/profile');
+    //
+    //    $broze_package_pages = ['/profile', '/applications'];
+    //
+    //    $page_ids = Page::whereIn('route', $broze_package_pages)
+    //        ->pluck('page_id')->toArray();
+    //
+    //    dd($page_ids);
 });
 
 //LARAVEL STARTER KIT DEFAULT ROUTES {

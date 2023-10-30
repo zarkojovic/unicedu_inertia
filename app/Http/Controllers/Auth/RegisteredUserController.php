@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Providers\RouteServiceProvider;
+use App\Rules\Recaptcha;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -28,6 +29,7 @@ class RegisteredUserController extends Controller {
             'phone' => 'required',
             'email' => 'required|string|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'recaptcha' => [new Recaptcha()],
         ]);
         $user = User::create([
             'first_name' => $request->first_name,
@@ -35,10 +37,10 @@ class RegisteredUserController extends Controller {
             'phone' => $request->phone,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'package_id' => '1',
         ]);
 
         event(new Registered($user));
-
         //        Registered::dispatch($user);
 
         Auth::login($user);
