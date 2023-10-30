@@ -5,7 +5,7 @@ import {Head, Link, useForm} from '@inertiajs/vue3';
 import Button from '@/Atoms/Button.vue';
 import GenericInput from '@/Atoms/GenericInput.vue';
 import ListInput from '@/Atoms/ListInput.vue';
-import {computed} from 'vue';
+import {computed, onMounted} from 'vue';
 
 const props = defineProps({
     data: {
@@ -69,7 +69,7 @@ const submit = () => {
         }
     }
     if (check) {
-        form.post(isEdit === null ? editRoute : createRoute, {
+        form.post(isEdit ? editRoute : createRoute, {
             onSuccess: () => {
                 // toast.add({
                 //     message: 'You inserted successfully!',
@@ -80,7 +80,11 @@ const submit = () => {
     }
 };
 
+onMounted(() => {
+    console.log(editRoute);
+});
 </script>
+
 
 <template>
     <Head title="Insert Page"/>
@@ -113,8 +117,10 @@ const submit = () => {
                                           label="Insert page route"/>
                             <GenericInput v-model="form.icon" :error="form.errors.icon"
                                           :is_required='true' class="mt-4"
-                                          helper="Search from iconify tabler icons options"
+                                          helper="Name should be without 'tabler:' prefiex (tabler:user should be just user)"
                                           label="Insert icon name"/>
+                            <a class="text-orange-500 underline text-sm" href="https://icon-sets.iconify.design/tabler/"
+                               target="_blank">Browse</a>
                             <ListInput v-model="form.role_id"
                                        :error="form.errors.role_id"
                                        :is_required="true"

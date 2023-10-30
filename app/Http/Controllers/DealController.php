@@ -48,6 +48,7 @@ class DealController extends RootController {
     public function showUserDeals() {
         $user = auth()->user();
         $applications = Deal::where('user_id', $user->user_id)
+            ->where('active', '1')
             ->get()
             ->toArray();
 
@@ -136,7 +137,9 @@ class DealController extends RootController {
 
                 if ($checkIntakePackage) {
                     $numberOfDealsInIntake = Deal::where('user_intake_package_id',
-                        $checkIntakePackage->user_intake_package_id)->count();
+                        $checkIntakePackage->user_intake_package_id)
+                        ->where('active', '1')
+                        ->count();
 
                     if ($numberOfDealsInIntake >= 5) {
                         throw new Exception('You reach the limit of the possible applications!');
@@ -144,12 +147,13 @@ class DealController extends RootController {
                     $deal->user_intake_package_id = $checkIntakePackage->user_intake_package_id;
                 }
                 else {
-                    $newUserIntake = DB::table('user_intake_packages')->insert([
-                        'user_id' => $user->user_id,
-                        'intake_id' => $active_intake->intake_id,
-                        'package_id' => $user->package_id,
-                    ]);
-                    $deal->user_intake_package_id = $newUserIntake->user_intake_package_id;
+                    $newUserIntake = DB::table('user_intake_packages')
+                        ->insertGetId([
+                            'user_id' => $user->user_id,
+                            'intake_id' => $active_intake->intake_id,
+                            'package_id' => $user->package_id,
+                        ]);
+                    $deal->user_intake_package_id = $newUserIntake;
                 }
                 if ($deal->save()) {
                     return redirect()
@@ -408,23 +412,28 @@ class DealController extends RootController {
         if (!$deal) {
             Log::errorLog('Tried to remove a deal that doesn\'t exist.',
                 $user->user_id);
-            return redirect('/applications')->with('error',
-                'An error occurred while deleting an application.');
+            return redirect()->back()->with([
+                'toast' =>
+                    [
+                        'message' => 'An error occurred while deleting an application.',
+                        'type' => 'danger',
+                    ],
+            ]);
         }
         //OVDE MOZDA TRY CATCH
         // Retrieve the Bitrix deal ID associated with the deal
         $bitrix_deal_id = $deal->bitrix_deal_id;
 
         // Make an API call to delete the deal in Bitrix24
-        $result = CRest::call("crm.deal.delete",
-            ['ID' => (string) $bitrix_deal_id]);
+        //        $result = CRest::call("crm.deal.delete",
+        //            ['ID' => (string) $bitrix_deal_id]);
 
         // Check if the deal was successfully removed from Bitrix24
-        if (isset($result['error_description']) && $result['error_description'] === 'Not found') {
-            Log::apiLog('Deal failed to delete from Bitrix24.', $user->user_id);
-            return redirect('/applications')->with('error',
-                'An error occurred while deleting an application.');
-        }
+        //        if (isset($result['error_description']) && $result['error_description'] === 'Not found') {
+        //            Log::apiLog('Deal failed to delete from Bitrix24.', $user->user_id);
+        //            return redirect('/applications')->with('error',
+        //                'An error occurred while deleting an application.');
+        //        }
 
         // Update the 'active' column to indicate that the deal is inactive (false)
         $deal->active = FALSE;
@@ -432,16 +441,25 @@ class DealController extends RootController {
         if (!$deal->save()) {
             Log::errorLog('Couldn\'t remove the deal from the database.',
                 $user->user_id);
-            return redirect()
-                ->route('home')
-                ->with(['error' => 'An error occurred while deleting an application.']);
+            return redirect()->back()->with([
+                'toast' =>
+                    [
+                        'message' => 'An error occurred while deleting an application.',
+                        'type' => 'danger',
+                    ],
+            ]);
         }
 
         Log::informationLog('Deal set as inactive (active = 0) in the database.',
             $user->user_id);
 
-        return redirect('/applications')->with('success',
-            'Application removed successfully.');
+        return redirect()->back()->with([
+            'toast' =>
+                [
+                    'message' => 'Application removed successfully!',
+                    'type' => 'success',
+                ],
+        ]);
     }
 
 }

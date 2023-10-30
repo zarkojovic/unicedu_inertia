@@ -17,7 +17,7 @@ createInertiaApp({
         import.meta.glob('./Pages/**/*.vue')),
     setup({el, App, props, plugin}) {
         const captchaKey = props.initialPage.props.recaptcha_site_key;
-        
+
         return createApp({render: () => h(App, props)}).
             use(plugin).
             component('v-icon', OhVueIcon).

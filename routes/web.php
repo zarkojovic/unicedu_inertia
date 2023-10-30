@@ -71,6 +71,9 @@ Route::middleware('auth')->group(function() {
             ->name('applications');
         Route::post('/applications/addNew', [DealController::class, 'apply'])
             ->name('newApplication');
+        Route::post('/applications/removeDeal',
+            [DealController::class, 'deleteDeal'])
+            ->name('removeApplication');
 
         Route::post('/userFieldsUpdate',
             [UserController::class, 'updateUserInfo']);

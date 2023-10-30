@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import {Head} from '@inertiajs/vue3';
+import {Head, useForm} from '@inertiajs/vue3';
 import {provide, ref} from 'vue';
 import Button from '@/Atoms/Button.vue';
 import Modal from '@/Molecules/Modal.vue';
@@ -13,10 +13,22 @@ const props = defineProps({
 
 const openModal = ref(false);
 
+const dealId = ref(null);
+
 provide('navBtnType', 'applicationsPage');
 
+const form = useForm({
+    deal_id: '',
+});
+
 const deleteDeal = () => {
-    console.log('pozdraav');
+    form.deal_id = dealId.value;
+
+    form.post('/applications/removeDeal', {
+        onSuccess: () => {
+            openModal.value = false;
+        },
+    });
 };
 
 </script>
@@ -29,7 +41,7 @@ const deleteDeal = () => {
         </template>
 
         <div class="py-6 mt-6">
-            <div v-for="(deal,index) in applications"
+            <div v-for="(deal,index) in applications" v-if="applications.length > 0"
                  id="applicationsContainerHeader" :key="index"
                  class="mx-auto bg-white rounded-3xl shadow-md overflow-hidden p-5 lg:px-8">
 
@@ -48,7 +60,8 @@ const deleteDeal = () => {
                     </div>
                 </div>
                 <div class="mt-2">
-                    <div v-for="(item,key) in deal.deals" id="applicationsContainerHeader" :key="key"
+                    <div v-for="(item,key) in deal.deals" v-if="deal.deals" id="applicationsContainerHeader"
+                         :key="key"
                          class="grid grid-cols-4 grid-rows-2 gap-4 pb-5 border-b-2">
                         <div class="pt-4">
                             <span class="text-gray-400 font-medium text-md mt-3">University</span>
@@ -74,28 +87,33 @@ const deleteDeal = () => {
                         <div class="pt-4">
                             <span class="text-gray-400 font-medium text-md mt-3">Delete</span>
                             <h5 class="text-md">
-                                <Button type="danger" @click="openModal = true">Delete</Button>
+                                <Button type="danger" @click="openModal = true; dealId= item.deal_id">Delete</Button>
                             </h5>
                         </div>
-                        <Modal v-if="openModal" @close="openModal = false">
-                            <template #modalTitle>
-                                Confirm your action
-                            </template>
-                            <template #modalContent>
-                                <h2>Are you sure you want to delete this application {{ item.deal_id }}?</h2>
-                            </template>
-                            <template #modalFooter>
-                                <div class="flex justify-end">
-                                    <Button class="me-3" type="muted" @click="openModal = false">Close</Button>
-                                    <Button type="danger" @click="deleteDeal">Delete</Button>
-                                </div>
-                            </template>
-                        </Modal>
                     </div>
-
+                    <div v-else>
+                        <h1>No applications!</h1>
+                    </div>
+                    <Modal v-if="openModal" @close="openModal = false">
+                        <template #modalTitle>
+                            Confirm your action
+                        </template>
+                        <template #modalContent>
+                            <h2>Are you sure you want to delete this application {{ dealId }}?</h2>
+                        </template>
+                        <template #modalFooter>
+                            <div class="flex justify-end">
+                                <Button class="me-3" type="muted" @click="openModal = false">Close</Button>
+                                <Button type="danger" @click="deleteDeal">Delete</Button>
+                            </div>
+                        </template>
+                    </Modal>
 
                 </div>
 
+            </div>
+            <div v-else>
+                <h1>No applications yet</h1>
             </div>
         </div>
     </AuthenticatedLayout>

@@ -156,7 +156,7 @@ class PageController extends Controller {
 
     public function updatePage(Request $request) {
         $data = $request->all();
-
+        //        dd($data);
         try {
             // Validate the incoming data based on defined rules
             $validator = Validator::make($request->all(), [
