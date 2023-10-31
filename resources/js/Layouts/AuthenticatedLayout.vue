@@ -23,5 +23,4 @@ provide('isSidebarOpen', isSidebarOpen);
 
 <style>
 .grecaptcha-badge { visibility: hidden; }
-
 </style>

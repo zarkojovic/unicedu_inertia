@@ -54,6 +54,15 @@ Route::middleware('auth')->group(function() {
                                 });
                         });
                         break;
+                    case 'student':
+                        Route::middleware('package')->group(function() use (
+                            $route
+                        ) {
+                            Route::get($route->route, function() use ($route) {
+                                return Inertia::render('Dashboard');
+                            });
+                        });
+                        break;
                     default :
                         Route::get($route->route, function() use ($route) {
                             return Inertia::render('Dashboard');
@@ -63,23 +72,28 @@ Route::middleware('auth')->group(function() {
             }
         }
 
-        Route::get('/', [UserController::class, 'show'])->name("home");
+        Route::middleware('package')->group(function() {
+            Route::get('/', [UserController::class, 'show'])->name("home");
+            Route::get('/profile', [UserController::class, 'show'])
+                ->name('profile');
+            Route::get('/applications',
+                [DealController::class, 'showUserDeals'])
+                ->name('applications');
+            Route::post('/applications/addNew',
+                [DealController::class, 'apply'])
+                ->name('newApplication');
+            Route::post('/applications/removeDeal',
+                [DealController::class, 'deleteDeal'])
+                ->name('removeApplication');
 
-        Route::get('/profile', [UserController::class, 'show'])
-            ->name('profile');
-        Route::get('/applications', [DealController::class, 'showUserDeals'])
-            ->name('applications');
-        Route::post('/applications/addNew', [DealController::class, 'apply'])
-            ->name('newApplication');
-        Route::post('/applications/removeDeal',
-            [DealController::class, 'deleteDeal'])
-            ->name('removeApplication');
+            Route::post('/userFieldsUpdate',
+                [UserController::class, 'updateUserInfo']);
 
-        Route::post('/userFieldsUpdate',
-            [UserController::class, 'updateUserInfo']);
-        //EDIT IMAGE
-        Route::match(['post', 'put', 'patch'], '/image/edit',
-            [UserController::class, 'updateImage'])->name("user.image.update");
+            //EDIT IMAGE
+            Route::match(['post', 'put', 'patch'], '/image/edit',
+                [UserController::class, 'updateImage'])
+                ->name("user.image.update");
+        });
 
         //ADMIN
         Route::middleware('admin')->prefix('admin')->group(function() {

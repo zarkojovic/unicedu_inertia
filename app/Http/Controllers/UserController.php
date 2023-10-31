@@ -508,10 +508,11 @@ class UserController extends RootController {
     }
 
     public function showUser() {
-        $users = User::select('profile_image', 'email', 'phone', 'role_id')
+        $users = User::select('profile_image', 'first_name', 'last_name',
+            'email', 'phone', 'role_id')
             ->paginate(10);
 
-        return Inertia::render("Admin/Application/Show",
+        return Inertia::render("Admin/User/Show",
             [
                 'data' => $users,
             ]);
