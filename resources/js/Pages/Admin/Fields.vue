@@ -11,7 +11,7 @@
                                    class="mb-10 "/>
                         </div>
                         <draggable class="fields-container flex flex-wrap"
-                                       v-model="category.fields"
+                                       :list="category.fields"
                                        v-bind="dragOptions"
                                        :group="'fields_'+category.field_category_id"
                                        @start="drag=true"
