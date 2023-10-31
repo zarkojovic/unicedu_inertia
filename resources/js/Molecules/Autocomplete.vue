@@ -7,10 +7,8 @@
                 >
                     <ComboboxInput
                         class="w-full border-none text-md text-gray-900 focus:ring-0 p-3"
-                        :displayValue="(item) => item.title"
                         @change="query = $event.target.value"
                         v-focus
-
                     />
                 </div>
                 <ComboboxOptions
@@ -30,13 +28,8 @@
                             :key="item.field_id"
                             :value="item"
                             v-slot="{ selected, active }"
-                            @click="toggleCombobox"
                         >
-                            <Link
-                                href="/admin/fields-add"
-                                method="post"
-                                as="li"
-                                :data="{ field_id: item.field_id, field_category_id: props.catId, order: props.order}"
+                            <li
                                 class="relative cursor-pointer select-none py-2 pl-10 pr-4"
                                 :class="{
                                       'bg-orange-600 text-white': active,
@@ -55,7 +48,7 @@
                                         :class="{ 'text-white': active, 'text-orange-600': !active }"
                                     >
                                     </span>
-                            </Link>
+                            </li>
                         </ComboboxOption>
                     </ComboboxOptions>
             </div>
@@ -64,9 +57,9 @@
 </template>
 
 <script setup>
-import {ref, computed, onMounted, onBeforeUnmount} from 'vue';
+import {ref, computed, onMounted, onBeforeUnmount, watch} from 'vue';
 import { useFetch } from '@/Composables/fetch.js';
-import { Link } from '@inertiajs/vue3'
+import { useForm } from '@inertiajs/vue3'
 import {
     Combobox,
     ComboboxInput,
@@ -77,15 +70,21 @@ import {
 const emits = defineEmits(['hide']);
 
 let items = ref([]);
-let selected = ""
+let selected = ref(null);
 let query = ref('')
 const componentRef = ref(null);
 
+const form = useForm( {
+    field_id: null,
+    field_category_id: props.catId,
+    order: props.order
+});
 
-//INJECT
-// const addFieldToCategory = inject("addFieldFunction");
-// @click="addFieldToCategory(props.catId, item)"
-
+watch(selected,(newVal, oldVal) => {
+    form.field_id = newVal.field_id;
+    form.post("/admin/fields-add");
+    toggleCombobox();
+})
 
 //PROPS
 const props = defineProps({
@@ -132,16 +131,10 @@ let filteredItems = computed(() => {
 });
 
 //METHODS
-//UBACI @blur="toggleCombobox"
 const toggleCombobox = (() => {
     query = ''
     emits("hide");
 });
-
-// const addFieldToCategory = ((catId, fieldId, order) => {
-//
-// })
-
 // const delaySearch = (() => {
 //     let searchTimeout;
 //     let searchedItems = ref([]);
