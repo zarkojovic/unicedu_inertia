@@ -42,7 +42,6 @@ class AdminController extends RootController {
         }
 
         return Inertia::render("Admin/Fields", [
-
             "categories" => $categoriesFields,
         ]);
     }
@@ -76,6 +75,14 @@ class AdminController extends RootController {
     }
 
     public function setFieldCategory(Request $request) {
+//        return redirect()
+//            ->route("admin_home")
+//            ->with([
+//                'toast' => [
+//                    'message' => "Intentionally blocked field adding.",
+//                    'type' => 'success',
+//                ],
+//            ]);
         try {
             $fieldId = $request->input('field_id');
             $newCategoryId = $request->input('field_category_id');
@@ -89,7 +96,7 @@ class AdminController extends RootController {
             $displayName = $record->title != NULL ? $record->title : $record->field_name;
             Log::apiLog("Added '".$displayName."' field to ".$record->category->category_name);
             return redirect()
-                ->back()
+                ->route("admin_home")
                 ->with([
                     'toast' => [
                         'message' => "Successfully added field to category!",
@@ -101,7 +108,7 @@ class AdminController extends RootController {
             http_response_code(500);
             Log::errorLog($ex->getMessage(), Auth::user()->user_id);
             return redirect()
-                ->back()
+                ->route("admin_home")
                 ->with([
                     'toast' => [
                         'message' => "An error occured on the server.",
