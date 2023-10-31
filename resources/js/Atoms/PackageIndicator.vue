@@ -17,7 +17,6 @@ const props = defineProps({
 const packageTitle = ref(null);
 
 const packageClass = computed(() => {
-    // Determine classes based on the packageId
     const classes = {
         'package-indicator': true,
         'bronze-package': props.packageId === 1,
@@ -26,7 +25,6 @@ const packageClass = computed(() => {
         'platinum-package': props.packageId === 4,
     };
 
-    // Determine the package title based on the packageId
     switch (props.packageId) {
         case 1:
             packageTitle.value = 'Bronze';
@@ -47,10 +45,10 @@ const packageClass = computed(() => {
     return classes;
 });
 
+
 </script>
 
 <style scoped>
-/* Add your component-specific styling here */
 .package-indicator {
     margin-top: 5px;
     padding: 3.5px 10px;
@@ -64,7 +62,7 @@ const packageClass = computed(() => {
 .gold-package {
     background: rgb(249,222,85);
     background: linear-gradient(90deg, rgba(249,222,85,1) 2%, rgba(230,194,0,1) 99%);
-;}
+}
 
 .silver-package {
     background: #757F9A;  /* fallback for old browsers */
@@ -80,8 +78,5 @@ const packageClass = computed(() => {
 .bronze-package {
     background: rgb(240,175,110);
     background: linear-gradient(90deg, rgba(240,175,110,1) 2%, rgba(205,127,50,1) 99%);
-}
-
-.package-level {
 }
 </style>

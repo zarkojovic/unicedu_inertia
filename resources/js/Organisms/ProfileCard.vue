@@ -4,6 +4,7 @@ import {computed} from "vue";
 import Modal from "@/Molecules/Modal.vue";
 import { ref } from 'vue'
 import Button from "@/Atoms/Button.vue";
+import PackageIndicator from "@/Atoms/PackageIndicator.vue";
 
 defineProps({
     img: String,
