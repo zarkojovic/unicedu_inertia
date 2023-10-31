@@ -31,7 +31,6 @@ const errorsText = ref(null);
 const submit = () => {
     const keys = Object.keys(formItems.value.formItems);
     if (keys.length === 0) {
-
         errorsText.value = 'You must fill the fields!';
         return;
     } else {

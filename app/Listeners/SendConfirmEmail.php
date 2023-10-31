@@ -2,24 +2,22 @@
 
 namespace App\Listeners;
 
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
+use App\Models\Log;
 
-class SendConfirmEmail
-{
+class SendConfirmEmail {
+
     /**
      * Create the event listener.
      */
-    public function __construct()
-    {
-        //
+    public function __construct() {
+        Log::informationLog('This as an event back jobs!');
     }
 
     /**
      * Handle the event.
      */
-    public function handle(object $event): void
-    {
+    public function handle(object $event): void {
         //
     }
+
 }

@@ -5,6 +5,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import {Head, Link, useForm} from '@inertiajs/vue3';
+import {useReCaptcha} from 'vue-recaptcha-v3';
 
 const form = useForm({
     first_name: '',
@@ -13,9 +14,14 @@ const form = useForm({
     phone: '',
     password: '',
     password_confirmation: '',
+    recaptcha: '',
 });
 
-const submit = () => {
+const {executeRecaptcha, recaptchaLoaded} = useReCaptcha();
+const submit = async () => {
+
+    await recaptchaLoaded();
+    form.recaptcha = await executeRecaptcha('register');
     form.post(route('register'), {
         onFinish: () => form.reset('password', 'password_confirmation'),
     });
