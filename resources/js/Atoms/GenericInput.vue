@@ -1,7 +1,6 @@
 <script setup>
 import {defineEmits, defineProps, inject, ref} from 'vue';
 
-
 const props = defineProps({
     type: {
         type: String,
@@ -17,7 +16,7 @@ const props = defineProps({
     },
     error: {
         type: String,
-        default: ''
+        default: '',
     },
     helper: {
         type: String,
@@ -27,17 +26,17 @@ const props = defineProps({
     },
     is_required: {
         type: Boolean,
-        default: false
+        default: false,
     },
     inputName: {
-        type: String
+        type: String,
     },
     inputId: {
-        type: String
+        type: String,
     },
     isCategoryField: {
-        type: Boolean
-    }
+        type: Boolean,
+    },
 
 });
 
@@ -62,23 +61,24 @@ const handleUpdate = (event) => {
 </script>
 <template>
     <div>
-        <label class="text-slate-600 block text-sm font-medium dark:text-gray-300" v-if="label">
+        <label v-if="label" class="text-slate-600 block text-sm font-medium dark:text-gray-300">
             {{ label }}
-            <span class="text-sm text-red-600" v-if="props.is_required">*</span>
+            <span v-if="props.is_required" class="text-sm text-red-600">*</span>
         </label>
         <input
-            class="border-gray-300 text-slate-900 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-orange-300 dark:focus:border-orange-400 focus:ring-orange-300 dark:focus:orange-400 rounded-lg shadow-sm transition ease-in-out delay-100 mt-1 mb-1  block w-full userFormField"
-            v-model="inputValue"
-            @input="handleUpdate"
-            :class="{ 'border-red-500': error }"
-            :type="props.type"
-            :placeholder="props.placeholder"
-            :disabled="props.disabled"
-            :required="props.is_required"
-            :name="props.inputName"
             :id="props.inputId"
+            v-model="inputValue"
+            :class="{ 'border-red-500': error }"
+            :disabled="props.disabled"
+            :name="props.inputName"
+            :placeholder="props.placeholder"
+            :required="props.is_required"
+            :type="props.type"
+            class="border-gray-300 text-slate-900 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-orange-300 dark:focus:border-orange-400 focus:ring-orange-300 dark:focus:orange-400 rounded-lg shadow-sm transition ease-in-out delay-100 mt-1 mb-1  block w-full userFormField"
+            
+            @input="handleUpdate"
         />
-        <p class="mt-2 text-sm text-gray-500" v-if="props.helper">{{ props.helper }}</p>
-        <p class="mt-2 text-sm text-red-500" v-if="error">{{ error }}</p>
+        <p v-if="props.helper" class="mt-2 text-sm text-gray-500">{{ props.helper }}</p>
+        <p v-if="error" class="mt-2 text-sm text-red-500">{{ error }}</p>
     </div>
 </template>

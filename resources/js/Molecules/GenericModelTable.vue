@@ -52,6 +52,16 @@ const deleteItem = () => {
 
 };
 
+const columns = computed(() => {
+    // return props.data;
+    if (props.data.data[0]) {
+
+        return Object.keys(props.data.data[0]);
+    } else {
+        return [];
+    }
+});
+
 </script>
 
 <template>
@@ -59,15 +69,15 @@ const deleteItem = () => {
         <thead
             class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
         <tr>
-            <th v-for="(column,index) in props.columns" v-if="props.columns" :key="index" class="px-6 py-3"
+            <th v-for="(column,index) in columns" v-if="columns" :key="index" class="px-6 py-3"
                 scope="col">
                 {{ column }}
             </th>
-            <th v-if="props.isEditable && props.columns"
+            <th v-if="props.isEditable && columns"
                 class="px-6 py-3" scope="col">
                 Edit
             </th>
-            <th v-if="props.isDeletable && props.columns"
+            <th v-if="props.isDeletable && columns"
                 class="px-6 py-3" scope="col">
                 Delete
             </th>

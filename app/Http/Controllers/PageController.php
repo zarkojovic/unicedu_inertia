@@ -34,16 +34,12 @@ class PageController extends Controller {
     public function showPageListView() {
         try {
             // Fetch all pages from the 'pages' table and select 'page_id' as 'id'
-            $pages = Page::paginate(10);
-
-            // Get the column listing of the 'pages' table
-            $columns = DB::getSchemaBuilder()->getColumnListing('pages');
+            $pages = Page::select('title', 'route', 'icon', 'role_id')
+                ->paginate(10);
 
             return Inertia::render("Admin/Page/Show", [
                 // Pages data to be displayed
                 'data' => $pages,
-                // Column listing for the table
-                'columns' => $columns,
             ]);
         }
         catch (Exception $e) {

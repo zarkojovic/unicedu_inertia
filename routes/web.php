@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DealController;
 use App\Http\Controllers\FieldCategoryController;
+use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
@@ -97,11 +98,9 @@ Route::middleware('auth')->group(function() {
                 [PageController::class, 'showPageListView'])->name('showPage');
             Route::get('/pages/new', [PageController::class, 'createNewPage'])
                 ->name('createNewPage');
-
             Route::post('/pages/insertNew',
                 [PageController::class, 'createPage'])
                 ->name('addNewPage');
-
             Route::post('/pages/deletePage',
                 [PageController::class, 'deletePage']);
             Route::get('/pages/edit/{id}', [PageController::class, 'editPage'])
@@ -125,6 +124,10 @@ Route::middleware('auth')->group(function() {
             Route::get('/users',
                 [UserController::class, 'showUser'])
                 ->name('showUser');
+            //PACKAGE ROUTES
+            Route::get('/packages',
+                [PackageController::class, 'showPage'])
+                ->name('showPackage');
         });
     });
 
@@ -140,12 +143,7 @@ Route::middleware('auth')->group(function() {
 Route::get('/test', function() {
     //    $fieldItems = FieldItem::with('field')->get();
 
-    $pages = Page::where('role_id', '1')->get();
-
-    //    $
-
-    dd($pages);
-
+    dd(Page::getCurrentPagesForSidebar());
     //    FieldCategory::getAllCategoriesWithFields('/profile');
     //
     //    $broze_package_pages = ['/profile', '/applications'];

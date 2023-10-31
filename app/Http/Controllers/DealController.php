@@ -21,17 +21,12 @@ class DealController extends RootController {
     public function showApplication() {
         try {
             // Fetch all deals from the 'deals' table and select 'deal_id' as 'id'
-            $data = Deal::paginate(10);
-
-            // Get the column listing of the 'deal' table
-            $columns = DB::getSchemaBuilder()->getColumnListing('deals');
+            $data = Deal::select('intake', 'program')->paginate(10);
 
             // Return the admin template view with necessary data
             return Inertia::render("Admin/Application/Show", [
                 'data' => $data,
                 // Actions data to be displayed
-                'columns' => $columns,
-                // Column listing for the table
             ]);
         }
         catch (Exception $e) {
