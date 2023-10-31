@@ -97,11 +97,11 @@ Route::middleware('auth')->group(function() {
 
         //ADMIN
         Route::middleware('admin')->prefix('admin')->group(function() {
-            Route::get('/dashboard',
-                [AdminController::class, 'show'])->name('admin_home');
+//            Route::get('/dashboard',
+//                [AdminController::class, 'show'])->name('admin_home');
 
             //FIELDS
-            Route::get('/fields', [AdminController::class, "home"]);
+            Route::get('/fields', [AdminController::class, "home"])->name("admin_home");
             Route::get("/fields-fetch",
                 [AdminController::class, "fetchFields"]);
             Route::post("/fields-add",

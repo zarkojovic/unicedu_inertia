@@ -1,9 +1,14 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import {Head, useForm} from '@inertiajs/vue3';
-import {provide, ref} from 'vue';
+import {Head, Link, useForm} from '@inertiajs/vue3';
+import {computed, provide, ref} from 'vue';
 import Button from '@/Atoms/Button.vue';
 import Modal from '@/Molecules/Modal.vue';
+import PackageIndicator from "@/Atoms/PackageIndicator.vue";
+import {usePage} from '@inertiajs/vue3';
+import ApplicationModal from "@/Organisms/ApplicationModal.vue";
+
+const page = usePage();
 
 const props = defineProps({
     applications: {
@@ -11,7 +16,35 @@ const props = defineProps({
     },
 });
 
-const openModal = ref(false);
+// const getPackageBorderClass = (packageId) => {
+//     switch (packageId) {
+//         case 1:
+//             return 'package-border-1';
+//         case 2:
+//             return 'package-border-2';
+//         case 3:
+//             return 'package-border-3';
+//         case 4:
+//             return 'package-border-4';
+//         default:
+//             return ''; // Default border class or no class
+//     }
+// };
+
+const packageClass = computed(() => {
+    const classes = {
+        'bronze-top-border': props.applications[0].package_id === 1,
+        'silver-top-border': props.applications[0].package_id === 2,
+        'gold-top-border': props.applications[0].package_id === 3,
+        'platinum-top-border': props.applications[0].package_id === 4,
+    };
+
+    return classes;
+});
+
+const openApplyModal = ref(false);
+
+const openDeleteModal = ref(false);
 
 const dealId = ref(null);
 
@@ -26,7 +59,7 @@ const deleteDeal = () => {
 
     form.post('/applications/removeDeal', {
         onSuccess: () => {
-            openModal.value = false;
+            openDeleteModal.value = false;
         },
     });
 };
@@ -43,6 +76,7 @@ const deleteDeal = () => {
         <div class="py-6 mt-6">
             <div v-for="(deal,index) in applications" v-if="applications.length > 0"
                  id="applicationsContainerHeader" :key="index"
+                 :class="packageClass"
                  class="mx-auto bg-white rounded-3xl shadow-md overflow-hidden p-5 lg:px-8">
 
                 <div
@@ -53,10 +87,7 @@ const deleteDeal = () => {
                     </div>
                     <div>
                         <span class="text-gray-400 font-medium text-md mt-3">Package</span>
-                        <h4 class="text-center capitalize mb-5 text-sm md:text-left md:text-xl">{{
-                                deal.package_name
-                            }}
-                        </h4>
+                        <PackageIndicator :package-id="deal.package_id"/>
                     </div>
                 </div>
                 <div class="mt-2">
@@ -87,14 +118,19 @@ const deleteDeal = () => {
                         <div class="pt-4">
                             <span class="text-gray-400 font-medium text-md mt-3">Delete</span>
                             <h5 class="text-md">
-                                <Button type="danger" @click="openModal = true; dealId= item.deal_id">Delete</Button>
+                                <Button type="danger" @click="openDeleteModal = true; dealId= item.deal_id">Delete</Button>
                             </h5>
                         </div>
                     </div>
                     <div v-else>
-                        <h1>No applications!</h1>
+                        <span class="text-md text-slate-500">Looks like you haven't applied yet.
+                                    <button class="me-3 text-orange-500" @click="openApplyModal = true">
+                                        Apply here!
+                                    </button>
+                                    <ApplicationModal v-model="openApplyModal"/>
+                        </span>
                     </div>
-                    <Modal v-if="openModal" @close="openModal = false">
+                    <Modal v-if="openDeleteModal" @close="openDeleteModal = false">
                         <template #modalTitle>
                             Confirm your action
                         </template>
@@ -103,7 +139,7 @@ const deleteDeal = () => {
                         </template>
                         <template #modalFooter>
                             <div class="flex justify-end">
-                                <Button class="me-3" type="muted" @click="openModal = false">Close</Button>
+                                <Button class="me-3" type="muted" @click="openDeleteModal = false">Close</Button>
                                 <Button type="danger" @click="deleteDeal">Delete</Button>
                             </div>
                         </template>
@@ -120,5 +156,23 @@ const deleteDeal = () => {
 </template>
 
 <style scoped>
+
+.bronze-top-border {
+    border-top: 5px solid rgb(240,175,110);
+
+}
+
+.silver-top-border {
+    border-top: 5px solid #a6b0cd;
+}
+.gold-top-border {
+    border-top: 5px solid rgb(249,222,85);
+}
+
+.platinum-top-border {
+   border-top: 5px solid rgb(192,205,230);
+
+}
+
 
 </style>

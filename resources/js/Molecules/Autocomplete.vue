@@ -59,7 +59,7 @@
 <script setup>
 import {ref, computed, onMounted, onBeforeUnmount, watch} from 'vue';
 import { useFetch } from '@/Composables/fetch.js';
-import { useForm } from '@inertiajs/vue3'
+import { useForm } from '@inertiajs/vue3';
 import {
     Combobox,
     ComboboxInput,
@@ -76,15 +76,9 @@ const componentRef = ref(null);
 
 const form = useForm( {
     field_id: null,
-    field_category_id: props.catId,
-    order: props.order
+    field_category_id: undefined,
+    order: undefined
 });
-
-watch(selected,(newVal, oldVal) => {
-    form.field_id = newVal.field_id;
-    form.post("/admin/fields-add");
-    toggleCombobox();
-})
 
 //PROPS
 const props = defineProps({
@@ -96,6 +90,21 @@ const props = defineProps({
 const vFocus = {
     mounted: (el) => el.focus()
 };
+
+//WATCHER
+watch(selected,(newVal, oldVal) => {
+    try {
+        form.field_id = JSON.parse(JSON.stringify(newVal.field_id));
+        form.field_category_id = JSON.parse(JSON.stringify(props.catId));
+        form.order = JSON.parse(JSON.stringify(props.order));
+
+        // console.log(form.field_id, form.field_category_id, form.order)
+        toggleCombobox();
+        form.submit("post", "/admin/fields-add", { preserveScroll: true });
+    } catch (error) {
+        console.error('Error in watch callback:', error);
+    }
+})
 
 //LIFECYCLE HOOKS
 onMounted(async () => {

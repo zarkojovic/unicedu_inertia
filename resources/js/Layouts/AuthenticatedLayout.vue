@@ -15,7 +15,7 @@ provide('isSidebarOpen', isSidebarOpen);
     <SaleBot/>
     <!-- Page Content -->
     <main :class="{ 'blur-x': isSidebarOpen }"
-          class="lg:ml-64 p-5 sm:p-10 md:px-15 lg:px-16 xl:px-36 2xl:px-48 3xl:px-124 bg-gray-50">
+          class="lg:ml-64 p-5 sm:p-10 md:px-15 lg:px-16 xl:px-36 2xl:px-48 3xl:px-124 bg-gray-50 min-h-screen">
         <slot/>
     </main>
 
