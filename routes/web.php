@@ -79,29 +79,30 @@ Route::middleware('auth')->group(function() {
             Route::get('/applications',
                 [DealController::class, 'showUserDeals'])
                 ->name('applications');
-            Route::post('/applications/addNew',
-                [DealController::class, 'apply'])
-                ->name('newApplication');
-            Route::post('/applications/removeDeal',
-                [DealController::class, 'deleteDeal'])
-                ->name('removeApplication');
-
-            Route::post('/userFieldsUpdate',
-                [UserController::class, 'updateUserInfo']);
-
-            //EDIT IMAGE
-            Route::match(['post', 'put', 'patch'], '/image/edit',
-                [UserController::class, 'updateImage'])
-                ->name("user.image.update");
         });
+        Route::post('/applications/addNew',
+            [DealController::class, 'apply'])
+            ->name('newApplication');
+        Route::post('/applications/removeDeal',
+            [DealController::class, 'deleteDeal'])
+            ->name('removeApplication');
+
+        Route::post('/userFieldsUpdate',
+            [UserController::class, 'updateUserInfo']);
+
+        //EDIT IMAGE
+        Route::match(['post', 'put', 'patch'], '/image/edit',
+            [UserController::class, 'updateImage'])
+            ->name("user.image.update");
 
         //ADMIN
         Route::middleware('admin')->prefix('admin')->group(function() {
-//            Route::get('/dashboard',
-//                [AdminController::class, 'show'])->name('admin_home');
+            //            Route::get('/dashboard',
+            //                [AdminController::class, 'show'])->name('admin_home');
 
             //FIELDS
-            Route::get('/fields', [AdminController::class, "home"])->name("admin_home");
+            Route::get('/fields', [AdminController::class, "home"])
+                ->name("admin_home");
             Route::get("/fields-fetch",
                 [AdminController::class, "fetchFields"]);
             Route::post("/fields-add",
