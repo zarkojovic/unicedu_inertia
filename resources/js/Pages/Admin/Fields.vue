@@ -16,6 +16,7 @@
                                        :group="'fields_'+category.field_category_id"
                                        @start="drag=true"
                                        @end="drag=false"
+                                       @change="onChanged"
                                        item-key="field_id"
                                        :component-data="{
                                           tag: 'AdminField',
@@ -74,6 +75,11 @@ export default {
             };
         }
     },
+    methods: {
+        onChanged(event) {
+            console.log(event);
+        }
+    }
     // setup(props){
     //     const categoriesNew = toRef(props, "categories");
     //     // console.log(categoriesNew.value[0]);
