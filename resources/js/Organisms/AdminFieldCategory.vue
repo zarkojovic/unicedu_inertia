@@ -1,5 +1,5 @@
 <template>
-    <div class="p-6 px-8 mb-20 border rounded-xl bg-white">
+    <div class="md:p-6 md:px-8 p-4 mt-20 border rounded-xl bg-white">
         <form @submit.prevent="submitForm">
             <div class="flex justify-between">
                 <h3 class="mb-10 text-lg font-bold">{{ category.category_name }}</h3>
