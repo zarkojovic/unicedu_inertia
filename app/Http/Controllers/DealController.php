@@ -21,7 +21,8 @@ class DealController extends RootController {
     public function showApplication() {
         try {
             // Fetch all deals from the 'deals' table and select 'deal_id' as 'id'
-            $data = Deal::select('intake', 'program')->paginate(10);
+            $data = Deal::select('deal_id as id', 'intake', 'program')
+                ->paginate(10);
 
             // Return the admin template view with necessary data
             return Inertia::render("Admin/Application/Show", [

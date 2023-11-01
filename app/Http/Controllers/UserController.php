@@ -508,8 +508,12 @@ class UserController extends RootController {
     }
 
     public function showUser() {
-        $users = User::select('profile_image', 'first_name', 'last_name',
-            'email', 'phone', 'role_id')
+        $users = DB::table('users')
+            ->join('roles', 'roles.role_id', 'users.role_id')
+            ->select('users.user_id as id', 'users.profile_image',
+                'users.first_name',
+                'users.last_name',
+                'users.email', 'users.phone', 'roles.role_name as role name')
             ->paginate(10);
 
         return Inertia::render("Admin/User/Show",

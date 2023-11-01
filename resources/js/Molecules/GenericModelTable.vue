@@ -69,7 +69,7 @@ const typeOfColumn = (item) => {
 
 const isIncluded = (col) => {
     if (props.excludedColumns) {
-        return props.excludedColumns.includes(col);
+        return !props.excludedColumns.includes(col);
     }
     return true;
 };
@@ -86,12 +86,11 @@ onMounted(() => {
         <thead
             class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
         <tr>
-            <th v-for="(column,index) in columns" v-if="columns " :key="index" class="px-6 py-3"
-                scope="col">
-                <div v-if="!isIncluded(column)">
+            <template v-for="(column,index) in columns" v-if="columns" :key="index" class="px-6 py-3">
+                <th v-if="isIncluded(column)" class="px-6 py-3">
                     {{ column }}
-                </div>
-            </th>
+                </th>
+            </template>
             <th v-if="props.isEditable && columns"
                 class="px-6 py-3" scope="col">
                 Edit
@@ -108,9 +107,8 @@ onMounted(() => {
             :key="index"
             class=" border-b dark:bg-gray-900 dark:border-gray-700"
         >
-
-            <td v-for="(col,idx) in columns" :key="idx" class="px-6 py-4">
-                <div v-if="isIncluded(col)">
+            <template v-for="(col,idx) in columns" :key="idx">
+                <td v-if="isIncluded(col)" class="px-6 py-4">
                     <div v-if="typeOfColumn(col)">
                         <img v-if="typeOfColumn(col) === 'image'" :src="page.props.images_root + item[col]"
                              alt="table image"
@@ -118,11 +116,11 @@ onMounted(() => {
                         <Icon v-if="typeOfColumn(col) === 'icon'" :icon="'tabler:'+item[col]" class="text-2xl me-2"
                               inline/>
                     </div>
-                </div>
-                <div v-else>
-                    {{ item[col] }}
-                </div>
-            </td>
+                    <div v-else>
+                        {{ item[col] }}
+                    </div>
+                </td>
+            </template>
             <td v-if="props.isEditable">
                 <Link :href="route(props.editRoute,{id:item['id']})">
                     <Button type="success">Edit</Button>

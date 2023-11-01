@@ -18,6 +18,8 @@ const columnTypes = [
         type: 'image',
     },
 ];
+const hideColumns = ['id'];
+
 </script>
 
 <template>
@@ -31,7 +33,7 @@ const columnTypes = [
             <div class="mx-auto bg-white rounded-xl shadow-md overflow-hidden w-5/6">
                 <div class="bg-white overflow-hidden dark:bg-gray-800  shadow-sm sm:rounded-lg">
                     <ModelDataDisplay :column-types="columnTypes" :columns="props.columns" :data="props.data"
-                                      :is-deletable="false" :is-editable="false"
+                                      :excluded-columns="hideColumns" :is-deletable="false" :is-editable="false"
                                       section-title="Users"/>
                 </div>
             </div>

@@ -16,7 +16,9 @@ class FieldCategoryController extends Controller {
     public function showCategory() {
         try {
             // Fetch all field categories from the 'field_categories' table and select 'field_category_id' as 'id'
-            $data = FieldCategory::select('category_name', 'is_visible')
+            $data = FieldCategory::select('field_category_id as id',
+                'category_name',
+                'is_visible')
                 ->paginate(10);
 
             // Get the column listing of the 'field_categories' table
