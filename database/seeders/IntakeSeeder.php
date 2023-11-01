@@ -16,9 +16,14 @@ class IntakeSeeder extends Seeder {
             $query->where('title', 'Intake');
         })->select('item_value', 'item_id')->get()->toArray();
 
-        foreach ($fieldItems as $item) {
+        foreach ($fieldItems as $key => $item) {
             $new = new Intake();
-            $new->active = FALSE;
+            if ($key == 3) {
+                $new->active = TRUE;
+            }
+            else {
+                $new->active = FALSE;
+            }
             $new->intake_name = $item['item_value'];
             $new->intake_bitrix_id = $item['item_id'];
             $new->save();

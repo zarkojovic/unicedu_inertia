@@ -1,7 +1,7 @@
 <script setup>
 import {defineProps, inject, ref} from 'vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
-import {Link, usePage} from '@inertiajs/vue3';
+import {Link, useForm, usePage} from '@inertiajs/vue3';
 import Button from '@/Atoms/Button.vue';
 import {Menu, MenuButton, MenuItem, MenuItems} from '@headlessui/vue';
 import {addIcons} from 'oh-vue-icons';
@@ -9,7 +9,6 @@ import {MdLockreset, MdLogoutOutlined} from 'oh-vue-icons/icons';
 import ApplicationModal from '@/Organisms/ApplicationModal.vue';
 
 addIcons(MdLogoutOutlined, MdLockreset);
-
 
 const page = usePage();
 
@@ -19,6 +18,11 @@ const openModal = ref(false);
 
 const navBtnType = inject('navBtnType', ref(''));
 
+const form = useForm({});
+const refreshFields = () => {
+    form.post('/admin/fields_fields');
+
+};
 </script>
 
 <template>
@@ -57,6 +61,11 @@ const navBtnType = inject('navBtnType', ref(''));
                         </Button>
                         <ApplicationModal v-model="openModal"/>
                     </div>
+
+                    <Button v-if="navBtnType === 'adminFields'" class="me-3" type="primary" @click="refreshFields">
+                        Refresh Fields
+                    </Button>
+
 
                     <Menu as="div" class="relative hidden lg:inline-block text-left justify-center">
 
@@ -104,29 +113,29 @@ const navBtnType = inject('navBtnType', ref(''));
 
                                 </div>
 
-                            <div class="px-1 py-1">
+                                <div class="px-1 py-1">
 
-                                <MenuItem v-slot="{ active }">
-                                    <Link class="w-full" :href="route('logout')" as="button"
-                                          method="post">
-                                        <button
-                                            :class="[
+                                    <MenuItem v-slot="{ active }">
+                                        <Link :href="route('logout')" as="button" class="w-full"
+                                              method="post">
+                                            <button
+                                                :class="[
                   active ? 'bg-orange-500 text-white' : 'text-gray-900',
                   'group flex w-full items-center rounded-md px-2 py-2 text-sm',
                 ]"
-                                        >
+                                            >
 
-                                            <v-icon name="md-logout-outlined" class="mr-2 h-5 w-5"/>
-                                            Sign out
-                                        </button>
-                                    </Link>
+                                                <v-icon class="mr-2 h-5 w-5" name="md-logout-outlined"/>
+                                                Sign out
+                                            </button>
+                                        </Link>
 
-                                </MenuItem>
+                                    </MenuItem>
 
-                            </div>
-                        </MenuItems>
-                    </transition>
-                </Menu>
+                                </div>
+                            </MenuItems>
+                        </transition>
+                    </Menu>
                 </div>
 
             </div>

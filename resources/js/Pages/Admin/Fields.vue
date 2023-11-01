@@ -44,7 +44,6 @@ import AdminField from "@/Molecules/AdminField.vue";
 import {IconPlus} from '@tabler/icons-vue';
 import draggable from "vuedraggable";
 import AddNewField from "@/Molecules/AddNewField.vue";
-// import { toRef, provide } from 'vue'
 
 
 export default {
@@ -79,7 +78,12 @@ export default {
         onChanged(event) {
             console.log(event);
         }
-    }
+    },
+    provide() {
+        return {
+            navBtnType: 'adminFields',
+        };
+    },
     // setup(props){
     //     const categoriesNew = toRef(props, "categories");
     //     // console.log(categoriesNew.value[0]);

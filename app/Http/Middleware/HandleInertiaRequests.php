@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\FieldCategory;
+use App\Models\Intake;
 use App\Models\Page;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -45,8 +46,10 @@ class HandleInertiaRequests extends Middleware {
             'sidebar_pages' => auth()->check() ? Page::getCurrentPagesForSidebar() : [],
             'current_route_uri' => Route::current()->uri,
             'documents_root' => asset("storage/profile/documents/").'/',
+            'images_root' => asset("storage/profile/original/").'/',
             'deal_fields' => Route::current()->uri === 'applications' ? FieldCategory::getAllDealFields() : NULL,
             'recaptcha_site_key' => config('services.recaptcha.site_key'),
+            'active_intake' => Intake::where('active', '1')->first(),
         ];
     }
 

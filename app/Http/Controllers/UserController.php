@@ -508,24 +508,17 @@ class UserController extends RootController {
     }
 
     public function showUser() {
-        $users = User::paginate(10);
-        $columns = DB::getSchemaBuilder()->getColumnListing('users');
-        $columns = [
-            'id',
-            'profile_image',
-            'first_name',
-            'last_name',
-            'email',
-            'phone',
-            'email_verified_at',
-            'contact_id',
-            'created_at',
-            'updated_at',
-        ];
-        return Inertia::render("Admin/Application/Show",
+        $users = DB::table('users')
+            ->join('roles', 'roles.role_id', 'users.role_id')
+            ->select('users.user_id as id', 'users.profile_image',
+                'users.first_name',
+                'users.last_name',
+                'users.email', 'users.phone', 'roles.role_name as role name')
+            ->paginate(10);
+
+        return Inertia::render("Admin/User/Show",
             [
                 'data' => $users,
-                'columns' => $columns,
             ]);
     }
 

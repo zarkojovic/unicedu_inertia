@@ -75,9 +75,6 @@ const validateForm = () => {
 <template>
     <GuestLayout>
         <Head title="Log in"/>
-        <div v-if="status" class="mb-4 font-medium text-sm text-green-600">
-            {{ status }}
-        </div>
 
         <div class="container mb-3">
             <h1 class="md:text-2xl text-xl text-center">Welcome to Poland Study!</h1>
@@ -108,6 +105,9 @@ const validateForm = () => {
                     @focusout="validatePassword"
                     @keyup.enter="validateForm"
                 />
+            </div>
+            <div v-if="status" class="mb-4 font-medium text-sm text-green-600 text-center">
+                {{ status }}
             </div>
 
 

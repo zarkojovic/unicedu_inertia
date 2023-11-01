@@ -29,14 +29,16 @@ class User extends Authenticatable implements MustVerifyEmail {
         'remember_token',
     ];
 
-    protected $visible = [
-        'email',
-        'first_name',
-        'last_name',
-        'user_id',
-        'phone',
-        'profile_image',
-    ];
+    //
+    //    protected $visible = [
+    //        'email',
+    //        'first_name',
+    //        'last_name',
+    //        'user_id',
+    //        'phone',
+    //        'profile_image',
+    //        'package_id',
+    //    ];
 
     protected $fillable = [
         'first_name',

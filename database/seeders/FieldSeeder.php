@@ -184,12 +184,6 @@ class FieldSeeder extends Seeder {
                 "order" => '1',
                 "field_category_id" => '4',
             ],
-            [
-                "field_name" => 'UF_CRM_1668001651504',
-                "is_required" => '0',
-                "order" => '2',
-                "field_category_id" => '4',
-            ],
         ];
 
         $i++;

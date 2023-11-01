@@ -7,7 +7,6 @@ use App\Models\Log;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 
@@ -17,18 +16,18 @@ class FieldCategoryController extends Controller {
     public function showCategory() {
         try {
             // Fetch all field categories from the 'field_categories' table and select 'field_category_id' as 'id'
-            $data = FieldCategory::paginate(10);
+            $data = FieldCategory::select('field_category_id as id',
+                'category_name',
+                'is_visible')
+                ->paginate(10);
 
             // Get the column listing of the 'field_categories' table
-            $columns = DB::getSchemaBuilder()
-                ->getColumnListing('field_categories');
 
             // Return the admin template view with necessary data
             return Inertia::render("Admin/Category/Show", [
                 'data' => $data,
                 // Field categories data to be displayed
-                'columns' => $columns,
-                // Column listing for the table
+
             ]);
         }
         catch (Exception $e) {

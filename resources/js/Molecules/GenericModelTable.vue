@@ -1,18 +1,16 @@
 <script setup>
 
 import Button from '@/Atoms/Button.vue';
-import {computed, ref} from 'vue';
+import {computed, onMounted, ref} from 'vue';
 import Pagination from '@/Atoms/Pagination.vue';
 import Modal from '@/Molecules/Modal.vue';
-import {Link, useForm} from '@inertiajs/vue3';
+import {Link, useForm, usePage} from '@inertiajs/vue3';
+
+import {Icon} from '@iconify/vue';
 
 const props = defineProps({
     data: {
         type: Object,
-    },
-    columns: {
-        type: Object,
-        default: null,
     },
     isEditable: {
         type: Boolean,
@@ -28,18 +26,19 @@ const props = defineProps({
     editRoute: {
         type: String,
     },
+    columnTypes: {
+        type: Array,
+    },
+    excludedColumns: {
+        type: Array,
+    },
 });
 
 const openModal = ref(false);
 
-const formattedData = computed(() => {
-    if (props.columns === null) {
-        return props.data.data.map((obj) => Object.values(obj));
-    }
-    return props.data.data.map((obj) => props.columns.map((colName) => obj[colName]));
-});
-
 const deleteItemId = ref(null);
+
+const page = usePage();
 
 const formDelete = useForm({
     id: ref(deleteItemId),
@@ -52,6 +51,34 @@ const deleteItem = () => {
 
 };
 
+const columns = computed(() => {
+    if (props.data.data[0]) {
+        return Object.keys(props.data.data[0]);
+    } else {
+        return [];
+    }
+});
+
+const typeOfColumn = (item) => {
+    if (props.columnTypes) {
+        const result = props.columnTypes.find(obj => obj.name === item);
+        return result ? result.type : false;
+    }
+    return false;
+};
+
+const isIncluded = (col) => {
+    if (props.excludedColumns) {
+        return !props.excludedColumns.includes(col);
+    }
+    return true;
+};
+
+onMounted(() => {
+    if (props.columnTypes) {
+    }
+});
+
 </script>
 
 <template>
@@ -59,43 +86,55 @@ const deleteItem = () => {
         <thead
             class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
         <tr>
-            <th v-for="(column,index) in props.columns" v-if="props.columns" :key="index" class="px-6 py-3"
-                scope="col">
-                {{ column }}
-            </th>
-            <th v-if="props.isEditable && props.columns"
+            <template v-for="(column,index) in columns" v-if="columns" :key="index" class="px-6 py-3">
+                <th v-if="isIncluded(column)" class="px-6 py-3">
+                    {{ column }}
+                </th>
+            </template>
+            <th v-if="props.isEditable && columns"
                 class="px-6 py-3" scope="col">
                 Edit
             </th>
-            <th v-if="props.isDeletable && props.columns"
+            <th v-if="props.isDeletable && columns"
                 class="px-6 py-3" scope="col">
                 Delete
             </th>
         </tr>
         </thead>
         <tbody>
-        <tr v-for="(item,index) in formattedData"
-            v-if="formattedData.length > 0"
+        <tr v-for="(item,index) in props.data.data"
+            v-if="props.data.data.length > 0"
             :key="index"
             :class="index % 2 ? 'bg-gray-50' : 'bg-white'"
             class=" border-b dark:bg-gray-900 dark:border-gray-700"
         >
-            <td v-for="(element,index) in item" :key="index" class="px-6 py-4">
-                {{ element }}
-            </td>
+            <template v-for="(col,idx) in columns" :key="idx">
+                <td v-if="isIncluded(col)" class="px-6 py-4">
+                    <div v-if="typeOfColumn(col)">
+                        <img v-if="typeOfColumn(col) === 'image'" :src="page.props.images_root + item[col]"
+                             alt="table image"
+                             style="width: 80px"/>
+                        <Icon v-if="typeOfColumn(col) === 'icon'" :icon="'tabler:'+item[col]" class="text-2xl me-2"
+                              inline/>
+                    </div>
+                    <div v-else>
+                        {{ item[col] }}
+                    </div>
+                </td>
+            </template>
             <td v-if="props.isEditable">
-                <Link :href="route(props.editRoute,{id:item[0]})">
+                <Link :href="route(props.editRoute,{id:item['id']})">
                     <Button type="success">Edit</Button>
                 </Link>
             </td>
             <td v-if="props.isDeletable">
-                <Button type="danger" @click="openModal = true; formDelete.id = item[0]">Delete</Button>
+                <Button type="danger" @click="openModal = true; formDelete.id = item['id']">Delete</Button>
             </td>
         </tr>
         </tbody>
     </table>
 
-    <h1 v-if="formattedData.length === 0" class="text-3xl text-center my-5">
+    <h1 v-if="props.data.data === 0" class="text-3xl text-center my-5">
         No data for now...
     </h1>
     <Modal v-if="openModal && props.isDeletable" @close="openModal = false"

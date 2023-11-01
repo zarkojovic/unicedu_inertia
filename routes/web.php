@@ -3,6 +3,8 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DealController;
 use App\Http\Controllers\FieldCategoryController;
+use App\Http\Controllers\FieldController;
+use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
@@ -53,6 +55,15 @@ Route::middleware('auth')->group(function() {
                                 });
                         });
                         break;
+                    case 'student':
+                        Route::middleware('package')->group(function() use (
+                            $route
+                        ) {
+                            Route::get($route->route, function() use ($route) {
+                                return Inertia::render('Dashboard');
+                            });
+                        });
+                        break;
                     default :
                         Route::get($route->route, function() use ($route) {
                             return Inertia::render('Dashboard');
@@ -62,13 +73,16 @@ Route::middleware('auth')->group(function() {
             }
         }
 
-        Route::get('/', [UserController::class, 'show'])->name("home");
-
-        Route::get('/profile', [UserController::class, 'show'])
-            ->name('profile');
-        Route::get('/applications', [DealController::class, 'showUserDeals'])
-            ->name('applications');
-        Route::post('/applications/addNew', [DealController::class, 'apply'])
+        Route::middleware('package')->group(function() {
+            Route::get('/', [UserController::class, 'show'])->name("home");
+            Route::get('/profile', [UserController::class, 'show'])
+                ->name('profile');
+            Route::get('/applications',
+                [DealController::class, 'showUserDeals'])
+                ->name('applications');
+        });
+        Route::post('/applications/addNew',
+            [DealController::class, 'apply'])
             ->name('newApplication');
         Route::post('/applications/removeDeal',
             [DealController::class, 'deleteDeal'])
@@ -76,32 +90,33 @@ Route::middleware('auth')->group(function() {
 
         Route::post('/userFieldsUpdate',
             [UserController::class, 'updateUserInfo']);
+
         //EDIT IMAGE
         Route::match(['post', 'put', 'patch'], '/image/edit',
-            [UserController::class, 'updateImage'])->name("user.image.update");
+            [UserController::class, 'updateImage'])
+            ->name("user.image.update");
 
         //ADMIN
         Route::middleware('admin')->prefix('admin')->group(function() {
-//            Route::get('/dashboard',
-//                [AdminController::class, 'show'])->name('admin_home');
-
             //FIELDS
-            Route::get('/fields', [AdminController::class, "home"])->name("admin_home");
+            Route::get('/fields', [AdminController::class, "home"])
+                ->name("admin_home");
             Route::get("/fields-fetch",
                 [AdminController::class, "fetchFields"]);
             Route::post("/fields-add",
                 [AdminController::class, "setFieldCategory"]);
+            Route::post('/fields_fields',
+                [FieldController::class, 'updateFields'])
+                ->name('updateFields');
 
             //PAGES ROUTES
             Route::get('/pages',
                 [PageController::class, 'showPageListView'])->name('showPage');
             Route::get('/pages/new', [PageController::class, 'createNewPage'])
                 ->name('createNewPage');
-
             Route::post('/pages/insertNew',
                 [PageController::class, 'createPage'])
                 ->name('addNewPage');
-
             Route::post('/pages/deletePage',
                 [PageController::class, 'deletePage']);
             Route::get('/pages/edit/{id}', [PageController::class, 'editPage'])
@@ -125,6 +140,10 @@ Route::middleware('auth')->group(function() {
             Route::get('/users',
                 [UserController::class, 'showUser'])
                 ->name('showUser');
+            //PACKAGE ROUTES
+            Route::get('/packages',
+                [PackageController::class, 'showPage'])
+                ->name('showPackage');
         });
     });
 
@@ -140,12 +159,9 @@ Route::middleware('auth')->group(function() {
 Route::get('/test', function() {
     //    $fieldItems = FieldItem::with('field')->get();
 
-    $pages = Page::where('role_id', '1')->get();
+    //    dd($pages);
 
-    //    $
-
-    dd($pages);
-
+    dd(Page::getCurrentPagesForSidebar());
     //    FieldCategory::getAllCategoriesWithFields('/profile');
     //
     //    $broze_package_pages = ['/profile', '/applications'];

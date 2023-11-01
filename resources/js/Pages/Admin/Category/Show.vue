@@ -12,6 +12,8 @@ const props = defineProps({
     },
 });
 
+const hidden = ['id'];
+
 </script>
 
 <template>
@@ -24,7 +26,8 @@ const props = defineProps({
         <div class="mt-20">
             <div class="mx-auto bg-white rounded-xl shadow-md overflow-hidden w-5/6">
                 <div class="bg-white overflow-hidden dark:bg-gray-800  shadow-sm sm:rounded-lg">
-                    <ModelDataDisplay :columns="props.columns" :data="props.data" route-for-new="createNewCategory"
+                    <ModelDataDisplay :columns="props.columns" :data="props.data" :excluded-columns="hidden"
+                                      route-for-new="createNewCategory"
                                       section-title="Fields Categories"/>
                 </div>
             </div>
