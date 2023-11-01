@@ -18,20 +18,23 @@ class PackageMiddleware {
      */
     public function handle(Request $request, Closure $next): Response {
         $routeName = '/'.Route::current()->uri;
+
         if ($routeName === '//') {
             $routeName = '/profile';
         }
-        $page_id = Page::where('route', $routeName)
-            ->pluck('page_id')
-            ->toArray()[0];
+
+        $page_id = Page::where('route', $routeName)->value('page_id');
         $package_id = auth()->user()->package_id;
-        $checkPackagePage = DB::table('student_package_pages')
+
+        $packagePageCount = DB::table('student_package_pages')
             ->where('package_id', $package_id)
             ->where('page_id', $page_id)
-            ->get()->toArray();
-        if (count($checkPackagePage) > 0) {
+            ->count();
+
+        if ($packagePageCount > 0) {
             return $next($request);
         }
+
         return redirect()->route('home');
     }
 

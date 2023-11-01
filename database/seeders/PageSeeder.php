@@ -69,6 +69,20 @@ class PageSeeder extends Seeder {
                 'role_id' => '3',
                 'is_editable' => FALSE,
             ],
+            [
+                'route' => '/visa',
+                'title' => 'Visa',
+                'icon' => 'brand-visa',
+                'role_id' => '1',
+                'is_editable' => FALSE,
+            ],
+            [
+                'route' => '/accommodation',
+                'title' => 'Accommodation',
+                'icon' => 'home-check',
+                'role_id' => '1',
+                'is_editable' => FALSE,
+            ],
         ];
 
         foreach ($pages as $page) {

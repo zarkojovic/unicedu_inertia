@@ -29,26 +29,23 @@ class Page extends Model {
     public static function getCurrentPagesForSidebar() {
         $user = auth()->user();
         if ($user->role_id === 1) {
-            $pages = Page::where('role_id', $user->role_id)
-                ->select('page_id', 'route', 'icon', 'title')
-                ->get();
-
-            $activePages = DB::table('pages')
-                ->where('role_id', $user->role_id)
-                ->join('student_package_pages', 'student_package_pages.page_id',
-                    'pages.page_id')
-                ->where('student_package_pages.package_id', '1')
-                ->pluck('pages.page_id')
+            $pages = Page::select([
+                'pages.page_id',
+                'pages.route',
+                'pages.icon',
+                'pages.title',
+                DB::raw('IF(student_package_pages.page_id IS NOT NULL, 1, 0) as active'),
+            ])
+                ->where('pages.role_id', $user->role_id)
+                ->leftJoin('student_package_pages',
+                    function($join) use ($user) {
+                        $join->on('student_package_pages.page_id', '=',
+                            'pages.page_id')
+                            ->where('student_package_pages.package_id', 1);
+                    })
+                ->get()
                 ->toArray();
-            foreach ($pages as $page) {
-                if (in_array($page->page_id, $activePages)) {
-                    $page->active = 1;
-                }
-                else {
-                    $page->active = 0;
-                }
-            }
-            $pages = $pages->toArray();
+
             return $pages;
         }
         else {

@@ -1,12 +1,11 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import {Head, Link, useForm} from '@inertiajs/vue3';
-import {computed, provide, ref} from 'vue';
+import {Head, useForm, usePage} from '@inertiajs/vue3';
+import {provide, ref} from 'vue';
 import Button from '@/Atoms/Button.vue';
 import Modal from '@/Molecules/Modal.vue';
-import PackageIndicator from "@/Atoms/PackageIndicator.vue";
-import {usePage} from '@inertiajs/vue3';
-import ApplicationModal from "@/Organisms/ApplicationModal.vue";
+import PackageIndicator from '@/Atoms/PackageIndicator.vue';
+import ApplicationModal from '@/Organisms/ApplicationModal.vue';
 
 const page = usePage();
 
@@ -31,16 +30,36 @@ const props = defineProps({
 //     }
 // };
 
-const packageClass = computed(() => {
-    const classes = {
-        'bronze-top-border': props.applications[0].package_id === 1,
-        'silver-top-border': props.applications[0].package_id === 2,
-        'gold-top-border': props.applications[0].package_id === 3,
-        'platinum-top-border': props.applications[0].package_id === 4,
-    };
+// const packageClass = computed(() => {
+//     switch (props.applications[0].package_id) {
+//         case 1:
+//             return 'bronze-top-border';
+//         case 2:
+//             return 'silver-top-border';
+//         case 3:
+//             return 'gold-top-border';
+//         case 4:
+//             return 'platinum-top-border';
+//         default:
+//             return ''; // Default border class or no class
+//     }
+//
+// });
 
-    return classes;
-});
+const packageClass = (package_id) => {
+    switch (package_id) {
+        case 1:
+            return 'bronze-top-border';
+        case 2:
+            return 'silver-top-border';
+        case 3:
+            return 'gold-top-border';
+        case 4:
+            return 'platinum-top-border';
+        default:
+            return ''; // Default border class or no class
+    }
+};
 
 const openApplyModal = ref(false);
 
@@ -76,8 +95,8 @@ const deleteDeal = () => {
         <div class="py-6 mt-6">
             <div v-for="(deal,index) in applications" v-if="applications.length > 0"
                  id="applicationsContainerHeader" :key="index"
-                 :class="packageClass"
-                 class="mx-auto bg-white rounded-3xl shadow-md overflow-hidden p-5 lg:px-8">
+                 :class="packageClass(deal.package_id)"
+                 class="mx-auto bg-white rounded-3xl shadow-md overflow-hidden p-5 lg:px-8 mb-5">
 
                 <div
                     class="flex border-b-2">
@@ -118,7 +137,8 @@ const deleteDeal = () => {
                         <div class="pt-4">
                             <span class="text-gray-400 font-medium text-md mt-3">Delete</span>
                             <h5 class="text-md">
-                                <Button type="danger" @click="openDeleteModal = true; dealId= item.deal_id">Delete</Button>
+                                <Button type="danger" @click="openDeleteModal = true; dealId= item.deal_id">Delete
+                                </Button>
                             </h5>
                         </div>
                     </div>
@@ -148,9 +168,33 @@ const deleteDeal = () => {
                 </div>
 
             </div>
-            <div v-else>
-                <h1>No applications yet</h1>
+            <div v-else
+                 id="applicationsContainerHeader"
+                 :class="packageClass(page.props.auth.user.package_id)"
+                 class="mx-auto bg-white rounded-3xl shadow-md overflow-hidden p-5 lg:px-8 mb-5">
+
+                <div
+                    class="flex border-b-2">
+                    <div class="mr-10">
+                        <span class="text-gray-400 font-medium text-md mt-3">Intake</span>
+                        <h4 class="text-center mb-5 text-sm md:text-left md:text-xl">
+                            {{ page.props.active_intake.intake_name }}</h4>
+                    </div>
+                    <div>
+                        <span class="text-gray-400 font-medium text-md mt-3">Package</span>
+                        <PackageIndicator :package-id="page.props.auth.user.package_id"/>
+                    </div>
+                </div>
+                <div class="mt-2">
+                        <span class="text-md text-slate-500">Looks like you haven't applied yet.
+                                    <button class="me-3 text-orange-500" @click="openApplyModal = true">
+                                        Apply here!
+                                    </button>
+                                    <ApplicationModal v-model="openApplyModal"/>
+                        </span>
+                </div>
             </div>
+
         </div>
     </AuthenticatedLayout>
 </template>
@@ -158,7 +202,7 @@ const deleteDeal = () => {
 <style scoped>
 
 .bronze-top-border {
-    border-top: 5px solid rgb(240,175,110);
+    border-top: 5px solid rgb(240, 175, 110);
 
 }
 
@@ -166,11 +210,11 @@ const deleteDeal = () => {
     border-top: 5px solid #a6b0cd;
 }
 .gold-top-border {
-    border-top: 5px solid rgb(249,222,85);
+    border-top: 5px solid rgb(249, 222, 85);
 }
 
 .platinum-top-border {
-   border-top: 5px solid rgb(192,205,230);
+    border-top: 5px solid rgb(192, 205, 230);
 
 }
 
