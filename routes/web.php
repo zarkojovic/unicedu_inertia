@@ -105,7 +105,7 @@ Route::middleware('auth')->group(function() {
                 [AdminController::class, "fetchFields"]);
             Route::post("/fields-add",
                 [AdminController::class, "setFieldCategory"]);
-            Route::post('/fields_fields',
+            Route::post('/update-fields',
                 [FieldController::class, 'updateFields'])
                 ->name('updateFields');
 

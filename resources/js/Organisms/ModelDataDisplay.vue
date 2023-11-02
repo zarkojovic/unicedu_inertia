@@ -19,7 +19,6 @@ const props = defineProps({
     },
     isDeletable: {
         type: Boolean,
-
     },
     isEditable: {
         type: Boolean,
@@ -48,6 +47,8 @@ const props = defineProps({
             </Link>
         </div>
         <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+
+
             <GenericModelTable :column-types="props.columnTypes" :data="props.data"
                                :delete-route="props.deleteRoute"
                                :edit-route="props.editRoute" :excluded-columns="props.excludedColumns"
