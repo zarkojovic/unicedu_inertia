@@ -1,8 +1,9 @@
 <template>
-    <div class="w-5/12 add-category flex justify-between col border mb-3 me-4 p-3 rounded-xl position-relative cursor-pointer"
-         :id="'category_'+catId"
-         v-if="!showAddNew"
-         @click="showAddNew = true">
+    <div
+        v-if="!showAddNew"
+        :id="'category_'+catId"
+        class="md:w-5/12 w-full add-category flex justify-between col border mb-3 me-4 p-3 rounded-xl position-relative cursor-pointer"
+        @click="showAddNew = true">
         <div class="add-category-text">
             <label class="text-gray-400 cursor-pointer">Add new field</label>
         </div>
@@ -10,7 +11,7 @@
             <IconPlus class="text-gray-400"/>
         </div>
     </div>
-    <Autocomplete v-else @hide="toggleCombobox" :catId="catId" :order="order"/>
+    <Autocomplete v-else :catId="catId" :order="order" @hide="toggleCombobox"/>
 
 </template>
 
@@ -34,7 +35,7 @@ export default {
         }
     },
     methods: {
-        toggleCombobox(){
+        toggleCombobox() {
             this.showAddNew = false
         }
     }

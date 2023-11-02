@@ -28,14 +28,14 @@ class Deal extends Model {
         'created_at' => 'datetime:Y-m-d H:i:s',
     ];
 
-    public static function generateDealObject($user_id, $items) {
+    public static function generateDealObject($user_id, $items, $contact_id) {
         $user = Auth::user();
         //IF IT'S SAVED IN DATABASE PROCEED TO SAVE THAT IN BITRIX
         $pathOriginalImage = "public/profile/original";
         $pathDocuments = "public/profile/documents";
         $dealFields = [
             'TITLE' => 'test titleee',
-            'CONTACT_ID' => '2023',
+            'CONTACT_ID' => $contact_id,
         ];
         $userInfoFiles = UserInfo::where('user_id', $user_id)
             ->whereNull("value")

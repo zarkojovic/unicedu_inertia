@@ -44,7 +44,8 @@ const refreshFields = () => {
                     </button>
                     <a class="flex ml-2 md:mr-24" href="#">
                         <ApplicationLogo class="h-10 mr-3"/>
-                        <span class="self-center text-md font-semibold sm:text-md whitespace-nowrap dark:text-white">Student Platform</span>
+                        <span
+                            class="self-center md:text-md md:block hidden font-semibold whitespace-nowrap dark:text-white">Student Platform</span>
                     </a>
                 </div>
 

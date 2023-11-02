@@ -97,7 +97,7 @@ Route::middleware('auth')->group(function() {
             ->name("user.image.update");
 
         //ADMIN
-        Route::middleware('admin')->prefix('admin')->group(function() {
+        Route::middleware('admin')->prefix('admin')->group(function () {
             //FIELDS
             Route::get('/fields', [AdminController::class, "home"])
                 ->name("admin_home");

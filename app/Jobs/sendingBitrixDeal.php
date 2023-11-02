@@ -33,7 +33,7 @@ class sendingBitrixDeal implements ShouldQueue {
     public function handle(): void {
         Log::informationLog('Items: '.count($this->items));
         $dealFields = Deal::generateDealObject($this->user->user_id,
-            $this->items);
+            $this->items, $this->user->contact_id);
 
         // Make API call to create the deal in Bitrix24
         $result = CRest::call("crm.deal.add",
