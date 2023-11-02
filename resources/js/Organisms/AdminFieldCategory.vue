@@ -24,7 +24,7 @@
                 <template #item="{ element }" class="">
                     <AdminField
                         :field_id="element.field_id"
-                        :is_required="element.required"
+                        :is_required="element.is_required"
                         :title="element.title ?? element.field_name"
                     />
                 </template>
