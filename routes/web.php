@@ -97,7 +97,7 @@ Route::middleware('auth')->group(function() {
             ->name("user.image.update");
 
         //ADMIN
-        Route::middleware('admin')->prefix('admin')->group(function () {
+        Route::middleware('admin')->prefix('admin')->group(function() {
             //FIELDS
             Route::get('/fields', [AdminController::class, "home"])
                 ->name("admin_home");
@@ -144,6 +144,9 @@ Route::middleware('auth')->group(function() {
             Route::get('/packages',
                 [PackageController::class, 'showPage'])
                 ->name('showPackage');
+            Route::post('/set-package-pages',
+                [PackageController::class, 'setPackagePages'])
+                ->name('setPackagePages');
         });
     });
 

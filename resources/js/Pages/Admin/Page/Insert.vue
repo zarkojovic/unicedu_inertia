@@ -71,17 +71,13 @@ const submit = () => {
     if (check) {
         form.post(isEdit.value ? editRoute : createRoute, {
             onSuccess: () => {
-                // toast.add({
-                //     message: 'You inserted successfully!',
-                //     type: 'success',
-                // });
             },
         });
     }
 };
 
 onMounted(() => {
-    console.log();
+    console.log(props.categories);
 });
 </script>
 

@@ -41,7 +41,8 @@ class Page extends Model {
                     function($join) use ($user) {
                         $join->on('student_package_pages.page_id', '=',
                             'pages.page_id')
-                            ->where('student_package_pages.package_id', 1);
+                            ->where('student_package_pages.package_id',
+                                $user->package_id);
                     })
                 ->get()
                 ->toArray();

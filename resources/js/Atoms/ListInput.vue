@@ -1,5 +1,5 @@
 <script setup>
-import {computed, defineEmits, defineProps, ref} from 'vue';
+import {defineEmits, defineProps, onMounted, ref} from 'vue';
 
 const {
     label,
@@ -18,6 +18,7 @@ const selectedItems = ref([...modelValue]);
 const isChecked = (item) => selectedItems.value.includes(item);
 
 const toggleSelection = (item) => {
+
     if (type === 'radio') {
         selectedItems.value = item; // For radio buttons, only one item can be selected at a time
     } else {
@@ -31,14 +32,11 @@ const toggleSelection = (item) => {
     emits('update:modelValue', selectedItems.value);
 };
 
-// onMounted(() => {
-//     var id = String(modelValue);
-//     toggleSelection(elementKey.value[elementKey.value.indexOf(id)]);
-// });
-
-const elementKey = computed(() => {
-    return Object.keys(items);
+onMounted(() => {
+    // console.log(elementKey.value);
 });
+
+
 </script>
 
 
@@ -50,13 +48,13 @@ const elementKey = computed(() => {
             <li v-for="(item, index) in items" :key="index">
                 <input
                     :id="name + '-' + index"
-                    :checked="isChecked(elementKey[index - 1])"
+                    :checked="isChecked(index)"
                     :class="type === 'radio' ? 'rounded-full' : 'rounded'"
                     :name="type === 'radio' ? name : null"
                     :type="type === 'radio' ? 'radio' : 'checkbox'"
-                    :value="elementKey[index - 1]"
+                    :value="index"
                     class="dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-orange-500 shadow-sm focus:ring-0 focus:ring-offset-0 transition ease-in-out"
-                    @change="toggleSelection(elementKey[index - 1])"
+                    @change="toggleSelection(index)"
                 />
                 <label :for="name +'-' + index" class="ms-2">{{ item }}</label>
             </li>

@@ -30,7 +30,7 @@ const excludedPages = ['id'];
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Admin Panel</h2>
         </template>
         <div class="mt-20">
-            <div class="mx-auto bg-white rounded-xl shadow-md overflow-hidden w-5/6">
+            <div class="mx-auto bg-white rounded-xl shadow-md overflow-hidden ">
                 <div class="bg-white overflow-hidden dark:bg-gray-800  shadow-sm sm:rounded-lg">
                     <ModelDataDisplay :column-types="colTypes" :columns="props.columns" :data="props.data"
                                       :excluded-columns="excludedPages" :is-deletable="true"
