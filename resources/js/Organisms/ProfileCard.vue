@@ -1,8 +1,7 @@
 <script setup>
 import {useForm, usePage} from '@inertiajs/vue3';
-import {computed} from "vue";
+import {computed, ref} from "vue";
 import Modal from "@/Molecules/Modal.vue";
-import { ref } from 'vue'
 import Button from "@/Atoms/Button.vue";
 import PackageIndicator from "@/Atoms/PackageIndicator.vue";
 
@@ -60,7 +59,7 @@ const labelProgressClasses = computed(() => ({
 </script>
 
 <template>
-    <div class="py-6 mt-6">
+    <div class="py-6 mt-10">
         <div class="mx-auto bg-white rounded-3xl shadow-md overflow-hidden p-5 lg:px-8">
             <h2 class="text-center mb-5 text-lg md:text-left md:text-xl">Student Profile</h2>
             <div class="md:flex md:justify-left">
@@ -68,15 +67,17 @@ const labelProgressClasses = computed(() => ({
                     <img :src="img" alt="Student profile image" class="h-auto max-w-full rounded-full"/>
                 </div>
                 <div class="grid grid-col-1 md:ml-8 content-between">
-                    <div>
+                    <div class="">
                         <p class="text-lg capitalize tracking-wide font-semibold text-neutral-800 text-center md:text-left self-center">
                             {{ page.props.auth.user.first_name }} {{ page.props.auth.user.last_name }}</p>
                         <p class="text-md leading-tight font-medium text-gray-400 text-center md:text-left my-1">
                             {{ page.props.auth.user.email }}</p>
-                        <PackageIndicator :package-id="page.props.auth.user.package_id"/>
-
+                        <div class="w-full flex justify-center md:justify-start">
+                            <PackageIndicator :package-id="page.props.auth.user.package_id"/>
+                        </div>
                     </div>
-                    <form class="flex justify-between mt-5" enctype="multipart/form-data" method="POST" @submit.prevent>
+                    <form class="flex justify-center md:justify-start mt-5" enctype="multipart/form-data" method="POST"
+                          @submit.prevent>
                         <input id="profile-image-input" :disabled="form.progress !== null" class="hidden"
                                name="profile-image" type="file"
                                @change="submitForm($event)"/>

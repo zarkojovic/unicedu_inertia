@@ -3,7 +3,6 @@
 import GenericModelTable from '@/Molecules/GenericModelTable.vue';
 import {Link} from '@inertiajs/vue3';
 import Button from '@/Atoms/Button.vue';
-import { TabGroup, TabList, Tab, TabPanels, TabPanel } from '@headlessui/vue'
 
 
 const props = defineProps({
@@ -38,7 +37,10 @@ const props = defineProps({
     excludedColumns: {
         type: Array,
     },
+
 });
+
+
 </script>
 
 <template>
@@ -48,16 +50,18 @@ const props = defineProps({
             <Button>Add New</Button>
         </Link>
     </div>
-    <div class="mx-auto bg-white rounded-3xl shadow-lg overflow-hidden rounded-2xl">
-        <div class="text-gray-900 dark:text-gray-100 ">
+    <div class="mx-auto bg-white shadow-lg overflow-hidden rounded-3xl">
+        <div class="text-gray-900 dark:text-gray-100">
             <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-                <GenericModelTable :column-types="props.columnTypes" :data="props.data"
-                                   :delete-route="props.deleteRoute"
-                                   :edit-route="props.editRoute" :excluded-columns="props.excludedColumns"
-                                   :is-deletable="props.isDeletable" :is-editable="props.isEditable"/>
+
+                <GenericModelTable
+                    :column-types="props.columnTypes" :data="props.data"
+                    :delete-route="props.deleteRoute"
+                    :edit-route="props.editRoute" :excluded-columns="props.excludedColumns"
+                    :is-deletable="props.isDeletable" :is-editable="props.isEditable"/>
             </div>
         </div>
-        </div>
+    </div>
 </template>
 
 <style scoped>

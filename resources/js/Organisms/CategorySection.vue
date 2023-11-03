@@ -117,8 +117,8 @@ const submitForm = () => {
                     </Button>
                 </div>
             </div>
-            <div class="grid grid-cols-3 sm:grid-cols-3 gap-4 mt-3">
-                <div class="grid col-span-2  grid-cols-2 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-3">
+                <div class="grid col-span-3  grid-cols-1 lg:col-span-2 sm:grid-cols-2 gap-4">
                     <DisplayInfo
                         v-for="(field,key) in props.categoryInfo.fields"
                         v-if="display"

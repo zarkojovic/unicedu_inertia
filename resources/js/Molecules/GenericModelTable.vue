@@ -72,6 +72,7 @@ const isIncluded = (col) => {
         return !props.excludedColumns.includes(col);
     }
     return true;
+
 };
 
 onMounted(() => {
@@ -82,7 +83,7 @@ onMounted(() => {
 </script>
 
 <template>
-    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 shadow-md ">
+    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 shadow-md">
         <thead
             class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
         <tr>

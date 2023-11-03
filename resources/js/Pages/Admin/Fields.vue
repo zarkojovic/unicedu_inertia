@@ -3,7 +3,7 @@
     <AuthenticatedLayout>
         <div class="grid grid-cols-1 mt-24">
             <div v-for="(category, key) in categories" :key="key" class="col">
-                <div class="p-6 px-8 mb-20 border rounded-xl bg-white">
+                <div class="p-6 px-8 mb-20 border rounded-3xl bg-white">
                     <form>
                         <div class="flex justify-between">
                             <h3 class="mb-10 text-lg font-bold">{{ category.category_name }}</h3>

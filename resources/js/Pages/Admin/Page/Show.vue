@@ -21,6 +21,8 @@ const colTypes = [
 
 const excludedPages = ['id'];
 
+const roleNames = ['student', 'admin', 'employee', 'agent'];
+
 </script>
 
 <template>
@@ -30,13 +32,14 @@ const excludedPages = ['id'];
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Admin Panel</h2>
         </template>
         <div class="py-6 mt-6">
-                    <ModelDataDisplay :column-types="colTypes" :columns="props.columns" :data="props.data"
-                                      :excluded-columns="excludedPages" :is-deletable="true"
-                                      :is-editable="true"
-                                      delete-route="/admin/pages/deletePage"
-                                      edit-route="editPage"
-                                      route-for-new="createNewPage" section-title="Custom Pages"/>
-            </div>
+            <ModelDataDisplay :column-types="colTypes" :columns="props.columns" :data="props.data"
+                              :excluded-columns="excludedPages"
+                              :is-deletable="true" :is-editable="true"
+                              :role-names="roleNames"
+                              delete-route="/admin/pages/deletePage"
+                              edit-route="editPage"
+                              route-for-new="createNewPage" section-title="Custom Pages"/>
+        </div>
     </AuthenticatedLayout>
 </template>
 
