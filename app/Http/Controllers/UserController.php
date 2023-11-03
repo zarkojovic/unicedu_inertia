@@ -65,6 +65,7 @@ class UserController extends RootController {
     public function updateUserInfo(Request $request) {
         //GET ALL OF THE DATA FROM REQUEST
         $items = $request['formItems'];
+
         //        GET AUTH-ED USER FOR UPDATING HIS DATA
         $user = Auth::user();
         // GETTING FIELD NAME VALUES
@@ -83,14 +84,19 @@ class UserController extends RootController {
             ->whereIn("field_id", $field_ids)
             ->orderBy('field_id')
             ->get();
-        //        dd($user_info_array, $field_id_array);
         try {
             DB::beginTransaction();
             //LOOPING THROUGH EACH ELEMENT IN REQUEST
             foreach ($items as $key => $value) {
-                //prebaci ovo gore i cuvaj u memoriji
-                //GET THE CURRENT USER INFO AND THE FIELD ID
-                $field_id = $field_id_array[$key];
+                // Use array_filter to filter the array
+                $field_id = array_filter($field_id_array->toArray(),
+                    function($object) use ($value) {
+                        return $object->field_name === $value['field_name'];
+                    });
+                // Convert the filtered result back to an indexed array
+                $field_id = array_values($field_id);
+
+                $field_id = $field_id[0];
 
                 $user_info = $user_info_array[$key] ?? NULL;
                 //CHECKING IF THE REQUEST IS FILE

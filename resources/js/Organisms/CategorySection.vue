@@ -56,31 +56,6 @@ const submitForm = () => {
         preserveScroll: true,
     });
 
-    // console.log(arrayOfUpdateFields)
-
-    // const formFields = document.querySelectorAll('.userFormField');
-    //
-    // formFields.forEach(el => {
-    //     var obj = {
-    //         type: '',
-    //         value: '',
-    //         display_value: '',
-    //         file_name: '',
-    //         file_path: ''
-    //     }
-    //     if (el.type.includes('select')) {
-    //         obj.type = 'select';
-    //         obj.value = el.options[el.selectedIndex].value;
-    //         obj.display_value = el.options[el.selectedIndex].text;
-    //     } else {
-    //         obj.type = el.type;
-    //         obj.value = el.value;
-    //     }
-    //
-    //     console.log(obj)
-    // })
-
-    // display.value = !display.value;
 };
 </script>
 
