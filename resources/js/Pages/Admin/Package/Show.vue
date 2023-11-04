@@ -1,13 +1,18 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import {Head} from '@inertiajs/vue3';
-import PackageTabs from '@/Organisms/PackageTabs.vue';
+import {ref} from 'vue';
+import PackagePagesSelection from '@/Organisms/PackagePagesSelection.vue';
 
 const props = defineProps({
     packagePages: {
         type: Object,
     },
 });
+
+const val = ref([]);
+
+const packages = ref(props.packagePages);
 </script>
 
 
@@ -19,10 +24,15 @@ const props = defineProps({
         </template>
 
         <div class="mt-20">
-            <div class="mx-auto bg-white rounded-xl shadow-md overflow-hidden w-5/6">
-                <div class="bg-white overflow-hidden dark:bg-gray-800 shadow-sm sm:rounded-lg">
-                    <PackageTabs :data="packagePages"/>
-                    <!--                    <h1>Pozzz</h1>-->
+            <div class="mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="bg-white overflow-hidden dark:bg-gray-800 shadow-sm sm:rounded-lg p-10">
+                    <h1 class="text-2xl font-bold mb-4">Packages</h1>
+                    <!--                    <PackageTabs :data="packagePages"/>-->
+                    <div v-for="item in packages">
+                        <PackagePagesSelection :data="item"/>
+                    </div>
+
+
                 </div>
             </div>
         </div>

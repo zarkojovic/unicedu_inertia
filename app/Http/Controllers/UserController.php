@@ -6,6 +6,7 @@ use App\Models\Deal;
 use App\Models\Field;
 use App\Models\FieldCategory;
 use App\Models\Log;
+use App\Models\Package;
 use App\Models\User;
 use App\Models\UserInfo;
 use Exception;
@@ -65,6 +66,7 @@ class UserController extends RootController {
     public function updateUserInfo(Request $request) {
         //GET ALL OF THE DATA FROM REQUEST
         $items = $request['formItems'];
+
         //        GET AUTH-ED USER FOR UPDATING HIS DATA
         $user = Auth::user();
         // GETTING FIELD NAME VALUES
@@ -83,14 +85,19 @@ class UserController extends RootController {
             ->whereIn("field_id", $field_ids)
             ->orderBy('field_id')
             ->get();
-        //        dd($user_info_array, $field_id_array);
         try {
             DB::beginTransaction();
             //LOOPING THROUGH EACH ELEMENT IN REQUEST
             foreach ($items as $key => $value) {
-                //prebaci ovo gore i cuvaj u memoriji
-                //GET THE CURRENT USER INFO AND THE FIELD ID
-                $field_id = $field_id_array[$key];
+                // Use array_filter to filter the array
+                $field_id = array_filter($field_id_array->toArray(),
+                    function($object) use ($value) {
+                        return $object->field_name === $value['field_name'];
+                    });
+                // Convert the filtered result back to an indexed array
+                $field_id = array_values($field_id);
+
+                $field_id = $field_id[0];
 
                 $user_info = $user_info_array[$key] ?? NULL;
                 //CHECKING IF THE REQUEST IS FILE
@@ -280,6 +287,29 @@ class UserController extends RootController {
             ->get();
 
         echo json_encode($info);
+    }
+
+    public function changeUserPackage(Request $request) {
+        //        dd($request->all());
+        $user = User::find($request->user_id);
+        $user->package_id = $request->package_id;
+
+        if ($user->save()) {
+            return redirect()->back()->with([
+                'toast' => [
+                    'message' => 'User package successfully updated!',
+                    'type' => 'success',
+                ],
+            ]);
+        }
+        else {
+            return redirect()->back()->with([
+                'toast' => [
+                    'message' => 'User package successfully updated!',
+                    'type' => 'danger',
+                ],
+            ]);
+        }
     }
 
     public function updateImage(Request $request) {
@@ -513,7 +543,8 @@ class UserController extends RootController {
             ->select('users.user_id as id', 'users.profile_image',
                 'users.first_name',
                 'users.last_name',
-                'users.email', 'users.phone', 'roles.role_name as role name')
+                'users.email', 'users.phone', 'roles.role_name as role name',
+                'users.package_id as package')
             ->paginate(10);
 
         return Inertia::render("Admin/User/Show",
@@ -522,18 +553,26 @@ class UserController extends RootController {
             ]);
     }
 
-    public function editUsers(string $id) {
+    public function editUser(string $id) {
         $users = User::select('first_name', 'last_name', 'email_verified_at',
-            'profile_image', 'contact_id',
+            'profile_image', 'contact_id', 'package_id',
             'created_at', 'phone', 'updated_at', "user_id as id")
             ->findOrFail($id);
-        $history = Log::where('user_id', $id)->get();
-        return view('admin.users.edit',
+
+        $history = DB::table('logs')
+            ->join('actions', 'actions.action_id', 'logs.action_id')
+            ->select('logs.description', 'logs.created_at',
+                'actions.action_name as action')
+            ->where('logs.user_id', (int) $id)
+            ->paginate(10);
+
+        $packages = Package::select('package_name as label',
+            DB::raw('CAST(package_id AS CHAR) AS value'))->get()->toArray();
+        return Inertia::render("Admin/User/Edit",
             [
-                'pageTitle' => 'User Info',
-                'history' => $history,
-                'data' => $users,
-                'name' => 'Users',
+                'userLogs' => $history,
+                'userInfo' => $users,
+                'packages' => $packages,
             ]);
     }
 

@@ -7,6 +7,7 @@ import Modal from '@/Molecules/Modal.vue';
 import {Link, useForm, usePage} from '@inertiajs/vue3';
 
 import {Icon} from '@iconify/vue';
+import PackageIndicator from '@/Atoms/PackageIndicator.vue';
 
 const props = defineProps({
     data: {
@@ -116,6 +117,7 @@ onMounted(() => {
                              style="width: 80px"/>
                         <Icon v-if="typeOfColumn(col) === 'icon'" :icon="'tabler:'+item[col]" class="text-2xl me-2"
                               inline/>
+                        <PackageIndicator v-if="typeOfColumn(col) === 'package'" :package-id="item[col]"/>
                     </div>
                     <div v-else>
                         {{ item[col] }}

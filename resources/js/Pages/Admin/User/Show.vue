@@ -17,6 +17,10 @@ const columnTypes = [
         name: 'profile_image',
         type: 'image',
     },
+    {
+        name: 'package',
+        type: 'package',
+    },
 ];
 const hideColumns = ['id'];
 
@@ -31,7 +35,8 @@ const hideColumns = ['id'];
 
         <div class="py-6 mt-6">
             <ModelDataDisplay :column-types="columnTypes" :columns="props.columns" :data="props.data"
-                              :excluded-columns="hideColumns" :is-deletable="false" :is-editable="false"
+                              :excluded-columns="hideColumns" :is-deletable="false" :is-editable="true"
+                              edit-route="editUser"
                               section-title="Users"/>
         </div>
     </AuthenticatedLayout>

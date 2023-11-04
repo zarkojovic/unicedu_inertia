@@ -33,11 +33,6 @@ class PageController extends Controller {
 
     public function showPageListView() {
         try {
-            // Fetch all pages from the 'pages' table and select 'page_id' as 'id'
-            //            $pages = Page::select('page_id as id', 'title', 'route', 'icon',
-            //                'role_id')
-            //                ->paginate(10);
-
             $pages = DB::table('pages')
                 ->join('roles', 'roles.role_id', 'pages.role_id')
                 ->select('pages.page_id as id', 'pages.title as title',

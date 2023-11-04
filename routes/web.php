@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DealController;
 use App\Http\Controllers\FieldCategoryController;
 use App\Http\Controllers\FieldController;
+use App\Http\Controllers\IntakeController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
@@ -21,51 +22,51 @@ use Inertia\Inertia;
 |
 */
 
-Route::fallback(function () {
+Route::fallback(function() {
     return Inertia::render('404');
 });
 
-Route::get('/welcome', function () {
+Route::get('/welcome', function() {
     echo __('messages.welcome');
 });
 
-Route::post('/change-lang', function (Request $request) {
+Route::post('/change-lang', function(Request $request) {
     $lang = $request->lang;
     App()->setLocale($lang);
     Session::put('locale', $lang);
 })->name('change-lang');
 
 //FOR AUTHENTICATED USERS
-Route::middleware('auth')->group(function () {
+Route::middleware('auth')->group(function() {
     //FOR VERIFIED USERS
-    Route::middleware('verified')->group(function () {
+    Route::middleware('verified')->group(function() {
         //DYNAMIC ROUTES
         $routeNames = Page::all();
         foreach ($routeNames as $route) {
             if (!empty($route->role->role_name)) {
                 switch ($route->role->role_name) {
                     case 'admin':
-                        Route::middleware(["admin"])->group(function () use (
+                        Route::middleware(["admin"])->group(function() use (
                             $route
                         ) {
                             //ADMIN ROUTES
                             Route::get($route->route,
-                                function () use ($route) {
+                                function() use ($route) {
                                     return Inertia::render('Dashboard');
                                 });
                         });
                         break;
                     case 'student':
-                        Route::middleware('package')->group(function () use (
+                        Route::middleware('package')->group(function() use (
                             $route
                         ) {
-                            Route::get($route->route, function () use ($route) {
+                            Route::get($route->route, function() use ($route) {
                                 return Inertia::render('Dashboard');
                             });
                         });
                         break;
                     default :
-                        Route::get($route->route, function () use ($route) {
+                        Route::get($route->route, function() use ($route) {
                             return Inertia::render('Dashboard');
                         });
                         break;
@@ -73,7 +74,7 @@ Route::middleware('auth')->group(function () {
             }
         }
 
-        Route::middleware('package')->group(function () {
+        Route::middleware('package')->group(function() {
             Route::get('/', [UserController::class, 'show'])->name("home");
             Route::get('/profile', [UserController::class, 'show'])
                 ->name('profile');
@@ -97,7 +98,7 @@ Route::middleware('auth')->group(function () {
             ->name("user.image.update");
 
         //ADMIN
-        Route::middleware('admin')->prefix('admin')->group(function () {
+        Route::middleware('admin')->prefix('admin')->group(function() {
             //FIELDS
             Route::get('/fields', [AdminController::class, "home"])
                 ->name("admin_home");
@@ -105,8 +106,7 @@ Route::middleware('auth')->group(function () {
                 [AdminController::class, "fetchFields"]);
             Route::post("/fields-add",
                 [AdminController::class, "setFieldCategory"]);
-            Route::post("/fields-modify", [FieldController::class, "setFieldCategory"]);
-            Route::post('/fields_fields',
+            Route::post('/update-fields',
                 [FieldController::class, 'updateFields'])
                 ->name('updateFields');
 
@@ -137,14 +137,34 @@ Route::middleware('auth')->group(function () {
             Route::get('/applications',
                 [DealController::class, 'showApplication'])
                 ->name('showApplication');
-            //APPLICATION ROUTES
+
+            //USER ROUTES
             Route::get('/users',
                 [UserController::class, 'showUser'])
                 ->name('showUser');
+            Route::get('/users/edit/{id}',
+                [UserController::class, 'editUser'])
+                ->name('editUser');
+            Route::post('/users/change-user-package', [
+                UserController::class,
+                'changeUserPackage',
+            ])->name('changeUserPackage');
+
             //PACKAGE ROUTES
             Route::get('/packages',
                 [PackageController::class, 'showPage'])
                 ->name('showPackage');
+            Route::post('/set-package-pages',
+                [PackageController::class, 'setPackagePages'])
+                ->name('setPackagePages');
+
+            //INTAKES ROUTES
+            Route::get('/intakes',
+                [IntakeController::class, 'showIntake'])
+                ->name('showIntake');
+            Route::post('/intakes/change-active-intake',
+                [IntakeController::class, 'changeActiveIntake'])
+                ->name('changeActiveIntake');
         });
     });
 
@@ -157,7 +177,7 @@ Route::middleware('auth')->group(function () {
         ->name('profile.destroy');
 });
 
-Route::get('/test', function () {
+Route::get('/test', function() {
     //    $fieldItems = FieldItem::with('field')->get();
 
     //    dd($pages);

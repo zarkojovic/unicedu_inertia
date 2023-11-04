@@ -1,29 +1,27 @@
 <script setup>
-import {computed, defineProps, inject, onMounted, ref} from 'vue';
+import {defineProps, inject, ref} from 'vue';
 
 const props = defineProps({
     modelValue: {
-        type: Object
+        type: Object,
     },
     options: {
-        type: Array
+        type: Array,
     },
     label: {
-        type: String
+        type: String,
     },
     is_required: {
-        type: Boolean
+        type: Boolean,
     },
     inputName: {
-        type: String
+        type: String,
     },
     inputId: {
-        type: String
+        type: String,
     },
-    selectedItem: {
-        type: String
-    }
-})
+    selectedItem: {},
+});
 
 const emits = defineEmits(['update:modelValue']);
 
@@ -42,14 +40,14 @@ const val = ref(props.selectedItem);
 
 <template>
 
-    <label class="text-slate-600 block text-sm font-medium dark:text-gray-300" v-if="label">
+    <label v-if="label" class="text-slate-600 block text-sm font-medium dark:text-gray-300">
         {{ props.label }}
-        <span class="text-sm text-red-600" v-if="props.is_required">*</span>
+        <span v-if="props.is_required" class="text-sm text-red-600">*</span>
     </label>
     <select
-        @input="handleUpdate"
         v-model="val"
         class="border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-orange-300 dark:focus:border-orange-400 focus:ring-orange-300 dark:focus:orange-400 rounded-lg shadow-sm transition ease-in-out delay-100 mt-1 block w-full userFormField"
+        @input="handleUpdate"
     >
         <option v-for="(option,index) in props.options" :key="index" :value="option.value">{{ option.label }}
         </option>

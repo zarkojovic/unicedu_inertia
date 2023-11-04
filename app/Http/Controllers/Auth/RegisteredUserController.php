@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\CreateUserContact;
+use App\Jobs\SendEmailConfirmation;
 use App\Models\User;
 use App\Providers\RouteServiceProvider;
 use App\Rules\Recaptcha;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -40,9 +41,8 @@ class RegisteredUserController extends Controller {
             'package_id' => '1',
         ]);
 
-        event(new Registered($user));
-        //        Registered::dispatch($user);
-
+        SendEmailConfirmation::dispatch($user);
+        CreateUserContact::dispatch($user);
         Auth::login($user);
 
         return redirect(RouteServiceProvider::HOME);

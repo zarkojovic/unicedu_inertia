@@ -25,7 +25,6 @@ const props = defineProps({
             <ModelDataDisplay :columns="props.columns" :data="props.data"
                               section-title="Student Applications"/>
         </div>
-
     </AuthenticatedLayout>
 </template>
 
