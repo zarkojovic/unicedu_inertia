@@ -7,6 +7,7 @@ import Modal from '@/Molecules/Modal.vue';
 import {Link, useForm, usePage} from '@inertiajs/vue3';
 
 import {Icon} from '@iconify/vue';
+import PackageIndicator from '@/Atoms/PackageIndicator.vue';
 
 const props = defineProps({
     data: {
@@ -72,6 +73,7 @@ const isIncluded = (col) => {
         return !props.excludedColumns.includes(col);
     }
     return true;
+
 };
 
 onMounted(() => {
@@ -82,9 +84,9 @@ onMounted(() => {
 </script>
 
 <template>
-    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+    <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400 shadow-md">
         <thead
-            class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+            class="text-xs text-gray-700 uppercase bg-gray-100 dark:bg-gray-700 dark:text-gray-400">
         <tr>
             <template v-for="(column,index) in columns" v-if="columns" :key="index" class="px-6 py-3">
                 <th v-if="isIncluded(column)" class="px-6 py-3">
@@ -105,7 +107,6 @@ onMounted(() => {
         <tr v-for="(item,index) in props.data.data"
             v-if="props.data.data.length > 0"
             :key="index"
-            :class="index % 2 ? 'bg-gray-50' : 'bg-white'"
             class=" border-b dark:bg-gray-900 dark:border-gray-700"
         >
             <template v-for="(col,idx) in columns" :key="idx">
@@ -116,6 +117,7 @@ onMounted(() => {
                              style="width: 80px"/>
                         <Icon v-if="typeOfColumn(col) === 'icon'" :icon="'tabler:'+item[col]" class="text-2xl me-2"
                               inline/>
+                        <PackageIndicator v-if="typeOfColumn(col) === 'package'" :package-id="item[col]"/>
                     </div>
                     <div v-else>
                         {{ item[col] }}

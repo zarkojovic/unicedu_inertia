@@ -7,8 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class Log extends Model
-{
+class Log extends Model {
+
     use HasFactory;
 
     protected $primaryKey = 'log_id';
@@ -16,43 +16,34 @@ class Log extends Model
     protected $fillable = [
         'user_id',
         'action_id',
-        'description'
+        'description',
     ];
 
-    protected function user(): BelongsTo
-    {
-        return $this->BelongsTo(User::class);
-    }
+    protected $casts = [
+        'created_at' => 'datetime:Y-m-d',
+        'updated_at' => 'datetime:Y-m-d',
 
-    protected function action(): HasOne
-    {
-        return $this->HasOne(Action::class, 'action_id');
-    }
+    ];
 
-
-
-    public static function errorLog($message, $user_id = null)
-    {
+    public static function errorLog($message, $user_id = NULL) {
         $newLog = new Log();
 
         $newLog->description = $message;
         $newLog->ip_address = request()->ip();
-        if ($user_id != null) {
+        if ($user_id != NULL) {
             $newLog->user_id = $user_id;
         }
         $newLog->action_id = 3;
 
         $newLog->save();
-
     }
 
-    public static function informationLog($message, $user_id = null)
-    {
+    public static function informationLog($message, $user_id = NULL) {
         $newLog = new Log();
 
         $newLog->description = $message;
         $newLog->ip_address = request()->ip();
-        if ($user_id != null) {
+        if ($user_id != NULL) {
             $newLog->user_id = $user_id;
         }
         $newLog->action_id = 2;
@@ -60,13 +51,12 @@ class Log extends Model
         $newLog->save();
     }
 
-    public static function authLog($message, $user_id = null)
-    {
+    public static function authLog($message, $user_id = NULL) {
         $newLog = new Log();
 
         $newLog->description = $message;
         $newLog->ip_address = request()->ip();
-        if ($user_id != null) {
+        if ($user_id != NULL) {
             $newLog->user_id = $user_id;
         }
         $newLog->action_id = 3;
@@ -74,18 +64,25 @@ class Log extends Model
         $newLog->save();
     }
 
-    public static function apiLog($message, $user_id = null)
-    {
+    public static function apiLog($message, $user_id = NULL) {
         $newLog = new Log();
 
         $newLog->description = $message;
         $newLog->ip_address = request()->ip();
-        if ($user_id != null) {
+        if ($user_id != NULL) {
             $newLog->user_id = $user_id;
         }
         $newLog->action_id = 4;
 
         $newLog->save();
+    }
+
+    protected function user(): BelongsTo {
+        return $this->BelongsTo(User::class);
+    }
+
+    protected function action(): HasOne {
+        return $this->HasOne(Action::class, 'action_id');
     }
 
 }

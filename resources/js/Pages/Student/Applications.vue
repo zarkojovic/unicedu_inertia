@@ -92,7 +92,7 @@ const deleteDeal = () => {
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Applications</h2>
         </template>
 
-        <div class="py-6 mt-6">
+        <div class="py-6 mt-10">
             <div v-for="(deal,index) in applications" v-if="applications.length > 0"
                  id="applicationsContainerHeader" :key="index"
                  :class="packageClass(deal.package_id)"
@@ -102,7 +102,7 @@ const deleteDeal = () => {
                     class="flex border-b-2">
                     <div class="mr-10">
                         <span class="text-gray-400 font-medium text-md mt-3">Intake</span>
-                        <h4 class="text-center mb-5 text-sm md:text-left md:text-xl">{{ deal.intake_name }}</h4>
+                        <h4 class="mb-5 text-md text-left md:text-xl">{{ deal.intake_name }}</h4>
                     </div>
                     <div>
                         <span class="text-gray-400 font-medium text-md mt-3">Package</span>
@@ -112,7 +112,7 @@ const deleteDeal = () => {
                 <div class="mt-2">
                     <div v-for="(item,key) in deal.deals" v-if="deal.deals" id="applicationsContainerHeader"
                          :key="key"
-                         class="grid grid-cols-4 grid-rows-2 gap-4 pb-5 border-b-2">
+                         class="grid sm:grid-cols-4 sm:grid-rows-2 gap-4 pb-5 border-b-2">
                         <div class="pt-4">
                             <span class="text-gray-400 font-medium text-md mt-3">University</span>
                             <h5 class="text-md">{{ item.university }}</h5>
@@ -209,6 +209,7 @@ const deleteDeal = () => {
 .silver-top-border {
     border-top: 5px solid #a6b0cd;
 }
+
 .gold-top-border {
     border-top: 5px solid rgb(249, 222, 85);
 }

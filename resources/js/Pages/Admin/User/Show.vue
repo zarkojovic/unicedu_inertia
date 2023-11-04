@@ -17,6 +17,10 @@ const columnTypes = [
         name: 'profile_image',
         type: 'image',
     },
+    {
+        name: 'package',
+        type: 'package',
+    },
 ];
 const hideColumns = ['id'];
 
@@ -29,14 +33,11 @@ const hideColumns = ['id'];
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Admin Panel</h2>
         </template>
 
-        <div class="mt-20">
-            <div class="mx-auto bg-white rounded-xl shadow-md overflow-hidden">
-                <div class="bg-white overflow-hidden dark:bg-gray-800  shadow-sm sm:rounded-lg">
-                    <ModelDataDisplay :column-types="columnTypes" :columns="props.columns" :data="props.data"
-                                      :excluded-columns="hideColumns" :is-deletable="false" :is-editable="false"
-                                      section-title="Users"/>
-                </div>
-            </div>
+        <div class="py-6 mt-6">
+            <ModelDataDisplay :column-types="columnTypes" :columns="props.columns" :data="props.data"
+                              :excluded-columns="hideColumns" :is-deletable="false" :is-editable="true"
+                              edit-route="editUser"
+                              section-title="Users"/>
         </div>
     </AuthenticatedLayout>
 </template>

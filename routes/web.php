@@ -136,10 +136,13 @@ Route::middleware('auth')->group(function() {
             Route::get('/applications',
                 [DealController::class, 'showApplication'])
                 ->name('showApplication');
-            //APPLICATION ROUTES
+            //USER ROUTES
             Route::get('/users',
                 [UserController::class, 'showUser'])
                 ->name('showUser');
+            Route::get('/users/edit/{id}',
+                [UserController::class, 'editUser'])
+                ->name('editUser');
             //PACKAGE ROUTES
             Route::get('/packages',
                 [PackageController::class, 'showPage'])
