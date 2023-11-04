@@ -50,8 +50,7 @@ class FieldController extends Controller {
             $info = count(Deal::where('user_id', $user->user_id)
                 ->pluck('deal_id')
                 ->toArray());
-        }
-        else {
+        } else {
             $info = Db::table("user_infos")
                 ->selectRaw("`field_id`, `value`, `display_value`, `file_name`,`file_path`")
                 ->where("user_id", $user->user_id)
@@ -71,81 +70,128 @@ class FieldController extends Controller {
         return response()->json($data);
     }
 
-    public function setFieldCategory(Request $request) {
+    public function setFieldCategory(Request $request)
+    {
         try {
-            //        dd($request);
-            //        $fields = $request->fields;
-            //        $category_id = $request->category_id;
-            //        $requiredFields = $request->requiredFields ?? [];
+//        dd($request);
+//        $fields = $request->fields;
+//        $category_id = $request->category_id;
+//        $requiredFields = $request->requiredFields ?? [];
             $fieldsOrders = $request->fieldsOrders;
-            //        dd($fieldsOrders);
+            $fieldsSettings = $request->fieldsSettings;
+//            dd($fieldsOrders, $fieldsSettings);
+//        dd($fieldsOrders);
             //        $requiredFieldsFromDatabase = Field::where('is_required', 1)->get();
             //        $requiredFieldsFromDatabaseIDs = $requiredFieldsFromDatabase->pluck('field_id')->toArray();
 
-            //        $existingFields = Field::where('field_category_id', $category_id)
-            //            ->get();
-            //        $existingFieldIds = $existingFields->pluck('field_id')->toArray();
-            //
-            //        // Remove fields that are no longer selected
-            //        $fieldsToRemove = array_diff($existingFieldIds, $fields ?? []);
-            //        Field::whereIn('field_id', $fieldsToRemove)->update([
-            //            'field_category_id' => null,
-            //            'order' => null,
-            //        ]);
-            //
-            //        // Update required fields
-            //        Field::whereIn('field_id', $requiredFields)->update([
-            //            'is_required' => true,
-            //        ]);
-            //        Field::where('field_category_id', $category_id)
-            //            ->whereNotIn('field_id', $requiredFields)
-            //            ->update([
-            //                'is_required' => false,
-            //            ]);
-            //        //        Field::whereIn('field_id', array_diff($requiredFieldsFromDatabaseIDs, $requiredFields))->update([
-            //        //            'is_required' => false,
-            //        //        ]);
-            //
-            //        // Associate fields with the new category
-            //        Field::whereIn('field_id', $fields ?? [])->update([
-            //            'field_category_id' => $category_id,
-            //        ]);
+//        $existingFields = Field::where('field_category_id', $category_id)
+//            ->get();
+//        $existingFieldIds = $existingFields->pluck('field_id')->toArray();
+//
+//        // Remove fields that are no longer selected
+//        $fieldsToRemove = array_diff($existingFieldIds, $fields ?? []);
+//        Field::whereIn('field_id', $fieldsToRemove)->update([
+//            'field_category_id' => null,
+//            'order' => null,
+//        ]);
+//
+//        // Update required fields
+//        Field::whereIn('field_id', $requiredFields)->update([
+//            'is_required' => true,
+//        ]);
+//        Field::where('field_category_id', $category_id)
+//            ->whereNotIn('field_id', $requiredFields)
+//            ->update([
+//                'is_required' => false,
+//            ]);
+//        //        Field::whereIn('field_id', array_diff($requiredFieldsFromDatabaseIDs, $requiredFields))->update([
+//        //            'is_required' => false,
+//        //        ]);
+//
+//        // Associate fields with the new category
+//        Field::whereIn('field_id', $fields ?? [])->update([
+//            'field_category_id' => $category_id,
+//        ]);
+
             //UPDATE PRIORITIES IN DATABASE BASED ON ORDER
-            if ($fieldsOrders) {
-                //                foreach ($fieldsOrder as $order) {
-                //                    $fieldId = $order['fieldId'];
-                //                    $order = $order['order'];
-                //
-                //                    // Update the field order
-                //                    Field::where('field_id', $fieldId)
-                //                        ->where('field_category_id', $category_id)
-                //                        ->update(['order' => $order]);
-                //                }
-                //                dd($fieldsOrders);
-                DB::table("fields")->upsert(
+            if (count($fieldsOrders) > 0) {
+                //HAS CHANGED ORDERS
+//                $fieldsToUpdate = [];
+//                    $fieldsToUpdate = $fieldsOrders;
+//            }
+
+//                if (count($fieldsSettings) > 0) {
+//                    //HAS CHANGED SETTINGS
+//                    if (count($fieldsOrders) > 0) {
+//                        //HAS CHANGED ORDERS
+//                        //OVDE TREBA NEKAKO SPOJITI FIELDSSETTINGS SA FIELDSORDERS
+//
+//                        // Merge $fieldsOrders and $fieldsSettings based on field_id
+//                        foreach ($fieldsOrders as $key => $fieldOrder) {
+//                            $fieldId = $fieldOrder['field_id'];
+//                            // Find the corresponding field in $fieldsSettings
+//                            $matchingFieldSettings = collect($fieldsSettings)->first(function ($fieldSettings) use (
+//                                $fieldId
+//                            ) {
+//                                return $fieldSettings['field_id'] === $fieldId;
+//                            });
+//
+//                            if ($matchingFieldSettings) {
+//                                // Merge is_required from $fieldsSettings into $fieldsOrders
+//                                $fieldsOrders[$key]['is_required'] = $matchingFieldSettings['is_required'];
+//                            }
+//                        }
+//
+//                        $fieldsToUpdate = $fieldsOrders;
+//                    } else {
+//                        // Create a mapping of field_id to field_name from the database
+//                        $fieldNamesFromDatabase = Field::whereIn('field_id', array_column($fieldsSettings, 'field_id'))
+//                            ->pluck('field_name', 'field_id')
+//                            ->all();
+//
+//                        // Update $fieldsSettings with field_name from the database
+//                        foreach ($fieldsSettings as &$fieldSetting) {
+//                            $fieldId = $fieldSetting['field_id'];
+//                            if (isset($fieldNamesFromDatabase[$fieldId])) {
+//                                $fieldSetting['field_name'] = $fieldNamesFromDatabase[$fieldId];
+//                            }
+//                        }
+//                        $fieldsToUpdate = $fieldsSettings;
+//                    }
+//                }
+
+//                dd($fieldsToUpdate);
+//                dd($fieldsOrders);
+                Field::upsert(
                     $fieldsOrders, //insert or update this
                     ["field_id", "field_name"], //determine by this
-                    ["order"]); //if exists update this
+                    ["order", "is_required"]); //if exists update this
+                Log::apiLog('Fields updated in admin panel!', Auth::user()->user_id);
+                return redirect()
+                    ->route("admin_home")
+                    ->with([
+                        'toast' => [
+                            'message' => "Fields updated successfully!",
+                            'type' => 'success',
+                        ],
+                    ]);
             }
 
-            Log::apiLog('Fields updated in admin panel!',
-                Auth::user()->user_id);
-            return redirect()
-                ->route("admin_home")
-                ->with([
-                    'toast' => [
-                        'message' => "Fields updated successfully!",
-                        'type' => 'success',
-                    ],
-                ]);
-        }
-        catch (Exception $e) {
+//            return redirect()
+//                ->route("admin_home")
+//                ->with([
+//                    'toast' => [
+//                        'message' => "No changes made.",
+//                        'type' => 'warning',
+//                    ],
+//                ]);
+        } catch (Exception $e) {
             Log::errorLog($e->getMessage(), Auth::user()->user_id);
             return redirect()
                 ->route("admin_home")
                 ->with([
                     'toast' => [
-                        'message' => "An error occured on the server.",
+                        'message' => "An error occurred on the server.",
                         'type' => 'danger',
                     ],
                 ]);
@@ -153,7 +199,8 @@ class FieldController extends Controller {
     }
 
     //OLD FUNCTION WITH JSON
-    public function updateFieldss() {
+    public function updateFieldss()
+    {
         // Path to the public/js directory
         $jsPath = resource_path('js');
         //Gets content from json file
@@ -169,7 +216,7 @@ class FieldController extends Controller {
         $keys = array_keys($fields["result"]);
 
         //getting all keys from api
-        $jsonKeys = array_map(function($el) {
+        $jsonKeys = array_map(function ($el) {
             return $el['field_name'];
         }, $jsonData);
 
@@ -180,7 +227,7 @@ class FieldController extends Controller {
             // checking if the type is dropdown list
             if ($newItem['type'] == 'enumeration') {
                 // gets the dropdown item from json, to check it's fields
-                $jsonItem = array_filter($jsonData, function($item) use ($key) {
+                $jsonItem = array_filter($jsonData, function ($item) use ($key) {
                     return $item['field_name'] == $key;
                 });
                 // make the index goes from zero
@@ -194,13 +241,13 @@ class FieldController extends Controller {
 
                     // checking if the items exists in json dropdown items
                     $checkItem = array_filter($elemItems,
-                        function($el) use ($i_id) {
+                        function ($el) use ($i_id) {
                             return $el["ID"] == $i_id;
                         });
                     // if it doesn't exist add to json
-                    if ($checkItem == NULL) {
+                    if ($checkItem == null) {
                         // get the index of array element with that field name
-                        $id = array_filter($jsonData, function($el) use ($key) {
+                        $id = array_filter($jsonData, function ($el) use ($key) {
                             return $el['field_name'] == $key;
                         });
                         //                    get id and convert to int
@@ -228,8 +275,7 @@ class FieldController extends Controller {
                         'type' => $newItem['type'],
                         'title' => $newItem['formLabel'],
                     ]);
-                }
-                else {
+                } else {
                     Field::create([
                         'field_name' => $newItem['field_name'],
                         'type' => $newItem['type'],

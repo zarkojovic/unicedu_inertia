@@ -32,7 +32,7 @@
                             </div>
                             <div class="border-t-2 border-gray-300 flex justify-end mx-6 py-3">
                                 <slot name="modalFooter">
-                                    <Button :type="'danger'" @click="handleClose">Cancel</Button>
+                                    <Button :type="'danger'" @click="handleClose">Close</Button>
                                 </slot>
                             </div>
                         </DialogPanel>
