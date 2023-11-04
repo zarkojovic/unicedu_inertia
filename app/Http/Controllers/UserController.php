@@ -289,6 +289,29 @@ class UserController extends RootController {
         echo json_encode($info);
     }
 
+    public function changeUserPackage(Request $request) {
+        //        dd($request->all());
+        $user = User::find($request->user_id);
+        $user->package_id = $request->package_id;
+
+        if ($user->save()) {
+            return redirect()->back()->with([
+                'toast' => [
+                    'message' => 'User package successfully updated!',
+                    'type' => 'success',
+                ],
+            ]);
+        }
+        else {
+            return redirect()->back()->with([
+                'toast' => [
+                    'message' => 'User package successfully updated!',
+                    'type' => 'danger',
+                ],
+            ]);
+        }
+    }
+
     public function updateImage(Request $request) {
         #INPUTS
         if (!$request->hasFile('profileImage')) {
