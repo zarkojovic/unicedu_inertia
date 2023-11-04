@@ -92,7 +92,7 @@ const btnIconClass = computed(() => {
 
 // Handle button click
 const handleClick = () => {
-    if (!disabled && !isLoading) {
+    if (!disabled || !isLoading) {
         emits('click');
     }
 };
@@ -102,7 +102,7 @@ const handleClick = () => {
     <button
         :class="[btnStyleClass,btnWidthClass]"
         :disabled="disabled || isLoading"
-        class="items-center py-2 dark:bg-gray-200 border border-transparent font-medium text-xs dark:text-gray-800 uppercase tracking-widest dark:hover:bg-white dark:active:bg-gray-300 focus:outline-none focus:ring-2  focus:ring-offset-2 transition ease-in-out duration-150 disabled:opacity-50 disabled:pointer-events-none flex items-center"
+        class="items-center py-2 dark:bg-gray-200 border border-transparent font-medium text-xs dark:text-gray-800 uppercase tracking-widest dark:hover:bg-white dark:active:bg-gray-300 focus:outline-none focus:ring-2  focus:ring-offset-2 transition ease-in-out duration-150 disabled:opacity-50 disabled:pointer-events-none flex"
         type="button"
         @click="handleClick"
     >
