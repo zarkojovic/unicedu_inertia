@@ -15,12 +15,12 @@
                                      leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
                         <DialogPanel
                             class="relative p-1 transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
-                            <div class="bg-white px-4 pb-4 pt-2 sm:p-6 sm:pb-4">
-                                <div class="sm:flex sm:items-start">
+                            <div class="bg-white px-5 pb-5 pt-1">
+                                <div class="flex flex-col">
 
-                                    <div class="mt-3 text-center  sm:mt-0 sm:text-left">
+                                    <div class="text-center">
                                         <DialogTitle as="h3"
-                                                     class="text-base font-semibold leading-6 text-gray-900">
+                                                     class="text-base w-full font-semibold leading-6 text-gray-900">
                                             <slot name="modalTitle"><p> Default Title</p></slot>
                                         </DialogTitle>
                                         <div class="mt-5">
@@ -30,7 +30,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="bg-gray-50 flex justify-end px-4 py-3 sm:px-6 ">
+                            <div class="border-t-2 border-gray-300 flex justify-end mx-6 py-3">
                                 <slot name="modalFooter">
                                     <Button :type="'danger'" @click="handleClose">Close</Button>
                                 </slot>

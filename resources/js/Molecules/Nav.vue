@@ -45,13 +45,13 @@ const refreshFields = () => {
                     <a class="flex ml-2 md:mr-24" href="#">
                         <ApplicationLogo class="h-10 mr-3"/>
                         <span
-                            class="self-center md:text-md md:block hidden font-semibold whitespace-nowrap dark:text-white">Student Platform</span>
+                            class="self-center text-md font-semibold sm:text-md whitespace-nowrap dark:text-white hidden sm:block">Student Platform</span>
                     </a>
                 </div>
 
                 <div class="flex justify-center">
                     <Link v-if="navBtnType === 'studentProfile'" :href="route('applications')">
-                        <Button :type="'primary'" class="me-3">
+                        <Button :type="'primary'" class="me-3 ">
                             Apply Now
                         </Button>
                     </Link>
