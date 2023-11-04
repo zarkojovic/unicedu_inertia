@@ -41,9 +41,7 @@ provide('formItems', formItems);
 
 const changeUserPackage = () => {
 
-    console.log(formItems.value);
-
-    form.post('/admin/users/change-user-package', {});
+    form.post('/admin/intakes/change-user-package', {});
 };
 
 </script>
