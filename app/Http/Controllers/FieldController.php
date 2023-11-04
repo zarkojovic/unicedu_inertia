@@ -80,6 +80,8 @@ class FieldController extends Controller
 //        $category_id = $request->category_id;
 //        $requiredFields = $request->requiredFields ?? [];
             $fieldsOrders = $request->fieldsOrders;
+            $fieldsSettings = $request->fieldsSettings;
+//            dd($fieldsOrders, $fieldsSettings);
 //        dd($fieldsOrders);
             //        $requiredFieldsFromDatabase = Field::where('is_required', 1)->get();
             //        $requiredFieldsFromDatabaseIDs = $requiredFieldsFromDatabase->pluck('field_id')->toArray();
@@ -112,40 +114,86 @@ class FieldController extends Controller
 //        Field::whereIn('field_id', $fields ?? [])->update([
 //            'field_category_id' => $category_id,
 //        ]);
+
             //UPDATE PRIORITIES IN DATABASE BASED ON ORDER
-            if ($fieldsOrders) {
-//                foreach ($fieldsOrder as $order) {
-//                    $fieldId = $order['fieldId'];
-//                    $order = $order['order'];
+            if (count($fieldsOrders) > 0) {
+                //HAS CHANGED ORDERS
+//                $fieldsToUpdate = [];
+//                    $fieldsToUpdate = $fieldsOrders;
+//            }
+
+//                if (count($fieldsSettings) > 0) {
+//                    //HAS CHANGED SETTINGS
+//                    if (count($fieldsOrders) > 0) {
+//                        //HAS CHANGED ORDERS
+//                        //OVDE TREBA NEKAKO SPOJITI FIELDSSETTINGS SA FIELDSORDERS
 //
-//                    // Update the field order
-//                    Field::where('field_id', $fieldId)
-//                        ->where('field_category_id', $category_id)
-//                        ->update(['order' => $order]);
+//                        // Merge $fieldsOrders and $fieldsSettings based on field_id
+//                        foreach ($fieldsOrders as $key => $fieldOrder) {
+//                            $fieldId = $fieldOrder['field_id'];
+//                            // Find the corresponding field in $fieldsSettings
+//                            $matchingFieldSettings = collect($fieldsSettings)->first(function ($fieldSettings) use (
+//                                $fieldId
+//                            ) {
+//                                return $fieldSettings['field_id'] === $fieldId;
+//                            });
+//
+//                            if ($matchingFieldSettings) {
+//                                // Merge is_required from $fieldsSettings into $fieldsOrders
+//                                $fieldsOrders[$key]['is_required'] = $matchingFieldSettings['is_required'];
+//                            }
+//                        }
+//
+//                        $fieldsToUpdate = $fieldsOrders;
+//                    } else {
+//                        // Create a mapping of field_id to field_name from the database
+//                        $fieldNamesFromDatabase = Field::whereIn('field_id', array_column($fieldsSettings, 'field_id'))
+//                            ->pluck('field_name', 'field_id')
+//                            ->all();
+//
+//                        // Update $fieldsSettings with field_name from the database
+//                        foreach ($fieldsSettings as &$fieldSetting) {
+//                            $fieldId = $fieldSetting['field_id'];
+//                            if (isset($fieldNamesFromDatabase[$fieldId])) {
+//                                $fieldSetting['field_name'] = $fieldNamesFromDatabase[$fieldId];
+//                            }
+//                        }
+//                        $fieldsToUpdate = $fieldsSettings;
+//                    }
 //                }
+
+//                dd($fieldsToUpdate);
 //                dd($fieldsOrders);
-                DB::table("fields")->upsert(
+                Field::upsert(
                     $fieldsOrders, //insert or update this
                     ["field_id", "field_name"], //determine by this
-                    ["order"]); //if exists update this
+                    ["order", "is_required"]); //if exists update this
+                Log::apiLog('Fields updated in admin panel!', Auth::user()->user_id);
+                return redirect()
+                    ->route("admin_home")
+                    ->with([
+                        'toast' => [
+                            'message' => "Fields updated successfully!",
+                            'type' => 'success',
+                        ],
+                    ]);
             }
 
-            Log::apiLog('Fields updated in admin panel!', Auth::user()->user_id);
-            return redirect()
-                ->route("admin_home")
-                ->with([
-                    'toast' => [
-                        'message' => "Fields updated successfully!",
-                        'type' => 'success',
-                    ],
-                ]);
+//            return redirect()
+//                ->route("admin_home")
+//                ->with([
+//                    'toast' => [
+//                        'message' => "No changes made.",
+//                        'type' => 'warning',
+//                    ],
+//                ]);
         } catch (Exception $e) {
             Log::errorLog($e->getMessage(), Auth::user()->user_id);
             return redirect()
                 ->route("admin_home")
                 ->with([
                     'toast' => [
-                        'message' => "An error occured on the server.",
+                        'message' => "An error occurred on the server.",
                         'type' => 'danger',
                     ],
                 ]);
