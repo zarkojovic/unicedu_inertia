@@ -19,15 +19,17 @@
                 class="fields-container flex flex-wrap"
                 item-key="field_id"
                 v-bind="dragOptions"
-                @change="onChanged"
+                @change="reorderFields"
                 @end="drag=false"
                 @start="drag=true"
             >
                 <template #item="{ element }" class="">
                     <AdminField
+                        :catId="element.field_category_id"
                         :field_id="element.field_id"
                         :is_required="element.is_required === 1"
                         :title="element.title ?? element.field_name"
+                        @onIsActiveChange="updateFieldCategoryId"
                         @onIsRequiredChange="updateIsRequiredValue"
                     />
                 </template>
@@ -52,7 +54,6 @@ const props = defineProps({
 
 const form = useForm({
     fieldsOrders: props.category.fields
-    // fieldsSettings: []
 });
 
 const drag = ref(false);
@@ -65,42 +66,26 @@ const dragOptions = computed(() => {
     };
 });
 
-const onChanged = () => {
-    form.fieldsOrders = [];
+const reorderFields = () => {
+    let reduceByInactive = 1;
     props.category.fields.forEach((field, index) => {
-        form.fieldsOrders.push({
-            field_id: field.field_id,
-            field_name: field.field_name,
-            is_required: field.is_required,
-            order: index + 1
-        });
-    });
-};
-const submitForm = () => {
-    let isChanged = false;
-    props.category.fields.forEach((field, index) => {
-        if (form.fieldsOrders[index].order !== field.order || form.fieldsOrders[index].is_required != field.is_required) {
-            console.log(form.fieldsOrders[index].is_required)
-            console.log(field.is_required)
-            isChanged = true;
+        // Update the order property for each field in form.fieldsOrders that's active (field_category_id !== 0)
+        const orderItem = form.fieldsOrders.find(item => item.field_id === field.field_id);
+        if (orderItem) {
+            if (!orderItem.field_category_id) {
+                reduceByInactive--;
+                orderItem.order = null;
+            } else {
+                orderItem.order = index + reduceByInactive;
+                console.log("u else")
+            }
+        } else {
+            console.log("Field doesn't exist in this category.")
         }
     });
-
-    if (isChanged) {
-        form.post("/admin/fields-modify", {preserveScroll: true});
-        return;
-    }
-    // console.log("return some warning no changes made toast otherwise");
-    addToast({
-        message: "No changes made",
-        type: "warning",
-        duration: 4000
-    });
+    console.log(form.fieldsOrders)
 };
 
-const addToast = (obj) => {
-    toast.add(obj);
-};
 const updateIsRequiredValue = (event) => {
     const indexToUpdate = form.fieldsOrders.findIndex(field => field.field_id === event.field_id);
 
@@ -119,6 +104,60 @@ const updateIsRequiredValue = (event) => {
     //     form.fieldsSettings.push(event);
     // }
 }
+
+const updateFieldCategoryId = (event) => {
+    const fieldToUpdate = form.fieldsOrders.find(field => field.field_id === event.field_id);
+
+    if (fieldToUpdate) {
+        if (!event.is_active) {
+            // If event.is_active is false, set field_category_id to null & order to null
+            fieldToUpdate.field_category_id = null;
+            console.log("set to inactive")
+            //CALL ONCHANGE TO UPDATE ORDERS
+            reorderFields();
+        } else {
+            // If event.is_active is true, find the corresponding field_category_id from props.category.fields and order
+            const matchingField = props.category.fields.find(field => field.field_id === event.field_id);
+            if (matchingField) {
+                fieldToUpdate.field_category_id = matchingField.field_category_id;
+                console.log("set to active")
+                //CALL ONCHANGE TO UPDATE ORDERS
+                reorderFields();
+            }
+        }
+    } else {
+        console.log("You're trying to set a field that does not exist.");
+    }
+}
+
+const submitForm = () => {
+    form.post("/admin/fields-modify", {preserveScroll: true});
+
+    // let isChanged = false;
+    // props.category.fields.forEach((field, index) => {
+    //     console.log(field, form.fieldsOrders[index])
+    //     if (form.fieldsOrders[index].order !== field.order ||
+    //         form.fieldsOrders[index].is_required != field.is_required ||
+    //         form.fieldsOrders[index].field_category_id != field.field_category_id) {
+    //         isChanged = true;
+    //     }
+    // });
+    //
+    // if (isChanged) {
+    //     form.post("/admin/fields-modify", {preserveScroll: true});
+    //     return;
+    // }
+    //
+    // addToast({
+    //     message: "No changes made",
+    //     type: "warning",
+    //     duration: 4000
+    // });
+};
+
+const addToast = (obj) => {
+    toast.add(obj);
+};
 </script>
 
 <style scoped>

@@ -1,7 +1,7 @@
 <template>
     <Head title="Manage Fields"/>
     <AuthenticatedLayout>
-        <div class="grid grid-cols-1 mt-24">
+        <div class="grid grid-cols-1">
             <div v-for="(category, key) in categories" :key="key" class="col">
                 <AdminFieldCategory :category="category"/>
             </div>

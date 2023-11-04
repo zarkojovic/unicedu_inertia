@@ -167,7 +167,8 @@ class FieldController extends Controller
                 Field::upsert(
                     $fieldsOrders, //insert or update this
                     ["field_id", "field_name"], //determine by this
-                    ["order", "is_required"]); //if exists update this
+                    ["order", "is_required", "field_category_id"]); //if exists update this
+
                 Log::apiLog('Fields updated in admin panel!', Auth::user()->user_id);
                 return redirect()
                     ->route("admin_home")
