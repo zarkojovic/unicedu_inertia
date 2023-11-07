@@ -14,9 +14,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Kafka0238\Crest\Src;
 
-class FieldController extends Controller {
+class FieldController extends Controller
+{
 
-    public function getAvailableFields(Request $request) {
+    public function getAvailableFields(Request $request)
+    {
         //        OLD WAY WITH THE FIELDS JSON
 
         //        $c_vals = $request->input('id');
@@ -73,94 +75,10 @@ class FieldController extends Controller {
     public function setFieldCategory(Request $request)
     {
         try {
-//        dd($request);
-//        $fields = $request->fields;
-//        $category_id = $request->category_id;
-//        $requiredFields = $request->requiredFields ?? [];
             $fieldsOrders = $request->fieldsOrders;
-            $fieldsSettings = $request->fieldsSettings;
-//            dd($fieldsOrders, $fieldsSettings);
-//        dd($fieldsOrders);
-            //        $requiredFieldsFromDatabase = Field::where('is_required', 1)->get();
-            //        $requiredFieldsFromDatabaseIDs = $requiredFieldsFromDatabase->pluck('field_id')->toArray();
 
-//        $existingFields = Field::where('field_category_id', $category_id)
-//            ->get();
-//        $existingFieldIds = $existingFields->pluck('field_id')->toArray();
-//
-//        // Remove fields that are no longer selected
-//        $fieldsToRemove = array_diff($existingFieldIds, $fields ?? []);
-//        Field::whereIn('field_id', $fieldsToRemove)->update([
-//            'field_category_id' => null,
-//            'order' => null,
-//        ]);
-//
-//        // Update required fields
-//        Field::whereIn('field_id', $requiredFields)->update([
-//            'is_required' => true,
-//        ]);
-//        Field::where('field_category_id', $category_id)
-//            ->whereNotIn('field_id', $requiredFields)
-//            ->update([
-//                'is_required' => false,
-//            ]);
-//        //        Field::whereIn('field_id', array_diff($requiredFieldsFromDatabaseIDs, $requiredFields))->update([
-//        //            'is_required' => false,
-//        //        ]);
-//
-//        // Associate fields with the new category
-//        Field::whereIn('field_id', $fields ?? [])->update([
-//            'field_category_id' => $category_id,
-//        ]);
-
-            //UPDATE PRIORITIES IN DATABASE BASED ON ORDER
+            //UPDATE ORDERS, FIELD_CATEGORY_IDS, IS_REQUIRED SETTINGS IN DATABASE
             if (count($fieldsOrders) > 0) {
-                //HAS CHANGED ORDERS
-//                $fieldsToUpdate = [];
-//                    $fieldsToUpdate = $fieldsOrders;
-//            }
-
-//                if (count($fieldsSettings) > 0) {
-//                    //HAS CHANGED SETTINGS
-//                    if (count($fieldsOrders) > 0) {
-//                        //HAS CHANGED ORDERS
-//                        //OVDE TREBA NEKAKO SPOJITI FIELDSSETTINGS SA FIELDSORDERS
-//
-//                        // Merge $fieldsOrders and $fieldsSettings based on field_id
-//                        foreach ($fieldsOrders as $key => $fieldOrder) {
-//                            $fieldId = $fieldOrder['field_id'];
-//                            // Find the corresponding field in $fieldsSettings
-//                            $matchingFieldSettings = collect($fieldsSettings)->first(function ($fieldSettings) use (
-//                                $fieldId
-//                            ) {
-//                                return $fieldSettings['field_id'] === $fieldId;
-//                            });
-//
-//                            if ($matchingFieldSettings) {
-//                                // Merge is_required from $fieldsSettings into $fieldsOrders
-//                                $fieldsOrders[$key]['is_required'] = $matchingFieldSettings['is_required'];
-//                            }
-//                        }
-//
-//                        $fieldsToUpdate = $fieldsOrders;
-//                    } else {
-//                        // Create a mapping of field_id to field_name from the database
-//                        $fieldNamesFromDatabase = Field::whereIn('field_id', array_column($fieldsSettings, 'field_id'))
-//                            ->pluck('field_name', 'field_id')
-//                            ->all();
-//
-//                        // Update $fieldsSettings with field_name from the database
-//                        foreach ($fieldsSettings as &$fieldSetting) {
-//                            $fieldId = $fieldSetting['field_id'];
-//                            if (isset($fieldNamesFromDatabase[$fieldId])) {
-//                                $fieldSetting['field_name'] = $fieldNamesFromDatabase[$fieldId];
-//                            }
-//                        }
-//                        $fieldsToUpdate = $fieldsSettings;
-//                    }
-//                }
-
-//                dd($fieldsToUpdate);
 //                dd($fieldsOrders);
                 Field::upsert(
                     $fieldsOrders, //insert or update this
@@ -205,7 +123,7 @@ class FieldController extends Controller {
         // Path to the public/js directory
         $jsPath = resource_path('js');
         //Gets content from json file
-        $json = file_get_contents($jsPath."/fields.json");
+        $json = file_get_contents($jsPath . "/fields.json");
         //Make it in php array
         $jsonData = json_decode($json, TRUE);
 
@@ -254,7 +172,7 @@ class FieldController extends Controller {
                         //                    get id and convert to int
                         $id = array_keys($id);
 
-                        $id = (int) $id[0];
+                        $id = (int)$id[0];
 
                         // add it to existing json file
                         $jsonData[$id]['items'][] = $item;
@@ -299,14 +217,15 @@ class FieldController extends Controller {
         // Path to the public/js directory
         $jsPath = resource_path('js');
 
-        file_put_contents($jsPath."/fields.json", $json);
+        file_put_contents($jsPath . "/fields.json", $json);
 
         return redirect()
             ->back()
             ->with(['fieldMessage' => 'Fields are updated!']);
     }
 
-    public function updateFields() {
+    public function updateFields()
+    {
         // Step 1: Retrieve field data from the CRM API
         $fields = CRest::call('crm.deal.fields');
 
@@ -365,8 +284,7 @@ class FieldController extends Controller {
 
             // Step 4: Commit the database transaction
             DB::commit();
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             // Step 5: Handle exceptions and roll back the transaction in case of an error
             DB::rollback();
             // Handle the exception (e.g., log or throw a custom exception)
@@ -394,8 +312,7 @@ class FieldController extends Controller {
 
                     // Create an array with item data for comparison
                     $resultArray = range(0, count($itemsFromDatabase) - 1);
-                    $arrayItemsFromDatabase = array_map(function($key, $id) use
-                    (
+                    $arrayItemsFromDatabase = array_map(function ($key, $id) use (
                         $itemsFromDatabase
                     ) {
                         $val = array_search($id, $itemsFromDatabase);
