@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DealController;
 use App\Http\Controllers\FieldCategoryController;
 use App\Http\Controllers\FieldController;
+use App\Http\Controllers\IntakeController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
@@ -156,6 +157,14 @@ Route::middleware('auth')->group(function() {
             Route::post('/set-package-pages',
                 [PackageController::class, 'setPackagePages'])
                 ->name('setPackagePages');
+
+            //INTAKES ROUTES
+            Route::get('/intakes',
+                [IntakeController::class, 'showIntake'])
+                ->name('showIntake');
+            Route::post('/intakes/change-active-intake',
+                [IntakeController::class, 'changeActiveIntake'])
+                ->name('changeActiveIntake');
         });
     });
 
