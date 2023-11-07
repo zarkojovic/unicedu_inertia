@@ -23,16 +23,19 @@ const packages = ref(props.packagePages);
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Package</h2>
         </template>
 
-        <div class="mt-20">
-            <div class="mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="py-6 mt-6">
+            <div class="mx-auto bg-white shadow-lg overflow-hidden rounded-3xl">
                 <div class="bg-white overflow-hidden dark:bg-gray-800 shadow-sm sm:rounded-lg p-10">
-                    <h1 class="text-2xl font-bold mb-4">Packages</h1>
-                    <!--                    <PackageTabs :data="packagePages"/>-->
-                    <div v-for="item in packages">
-                        <PackagePagesSelection :data="item"/>
+                    <!--
+                                       <PackageTabs :data="packagePages"/>-->
+                    <div
+                        class="grid grid-cols-1 grid-rows-4 sm:grid-cols-2 sm:grid-rows-2 xl:grid-rows-1 xl:grid-cols-4 gap-2">
+
+                        <div v-for="item in packages">
+                            <PackagePagesSelection :data="item"/>
+                        </div>
+
                     </div>
-
-
                 </div>
             </div>
         </div>

@@ -44,7 +44,6 @@ const updateFields = () => {
         :name="props.data.package_name"
     />
     <Button class="mt-4" type="success" @click="updateFields">Save</Button>
-    <hr class="my-5"/>
 </template>
 
 <style scoped>

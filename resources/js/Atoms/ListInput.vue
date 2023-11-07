@@ -45,7 +45,9 @@ onMounted(() => {
         <label v-if="label" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ label }} <span
             v-if="is_required" class="text-sm text-red-600">*</span></label>
         <ul>
-            <li v-for="(item, index) in items" :key="index">
+            <li v-for="(item, index) in items" :key="index"
+                :class="isChecked(index) ? 'bg-orange-500 text-white border-orange-500' : 'border-gray-300'"
+                class=" mb-2 p-2 rounded-3xl border flex items-center">
                 <input
                     :id="name + '-' + index"
                     :checked="isChecked(index)"
@@ -53,13 +55,13 @@ onMounted(() => {
                     :name="type === 'radio' ? name : null"
                     :type="type === 'radio' ? 'radio' : 'checkbox'"
                     :value="index"
-                    class="dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-orange-500 shadow-sm focus:ring-0 focus:ring-offset-0 transition ease-in-out"
+                    class="dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-orange-500 focus:ring-0 focus:ring-offset-0 transition ease-in-out"
                     @change="toggleSelection(index)"
                 />
                 <label :for="name +'-' + index" class="ms-2">{{ item }}</label>
             </li>
         </ul>
-        <p>Selected Items: {{ selectedItems.length > 0 ? selectedItems : '' }}</p>
+        <!--        <p>Selected Items: {{ selectedItems.length > 0 ? selectedItems : '' }}</p>-->
         <p v-if="error" class=" text-sm text-red-500">{{ error }}</p>
     </div>
 </template>
