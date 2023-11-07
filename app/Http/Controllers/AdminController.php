@@ -81,14 +81,14 @@ class AdminController extends RootController
 
     public function setFieldCategory(Request $request)
     {
-        return redirect()
-            ->route("admin_home")
-            ->with([
-                'toast' => [
-                    'message' => "Intentionally blocked field adding.",
-                    'type' => 'success',
-                ],
-            ]);
+//        return redirect()
+//            ->route("admin_home")
+//            ->with([
+//                'toast' => [
+//                    'message' => "Intentionally blocked field adding.",
+//                    'type' => 'success',
+//                ],
+//            ]);
         try {
             $fieldId = $request->input('field_id');
             $newCategoryId = $request->input('field_category_id');
