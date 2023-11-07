@@ -65,12 +65,12 @@ class FieldCategory extends Model {
 
         $categories = DB::table('field_categories')
             ->join('field_category_page',
-                'field_category_page.field_category_id', '=',
+                'field_categories.field_category_id', '=',
                 'field_category_page.field_category_id')
             ->join('pages', 'field_category_page.page_id', '=', 'pages.page_id')
             ->where('field_categories.is_visible', 1)
             ->where('pages.route', $pageName)
-            ->select('field_categories.category_name',
+            ->select('pages.route', 'field_categories.category_name',
                 'field_categories.field_category_id')
             ->distinct()
             ->get()

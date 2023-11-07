@@ -40,8 +40,7 @@ watch(formItems.value.formItems, function(value, oldValue) {
 provide('formItems', formItems);
 
 const changeUserPackage = () => {
-
-    form.post('/admin/intakes/change-user-package', {});
+    form.post('/admin/users/change-user-package', {});
 };
 
 </script>

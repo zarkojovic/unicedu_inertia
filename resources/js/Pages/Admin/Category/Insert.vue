@@ -1,7 +1,8 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import {Head, Link} from '@inertiajs/vue3';
+import {Head, Link, useForm} from '@inertiajs/vue3';
 import Button from '@/Atoms/Button.vue';
+import GenericInput from '@/Atoms/GenericInput.vue';
 
 const props = defineProps({
     data: {
@@ -11,6 +12,26 @@ const props = defineProps({
         type: Array,
     },
 });
+
+const insertForm = useForm({
+    categoryName: null,
+});
+
+const sendInsert = () => {
+    var checkErr = false;
+    if (insertForm.categoryName === '' || insertForm.categoryName === null) {
+        insertForm.errors.categoryName = 'You have to insert category name!';
+        checkErr = true;
+
+    } else {
+        insertForm.errors.categoryName = null;
+        checkErr = false;
+    }
+    if (!checkErr) {
+        insertForm.post('/admin/categories/insertNew');
+    }
+
+};
 
 </script>
 
@@ -31,6 +52,10 @@ const props = defineProps({
                                 <Button>Go Back</Button>
                             </Link>
                         </div>
+                        <GenericInput v-model="insertForm.categoryName" :error="insertForm.errors.categoryName"
+                                      input-name="text" label="Insert category name"
+                                      placeholder="Insert new categories"/>
+                        <Button class="mt-3" @click="sendInsert">Submit</Button>
                     </div>
                 </div>
             </div>

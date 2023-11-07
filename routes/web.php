@@ -9,6 +9,7 @@ use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
+use App\Models\FieldCategory;
 use App\Models\Page;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -61,13 +62,21 @@ Route::middleware('auth')->group(function() {
                             $route
                         ) {
                             Route::get($route->route, function() use ($route) {
-                                return Inertia::render('Dashboard');
+                                $categoriesWithFields = FieldCategory::getAllCategoriesWithFields($route->route);
+
+                                return Inertia::render('Dashboard', [
+                                    'categoriesWithFields' => $categoriesWithFields,
+                                ]);
                             });
                         });
                         break;
                     default :
                         Route::get($route->route, function() use ($route) {
-                            return Inertia::render('Dashboard');
+                            $categoriesWithFields = FieldCategory::getAllCategoriesWithFields($route->route);
+
+                            return Inertia::render('Dashboard', [
+                                'categoriesWithFields' => $categoriesWithFields,
+                            ]);
                         });
                         break;
                 }
@@ -132,6 +141,9 @@ Route::middleware('auth')->group(function() {
             Route::get('/categories/new',
                 [FieldCategoryController::class, 'createNewCategory'])
                 ->name('createNewCategory');
+            Route::post('/categories/insertNew',
+                [FieldCategoryController::class, 'insertCategories'])
+                ->name('insertCategories');
 
             //APPLICATION ROUTES
             Route::get('/applications',
