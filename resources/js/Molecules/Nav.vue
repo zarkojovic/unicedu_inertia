@@ -20,7 +20,7 @@ const navBtnType = inject('navBtnType', ref(''));
 
 const form = useForm({});
 const refreshFields = () => {
-    form.post('/admin/fields_fields');
+    form.post('/admin/update-fields');
 
 };
 </script>
@@ -104,7 +104,7 @@ const refreshFields = () => {
                                                   active ? 'bg-orange-500 text-white' : 'text-gray-900',
                                                   'group flex w-full items-center rounded-md px-2 py-2 text-sm',
                                                 ]">
-                                            <Link :href="route('logout')" as="a"
+                                            <Link :href="route('logout')" as="button"
                                                   method="post">
                                                 <v-icon class="mr-2 h-5 w-5" name="md-lockreset"/>
                                                 Change password

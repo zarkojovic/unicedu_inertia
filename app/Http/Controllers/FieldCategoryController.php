@@ -155,7 +155,7 @@ class FieldCategoryController extends Controller {
         }
     }
 
-    public function deleteCategories(Request $request) {
+    public function deleteCategory(Request $request) {
         try {
             $id = $request->id;
 
@@ -167,13 +167,24 @@ class FieldCategoryController extends Controller {
                 // Log the successful deletion of the category
                 Log::apiLog("Category '".$category->category_name."' deleted.",
                     Auth::user()->user_id);
-
+                if (!$category->is_visible) {
+                    throw new Exception('You can\'t delete this category!');
+                }
                 // Delete the category
                 $category->delete();
             }
+            else {
+                throw new Exception('Error occurred while deleting a category!');
+            }
 
             // Redirect back after successful deletion or if the category was not found
-            return redirect()->back();
+            return redirect()->route('showCategory')
+                ->with([
+                    'toast' => [
+                        'message' => 'Category is successfully deleted!',
+                        'type' => 'success',
+                    ],
+                ]);
         }
         catch (Exception $e) {
             // Log the error and handle it appropriately
@@ -182,7 +193,12 @@ class FieldCategoryController extends Controller {
             // Redirect back with an error message
             return redirect()
                 ->back()
-                ->withErrors(['error' => 'An error occurred while deleting the category.']);
+                ->with([
+                    'toast' => [
+                        'message' => $e->getMessage(),
+                        'type' => 'danger',
+                    ],
+                ]);
         }
     }
 

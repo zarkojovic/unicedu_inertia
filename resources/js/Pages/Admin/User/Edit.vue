@@ -1,7 +1,7 @@
 <script setup>
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import {Head, useForm} from '@inertiajs/vue3';
+import {Head, Link, useForm} from '@inertiajs/vue3';
 import {provide, ref, watch} from 'vue';
 import ModelDataDisplay from '@/Organisms/ModelDataDisplay.vue';
 import DropdownInput from '@/Atoms/DropdownInput.vue';
@@ -40,7 +40,12 @@ watch(formItems.value.formItems, function(value, oldValue) {
 provide('formItems', formItems);
 
 const changeUserPackage = () => {
-    form.post('/admin/users/change-user-package', {});
+    form.post('/admin/users/change-user-package', {
+        onSuccess: () => {
+            isPackageChanged.value = false;
+        },
+
+    });
 };
 
 </script>
@@ -57,6 +62,14 @@ const changeUserPackage = () => {
             <div class="mx-auto bg-white rounded-xl shadow-md overflow-hidden">
                 <div class="bg-white overflow-hidden dark:bg-gray-800  shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
+                        <div class="flex justify-between flex-wrap">
+                            <h1 class="text-2xl font-bold mb-4">Student - {{
+                                    userInfo.first_name + ' ' + userInfo.last_name
+                                }}</h1>
+                            <Link :href="route('showUser')">
+                                <Button>Go Back</Button>
+                            </Link>
+                        </div>
                         <DropdownInput
                             :options="props.packages"
                             :selected-item="props.userInfo.package_id"

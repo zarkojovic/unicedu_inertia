@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\Deal;
 use App\Models\Log;
 use CRest;
+use Exception;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -19,25 +20,35 @@ class sendingBitrixDeal implements ShouldQueue {
 
     public $items;
 
+    public $deal_id;
+
     /**
      * Create a new job instance.
      */
-    public function __construct($user, $items) {
+    public function __construct($user, $items, $deal_id) {
         $this->user = $user;
         $this->items = $items;
+        $this->deal_id = $deal_id;
     }
 
     /**
      * Execute the job.
      */
     public function handle(): void {
-        Log::informationLog('Items: '.count($this->items));
         $dealFields = Deal::generateDealObject($this->user->user_id,
             $this->items, $this->user->contact_id);
 
         // Make API call to create the deal in Bitrix24
         $result = CRest::call("crm.deal.add",
             ['FIELDS' => $dealFields]);
+
+        $deal = Deal::findOrFail($this->deal_id);
+
+        $deal->bitrix_deal_id = $result['result'];
+
+        if (!$deal->save()) {
+            throw new Exception('Saving has failed');
+        }
     }
 
     public function failed($exception) {

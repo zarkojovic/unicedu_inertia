@@ -2,12 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Deal;
 use App\Models\Field;
 use App\Models\FieldCategory;
 use App\Models\Log;
-use App\Models\Package;
-use App\Models\User;
 use App\Models\UserInfo;
 use Exception;
 use Illuminate\Http\Request;
@@ -160,7 +157,8 @@ class UserController extends RootController {
                             'file_name' => $fileName,
                             'file_path' => $fileNewName,
                         ]);
-                        Log::informationLog("User updated $key.",
+
+                        Log::informationLog("User updated ".$field_id->field_name.'.',
                             Auth::user()->user_id);
                     }
                     else {
@@ -184,7 +182,7 @@ class UserController extends RootController {
                                     'value' => $value,
                                 ]);
                             }
-                            Log::informationLog("User updated $key.",
+                            Log::informationLog("User updated ".$field_id->field_name.'.',
                                 Auth::user()->user_id);
                         }
                     }
@@ -277,40 +275,17 @@ class UserController extends RootController {
         //        }
     }
 
-    public function getUserInfo() {
-        $user = Auth::user();
-        $info = Db::table("user_infos")
-            ->selectRaw("`field_id`, `value`, `display_value`, `file_name`,`file_path`")
-            ->where("user_id", $user->user_id)
-            ->groupBy("field_id", "value", "display_value", "file_name",
-                'file_path')
-            ->get();
-
-        echo json_encode($info);
-    }
-
-    public function changeUserPackage(Request $request) {
-        //        dd($request->all());
-        $user = User::find($request->user_id);
-        $user->package_id = $request->package_id;
-
-        if ($user->save()) {
-            return redirect()->back()->with([
-                'toast' => [
-                    'message' => 'User package successfully updated!',
-                    'type' => 'success',
-                ],
-            ]);
-        }
-        else {
-            return redirect()->back()->with([
-                'toast' => [
-                    'message' => 'User package successfully updated!',
-                    'type' => 'danger',
-                ],
-            ]);
-        }
-    }
+    //    public function getUserInfo() {
+    //        $user = Auth::user();
+    //        $info = Db::table("user_infos")
+    //            ->selectRaw("`field_id`, `value`, `display_value`, `file_name`,`file_path`")
+    //            ->where("user_id", $user->user_id)
+    //            ->groupBy("field_id", "value", "display_value", "file_name",
+    //                'file_path')
+    //            ->get();
+    //
+    //        echo json_encode($info);
+    //    }
 
     public function updateImage(Request $request) {
         #INPUTS
@@ -530,65 +505,20 @@ class UserController extends RootController {
         ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id) {
-        //
-    }
 
-    public function showUser() {
-        $users = DB::table('users')
-            ->join('roles', 'roles.role_id', 'users.role_id')
-            ->select('users.user_id as id', 'users.profile_image',
-                'users.first_name',
-                'users.last_name',
-                'users.email', 'users.phone', 'roles.role_name as role name',
-                'users.package_id as package')
-            ->paginate(10);
-
-        return Inertia::render("Admin/User/Show",
-            [
-                'data' => $users,
-            ]);
-    }
-
-    public function editUser(string $id) {
-        $users = User::select('first_name', 'last_name', 'email_verified_at',
-            'profile_image', 'contact_id', 'package_id',
-            'created_at', 'phone', 'updated_at', "user_id as id")
-            ->findOrFail($id);
-
-        $history = DB::table('logs')
-            ->join('actions', 'actions.action_id', 'logs.action_id')
-            ->select('logs.description', 'logs.created_at',
-                'actions.action_name as action')
-            ->where('logs.user_id', (int) $id)
-            ->paginate(10);
-
-        $packages = Package::select('package_name as label',
-            DB::raw('CAST(package_id AS CHAR) AS value'))->get()->toArray();
-        return Inertia::render("Admin/User/Edit",
-            [
-                'userLogs' => $history,
-                'userInfo' => $users,
-                'packages' => $packages,
-            ]);
-    }
-
-    public function showMyApplications(Request $request) {
-        $user = Auth::user();
-        $userDeals = Deal::where('user_id', $user->user_id)
-            ->where('active', 1)
-            ->get();
-        $showModal = $request->input('showModal');
-
-        // Return a view with the user's deals
-        return view('student.applications', [
-            'userDeals' => $userDeals, // User-specific deals data
-            'showModal' => $showModal,
-        ]);
-    }
+    //    public function showMyApplications(Request $request) {
+    //        $user = Auth::user();
+    //        $userDeals = Deal::where('user_id', $user->user_id)
+    //            ->where('active', 1)
+    //            ->get();
+    //        $showModal = $request->input('showModal');
+    //
+    //        // Return a view with the user's deals
+    //        return view('student.applications', [
+    //            'userDeals' => $userDeals, // User-specific deals data
+    //            'showModal' => $showModal,
+    //        ]);
+    //    }
 
 }
 

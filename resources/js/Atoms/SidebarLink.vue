@@ -46,7 +46,7 @@ const activeLink = computed(() => {
             {{ item.title }}
         </PopoverButton>
         <PopoverPanel class="absolute z-10 bg-orange-50 shadow p-3 rounded-xl">
-            <h1>Upgrade to Platinum Package to get these pages!</h1>
+            <h1>Upgrade Package to unlock this page!</h1>
         </PopoverPanel>
     </Popover>
 </template>

@@ -36,7 +36,9 @@ const props = defineProps({
     excludedColumns: {
         type: Array,
     },
-
+    rowHighlight: {
+        type: Array,
+    },
 });
 
 
@@ -55,9 +57,9 @@ const props = defineProps({
 
                 <GenericModelTable
                     :column-types="props.columnTypes" :data="props.data"
-                    :delete-route="props.deleteRoute"
-                    :edit-route="props.editRoute" :excluded-columns="props.excludedColumns"
-                    :is-deletable="props.isDeletable" :is-editable="props.isEditable"/>
+                    :delete-route="props.deleteRoute" :edit-route="props.editRoute"
+                    :excluded-columns="props.excludedColumns" :is-deletable="props.isDeletable"
+                    :is-editable="props.isEditable" :row-highlight="props.rowHighlight"/>
             </div>
         </div>
     </div>

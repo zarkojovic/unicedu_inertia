@@ -12,6 +12,26 @@ const props = defineProps({
     },
 });
 
+const hidden = ['id'];
+
+const rowTypes = [
+    {
+        name: 'Profile Image',
+        type: 'image',
+    }, {
+        name: 'Package',
+        type: 'package',
+    },
+];
+
+const checkRow = [
+    {
+        name: 'active',
+        value: 'inactive',
+        className: 'bg-red-100',
+    },
+];
+
 </script>
 
 <template>
@@ -22,7 +42,8 @@ const props = defineProps({
         </template>
 
         <div class="py-6 mt-6">
-            <ModelDataDisplay :columns="props.columns" :data="props.data"
+            <ModelDataDisplay :column-types="rowTypes" :columns="props.columns" :data="props.data"
+                              :excluded-columns="hidden" :row-highlight="checkRow"
                               section-title="Student Applications"/>
         </div>
     </AuthenticatedLayout>

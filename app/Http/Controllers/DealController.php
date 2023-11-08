@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\DeleteBitrixDeal;
 use App\Jobs\sendingBitrixDeal;
 use App\Models\Deal;
 use App\Models\Field;
@@ -18,8 +19,17 @@ class DealController extends RootController {
 
     public function showApplication() {
         try {
-            // Fetch all deals from the 'deals' table and select 'deal_id' as 'id'
-            $data = Deal::select('deal_id as id', 'intake', 'program')
+            $data = DB::table('deals')
+                ->join('users', 'users.user_id', 'deals.user_id')
+                ->join('user_intake_packages', 'user_intake_packages.user_id',
+                    'users.user_id')
+                ->select('users.profile_image as Profile Image',
+                    'users.first_name as Name',
+                    'deals.deal_id as id', 'deals.intake', 'deals.program',
+                    'deals.university', 'deals.degree',
+                    'user_intake_packages.package_id as Package',
+                    'deals.created_at as applied at',
+                    DB::raw('CASE WHEN deals.active = 1 THEN "active" ELSE "inactive" END AS active'))
                 ->paginate(10);
 
             // Return the admin template view with necessary data
@@ -157,7 +167,8 @@ class DealController extends RootController {
                     //                        []);
                     //                    dd($dealFields);
 
-                    sendingBitrixDeal::dispatch($user, $request->items);
+                    sendingBitrixDeal::dispatch($user, $request->items,
+                        $deal->deal_id);
                     //                    dd('pozz');
                     //                    // Make API call to create the deal in Bitrix24
                     //                    $result = CRest::call("crm.deal.add",
@@ -220,6 +231,8 @@ class DealController extends RootController {
         //OVDE MOZDA TRY CATCH
         // Retrieve the Bitrix deal ID associated with the deal
         $bitrix_deal_id = $deal->bitrix_deal_id;
+
+        DeleteBitrixDeal::dispatch($bitrix_deal_id, $user->user_id);
 
         // Make an API call to delete the deal in Bitrix24
         //        $result = CRest::call("crm.deal.delete",

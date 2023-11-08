@@ -47,6 +47,10 @@ class Page extends Model {
                 ->get()
                 ->toArray();
 
+            usort($pages, function($a, $b) {
+                return $b['active'] - $a['active'];
+            });
+
             return $pages;
         }
         else {

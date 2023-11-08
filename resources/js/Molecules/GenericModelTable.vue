@@ -33,6 +33,9 @@ const props = defineProps({
     excludedColumns: {
         type: Array,
     },
+    rowHighlight: {
+        type: Array,
+    },
 });
 
 const openModal = ref(false);
@@ -73,7 +76,16 @@ const isIncluded = (col) => {
         return !props.excludedColumns.includes(col);
     }
     return true;
+};
 
+const checkHighlight = (item) => {
+    if (props.rowHighlight) {
+        const foundElement = props.rowHighlight.find(element => item[element.name] === element.value);
+        if (foundElement) {
+            return foundElement.className;
+        }
+    }
+    return '';
 };
 
 onMounted(() => {
@@ -107,7 +119,8 @@ onMounted(() => {
         <tr v-for="(item,index) in props.data.data"
             v-if="props.data.data.length > 0"
             :key="index"
-            class=" border-b dark:bg-gray-900 dark:border-gray-700"
+            :class="checkHighlight(item)"
+            class="border-b  dark:bg-gray-900 dark:border-gray-700"
         >
             <template v-for="(col,idx) in columns" :key="idx">
                 <td v-if="isIncluded(col)" class="px-6 py-4">

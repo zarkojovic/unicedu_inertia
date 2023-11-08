@@ -8,6 +8,7 @@ use App\Http\Controllers\IntakeController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserAdminController;
 use App\Http\Controllers\UserController;
 use App\Models\FieldCategory;
 use App\Models\Page;
@@ -108,6 +109,10 @@ Route::middleware('auth')->group(function() {
 
         //ADMIN
         Route::middleware('admin')->prefix('admin')->group(function() {
+            //DASHBOARD
+            Route::get('/dashboard', [AdminController::class, 'show'])
+                ->name('adminDashboard');
+
             //FIELDS
             Route::get('/fields', [AdminController::class, "home"])
                 ->name("admin_home");
@@ -118,6 +123,9 @@ Route::middleware('auth')->group(function() {
             Route::post('/update-fields',
                 [FieldController::class, 'updateFields'])
                 ->name('updateFields');
+            Route::post('/fields-modify',
+                [FieldController::class, 'setFieldCategory'])
+                ->name('setFieldCategory');
 
             //PAGES ROUTES
             Route::get('/pages',
@@ -144,6 +152,10 @@ Route::middleware('auth')->group(function() {
             Route::post('/categories/insertNew',
                 [FieldCategoryController::class, 'insertCategories'])
                 ->name('insertCategories');
+            Route::post('/categories/deleteCategory', [
+                FieldCategoryController::class,
+                'deleteCategory',
+            ])->name('deleteCategory');
 
             //APPLICATION ROUTES
             Route::get('/applications',
@@ -152,13 +164,13 @@ Route::middleware('auth')->group(function() {
 
             //USER ROUTES
             Route::get('/users',
-                [UserController::class, 'showUser'])
+                [UserAdminController::class, 'showUser'])
                 ->name('showUser');
             Route::get('/users/edit/{id}',
-                [UserController::class, 'editUser'])
+                [UserAdminController::class, 'editUser'])
                 ->name('editUser');
             Route::post('/users/change-user-package', [
-                UserController::class,
+                UserAdminController::class,
                 'changeUserPackage',
             ])->name('changeUserPackage');
 
