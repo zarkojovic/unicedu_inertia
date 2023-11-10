@@ -30,7 +30,7 @@ class PageSeeder extends Seeder {
             [
                 'route' => '/documents',
                 'title' => 'Documents',
-                'icon' => 'user',
+                'icon' => 'file-type-doc',
                 'role_id' => '1',
                 'is_editable' => FALSE,
             ],
@@ -79,14 +79,14 @@ class PageSeeder extends Seeder {
             [
                 'route' => '/admin/intakes',
                 'title' => 'Intakes',
-                'icon' => 'api-app',
+                'icon' => 'timeline-event-text',
                 'role_id' => '3',
                 'is_editable' => FALSE,
             ],
             [
                 'route' => '/admin/packages',
-                'title' => 'Applications',
-                'icon' => 'api-app',
+                'title' => 'Packages',
+                'icon' => 'military-rank',
                 'role_id' => '3',
                 'is_editable' => FALSE,
             ],
