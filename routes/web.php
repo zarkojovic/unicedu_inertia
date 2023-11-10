@@ -8,11 +8,11 @@ use App\Http\Controllers\IntakeController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserAdminController;
 use App\Http\Controllers\UserController;
+use App\Models\FieldCategory;
 use App\Models\Page;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
 
 /*
@@ -21,60 +21,58 @@ use Inertia\Inertia;
 |--------------------------------------------------------------------------
 |
 */
-
-Route::fallback(function () {
+//  404 ROUTE
+Route::fallback(function() {
     return Inertia::render('404');
 });
 
-Route::get('/welcome', function () {
-    echo __('messages.welcome');
-});
-
-Route::post('/change-lang', function (Request $request) {
-    $lang = $request->lang;
-    App()->setLocale($lang);
-    Session::put('locale', $lang);
-})->name('change-lang');
-
 //FOR AUTHENTICATED USERS
-Route::middleware('auth')->group(function () {
+Route::middleware('auth')->group(function() {
     //FOR VERIFIED USERS
-    Route::middleware('verified')->group(function () {
+    Route::middleware('verified')->group(function() {
         //DYNAMIC ROUTES
         $routeNames = Page::all();
         foreach ($routeNames as $route) {
             if (!empty($route->role->role_name)) {
                 switch ($route->role->role_name) {
                     case 'admin':
-                        Route::middleware(["admin"])->group(function () use (
+                        Route::middleware(["admin"])->group(function() use (
                             $route
                         ) {
                             //ADMIN ROUTES
                             Route::get($route->route,
-                                function () use ($route) {
+                                function() use ($route) {
                                     return Inertia::render('Dashboard');
                                 });
                         });
                         break;
                     case 'student':
-                        Route::middleware('package')->group(function () use (
+                        Route::middleware('package')->group(function() use (
                             $route
                         ) {
-                            Route::get($route->route, function () use ($route) {
-                                return Inertia::render('Dashboard');
+                            Route::get($route->route, function() use ($route) {
+                                $categoriesWithFields = FieldCategory::getAllCategoriesWithFields($route->route);
+
+                                return Inertia::render('Dashboard', [
+                                    'categoriesWithFields' => $categoriesWithFields,
+                                ]);
                             });
                         });
                         break;
                     default :
-                        Route::get($route->route, function () use ($route) {
-                            return Inertia::render('Dashboard');
+                        Route::get($route->route, function() use ($route) {
+                            $categoriesWithFields = FieldCategory::getAllCategoriesWithFields($route->route);
+
+                            return Inertia::render('Dashboard', [
+                                'categoriesWithFields' => $categoriesWithFields,
+                            ]);
                         });
                         break;
                 }
             }
         }
 
-        Route::middleware('package')->group(function () {
+        Route::middleware('package')->group(function() {
             Route::get('/', [UserController::class, 'show'])->name("home");
             Route::get('/profile', [UserController::class, 'show'])
                 ->name('profile');
@@ -82,6 +80,11 @@ Route::middleware('auth')->group(function () {
                 [DealController::class, 'showUserDeals'])
                 ->name('applications');
         });
+
+        Route::post('/user/sync-deal-fields',
+            [UserController::class, 'syncFields'])->name('syncFields');
+
+        // DEAL/APPLICATION ROUTES
         Route::post('/applications/addNew',
             [DealController::class, 'apply'])
             ->name('newApplication');
@@ -98,7 +101,11 @@ Route::middleware('auth')->group(function () {
             ->name("user.image.update");
 
         //ADMIN
-        Route::middleware('admin')->prefix('admin')->group(function () {
+        Route::middleware('admin')->prefix('admin')->group(function() {
+            //DASHBOARD
+            Route::get('/dashboard', [AdminController::class, 'show'])
+                ->name('adminDashboard');
+
             //FIELDS
             Route::get('/fields', [AdminController::class, "home"])
                 ->name("admin_home");
@@ -111,6 +118,9 @@ Route::middleware('auth')->group(function () {
             Route::post('/update-fields',
                 [FieldController::class, 'updateFields'])
                 ->name('updateFields');
+            Route::post('/fields-modify',
+                [FieldController::class, 'setFieldCategory'])
+                ->name('setFieldCategory');
 
             //PAGES ROUTES
             Route::get('/pages',
@@ -134,7 +144,9 @@ Route::middleware('auth')->group(function () {
             Route::get('/categories/new',
                 [FieldCategoryController::class, 'createNewCategory'])
                 ->name('createNewCategory');
-
+            Route::post('/categories/insertNew',
+                [FieldCategoryController::class, 'insertCategories'])
+                ->name('insertCategories');
             //APPLICATION ROUTES
             Route::get('/applications',
                 [DealController::class, 'showApplication'])
@@ -142,13 +154,13 @@ Route::middleware('auth')->group(function () {
 
             //USER ROUTES
             Route::get('/users',
-                [UserController::class, 'showUser'])
+                [UserAdminController::class, 'showUser'])
                 ->name('showUser');
             Route::get('/users/edit/{id}',
-                [UserController::class, 'editUser'])
+                [UserAdminController::class, 'editUser'])
                 ->name('editUser');
             Route::post('/users/change-user-package', [
-                UserController::class,
+                UserAdminController::class,
                 'changeUserPackage',
             ])->name('changeUserPackage');
 
@@ -179,24 +191,14 @@ Route::middleware('auth')->group(function () {
         ->name('profile.destroy');
 });
 
-Route::get('/test', function () {
-    //    $fieldItems = FieldItem::with('field')->get();
-
-    //    dd($pages);
-
-    dd(Page::getCurrentPagesForSidebar());
-    //    FieldCategory::getAllCategoriesWithFields('/profile');
-    //
-    //    $broze_package_pages = ['/profile', '/applications'];
-    //
-    //    $page_ids = Page::whereIn('route', $broze_package_pages)
-    //        ->pluck('page_id')->toArray();
-    //
-    //    dd($page_ids);
+Route::get('/test', function() {
+    $user = auth()->user();
+    $package = DB::table('packages')
+        ->where('package_id', $user->package_id)
+        ->first();
+    //    $package = Package::where('package_id', $user->package_id)->first();
+    dd($package->package_bitrix_id);
 });
 
-//LARAVEL STARTER KIT DEFAULT ROUTES {
-//Route::get('/user', [\App\Http\Controllers\UserController::class, 'show'])->name('user.show');
-
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';
 // }

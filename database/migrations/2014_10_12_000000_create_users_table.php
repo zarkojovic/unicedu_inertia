@@ -25,6 +25,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('agency_id')->nullable();
             $table->unsignedBigInteger('responsible_id')->nullable();
             $table->unsignedBigInteger('package_id')->nullable();
+            $table->boolean('unsaved_changes')->nullable();
             $table->timestamps();
             $table->rememberToken();
         });

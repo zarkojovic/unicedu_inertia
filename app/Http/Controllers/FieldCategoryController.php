@@ -120,43 +120,42 @@ class FieldCategoryController extends Controller {
         return Inertia::render('Admin/Category/Insert');
     }
 
-    public function addNewCategories(Request $request) {
+    public function insertCategories(Request $request) {
         try {
-            // Validate the incoming data based on defined rules
-            $validator = Validator::make($request->all(), [
-                'category_name' => 'required|string|unique:field_categories',
+            // Create a new FieldCategory instance and set its attribute
+            $new = new FieldCategory();
+            $new->category_name = $request->categoryName;
+
+            // If category creation fails, throw an exception
+            if (!$new->save()) {
+                throw new Exception("Category creation failed.");
+            }
+
+            // Redirect to the showCategories route after successful creation
+            return redirect()->route('showCategory')->with([
+                'toast' => [
+                    'message' => 'Category added successfully!',
+                    'type' => 'success',
+                ],
             ]);
-
-            // If validation fails, redirect back with errors and input data
-            if ($validator->fails()) {
-                return redirect()->back()->withErrors($validator)->withInput();
-            }
-            else {
-                // Create a new FieldCategory instance and set its attribute
-                $new = new FieldCategory();
-                $new->category_name = $request->category_name;
-
-                // If category creation fails, throw an exception
-                if (!$new->save()) {
-                    throw new Exception("Category creation failed.");
-                }
-
-                // Redirect to the showCategories route after successful creation
-                return redirect()->route('showCategories');
-            }
         }
         catch (Exception $e) {
             // Log the error and handle it appropriately
-            Log::errorLog("Error adding new category");
+            Log::errorLog("Error adding new category: ".$e->getMessage());
 
             // Redirect to the showCategories route with an error message
             return redirect()
-                ->route('showCategories')
-                ->withErrors(['error' => 'An error occurred while adding the category.']);
+                ->back()
+                ->with([
+                    'toast' => [
+                        'message' => $e->getMessage(),
+                        'type' => 'danger',
+                    ],
+                ]);
         }
     }
 
-    public function deleteCategories(Request $request) {
+    public function deleteCategory(Request $request) {
         try {
             $id = $request->id;
 
@@ -168,13 +167,24 @@ class FieldCategoryController extends Controller {
                 // Log the successful deletion of the category
                 Log::apiLog("Category '".$category->category_name."' deleted.",
                     Auth::user()->user_id);
-
+                if (!$category->is_visible) {
+                    throw new Exception('You can\'t delete this category!');
+                }
                 // Delete the category
                 $category->delete();
             }
+            else {
+                throw new Exception('Error occurred while deleting a category!');
+            }
 
             // Redirect back after successful deletion or if the category was not found
-            return redirect()->back();
+            return redirect()->route('showCategory')
+                ->with([
+                    'toast' => [
+                        'message' => 'Category is successfully deleted!',
+                        'type' => 'success',
+                    ],
+                ]);
         }
         catch (Exception $e) {
             // Log the error and handle it appropriately
@@ -183,7 +193,12 @@ class FieldCategoryController extends Controller {
             // Redirect back with an error message
             return redirect()
                 ->back()
-                ->withErrors(['error' => 'An error occurred while deleting the category.']);
+                ->with([
+                    'toast' => [
+                        'message' => $e->getMessage(),
+                        'type' => 'danger',
+                    ],
+                ]);
         }
     }
 

@@ -1,12 +1,12 @@
 <script setup>
-import {defineProps, inject, ref} from 'vue';
+import {computed, defineProps, inject, ref} from 'vue';
 
 const props = defineProps({
     modelValue: {
         type: Object,
     },
     options: {
-        type: Array,
+        // type: Array,
     },
     label: {
         type: String,
@@ -23,6 +23,14 @@ const props = defineProps({
     selectedItem: {},
 });
 
+const formattedOptions = computed(() => {
+    if (!Array.isArray(props.options)) {
+        return Object.values(props.options);
+    }
+    return props.options;
+
+});
+
 const emits = defineEmits(['update:modelValue']);
 
 const selected = ref(props.modelValue);
@@ -30,12 +38,14 @@ const selected = ref(props.modelValue);
 const formItems = inject('formItems');
 
 const handleUpdate = (event) => {
-    var obj = props.options.filter(el => el.value === event.target.value);
+
+    var obj = formattedOptions.value.filter(el => el.value === event.target.value);
     formItems.value.formItems[props.inputName] = obj[0];
     emits('update:modelValue', obj[0]);
 };
 
 const val = ref(props.selectedItem);
+
 </script>
 
 <template>

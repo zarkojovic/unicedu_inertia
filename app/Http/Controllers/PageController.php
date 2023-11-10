@@ -61,9 +61,9 @@ class PageController extends Controller {
             // Find the page by its ID
             $page = Page::findOrFail($id);
 
-            if (!$page->is_editable) {
-                throw new Exception('This page is not editable!');
-            }
+            //            if (!$page->is_editable) {
+            //                throw new Exception('This page is not editable!');
+            //            }
 
             // Fetch all roles and field categories
 
@@ -76,7 +76,7 @@ class PageController extends Controller {
             $page->categories = $selectedCategories;
             $roles = Role::pluck('role_name', 'role_id'
             )->toArray();
-            $categories = FieldCategory::where('category_name', '<>', 'Hidden')
+            $categories = FieldCategory::where('is_visible', '<>', '0')
                 ->pluck('category_name', 'field_category_id'
                 )
                 ->toArray();
@@ -108,17 +108,6 @@ class PageController extends Controller {
     }
 
     public function createNewPage() {
-        // Path to the resource/js directory
-        //        $jsPath = resource_path('js');
-        //
-        //        // Read the content of tabler.json file for icons
-        //        $cssContent = file_get_contents($jsPath."/tabler.json");
-        //        $icons = json_decode($cssContent);
-        //
-        //        // Filter icons based on certain criteria
-        //        $icons = array_filter($icons,
-        //            fn($icon) => str_contains($icon, 'ti') && $icon != 'ti');
-
         // Fetch all roles and field categories
 
         $roles = Role::pluck('role_name', 'role_id'
@@ -135,23 +124,23 @@ class PageController extends Controller {
         ]);
     }
 
-    public function generateIcons() {
-        // Path to the resource/js directory
-        $jsPath = resource_path('css/icons/tabler-icons');
-        //Gets content from json file
-        $cssContent = file_get_contents($jsPath."/tabler-icons.css");
-        $pattern = '/\.([a-zA-Z0-9_-]+)/'; // Regular expression to match class names
-
-        preg_match_all($pattern, $cssContent, $matches);
-
-        $classNames = $matches[1];
-        $jsonData = json_encode($classNames, JSON_PRETTY_PRINT);
-
-        // Path to the public/js directory
-        $jsPath = resource_path('js');
-
-        file_put_contents($jsPath."/tabler.json", $jsonData);
-    }
+    //    public function generateIcons() {
+    //        // Path to the resource/js directory
+    //        $jsPath = resource_path('css/icons/tabler-icons');
+    //        //Gets content from json file
+    //        $cssContent = file_get_contents($jsPath."/tabler-icons.css");
+    //        $pattern = '/\.([a-zA-Z0-9_-]+)/'; // Regular expression to match class names
+    //
+    //        preg_match_all($pattern, $cssContent, $matches);
+    //
+    //        $classNames = $matches[1];
+    //        $jsonData = json_encode($classNames, JSON_PRETTY_PRINT);
+    //
+    //        // Path to the public/js directory
+    //        $jsPath = resource_path('js');
+    //
+    //        file_put_contents($jsPath."/tabler.json", $jsonData);
+    //    }
 
     public function updatePage(Request $request) {
         $data = $request->all();
@@ -314,12 +303,6 @@ class PageController extends Controller {
         catch (Exception $e) {
             // Rollback the transaction on exception
             DB::rollback();
-            //            session([
-            //                'toast' => [
-            //                    'message' => 'Something went wrong!',
-            //                    'type' => 'danger',
-            //                ],
-            //            ]);
             // Log the error and handle it appropriately
             Log::errorLog("Error adding new page");
 
@@ -374,7 +357,7 @@ class PageController extends Controller {
                         ->route('showPage')
                         ->with([
                             'toast' => [
-                                'message' => 'There was an error during deleting!',
+                                'message' => $e->getMessage(),
                                 'type' => 'danger',
                             ],
                         ]);
@@ -405,25 +388,26 @@ class PageController extends Controller {
         }
     }
 
-    public function getIconsByName(Request $request) {
-        $name = $request->name;
-
-        // Path to the resource/js directory
-        $jsPath = resource_path('js');
-        //Gets content from json file
-        $cssContent = file_get_contents($jsPath."/tabler.json");
-
-        $icons = json_decode($cssContent);
-
-        $icons = array_filter($icons, function($icon) {
-            return str_contains($icon, 'ti') && $icon != 'ti';
-        });
-
-        $icons = array_filter($icons, function($icon) use ($name) {
-            return str_contains($icon, strtolower($name));
-        });
-
-        echo(json_encode($icons));
-    }
+    //OLD WAY OF DOING IT
+    //    public function getIconsByName(Request $request) {
+    //        $name = $request->name;
+    //
+    //        // Path to the resource/js directory
+    //        $jsPath = resource_path('js');
+    //        //Gets content from json file
+    //        $cssContent = file_get_contents($jsPath."/tabler.json");
+    //
+    //        $icons = json_decode($cssContent);
+    //
+    //        $icons = array_filter($icons, function($icon) {
+    //            return str_contains($icon, 'ti') && $icon != 'ti';
+    //        });
+    //
+    //        $icons = array_filter($icons, function($icon) use ($name) {
+    //            return str_contains($icon, strtolower($name));
+    //        });
+    //
+    //        echo(json_encode($icons));
+    //    }
 
 }

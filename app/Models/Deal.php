@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class Deal extends Model {
@@ -28,13 +27,16 @@ class Deal extends Model {
         'created_at' => 'datetime:Y-m-d H:i:s',
     ];
 
-    public static function generateDealObject($user_id, $items, $contact_id) {
-        $user = Auth::user();
+    public static function generateDealObject(
+        $user_id,
+        $items,
+        $contact_id,
+        $package_name
+    ) {
         //IF IT'S SAVED IN DATABASE PROCEED TO SAVE THAT IN BITRIX
         $pathOriginalImage = "public/profile/original";
         $pathDocuments = "public/profile/documents";
         $dealFields = [
-            'TITLE' => 'test titleee',
             'CONTACT_ID' => $contact_id,
         ];
         $userInfoFiles = UserInfo::where('user_id', $user_id)
@@ -100,7 +102,6 @@ class Deal extends Model {
 
         //EXTRACT APPLICATION FIELDS NAMES AND THEIR VALUES (FROM DROPDOWNS) AND THEIR OPTION NAMES
 
-        $applicationFieldsValues = [];
         $intake = Field::where('title', 'Intake')->first();
         $intakeBitrixId = Intake::where('active', '1')->first();
 
@@ -108,6 +109,8 @@ class Deal extends Model {
         foreach ($items as $value) {
             $dealFields[$value['field_name']] = $value['value'];
         }
+        // PACKAGE FIELD ADDING
+        $dealFields['UF_CRM_1667333858787'] = $package_name;
 
         return $dealFields;
     }

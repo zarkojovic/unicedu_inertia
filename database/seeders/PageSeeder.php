@@ -28,6 +28,13 @@ class PageSeeder extends Seeder {
                 'is_editable' => FALSE,
             ],
             [
+                'route' => '/documents',
+                'title' => 'Documents',
+                'icon' => 'file-type-doc',
+                'role_id' => '1',
+                'is_editable' => FALSE,
+            ],
+            [
                 'route' => '/admin/pages',
                 'title' => 'Pages',
                 'icon' => 'wallpaper',
@@ -70,6 +77,20 @@ class PageSeeder extends Seeder {
                 'is_editable' => FALSE,
             ],
             [
+                'route' => '/admin/intakes',
+                'title' => 'Intakes',
+                'icon' => 'timeline-event-text',
+                'role_id' => '3',
+                'is_editable' => FALSE,
+            ],
+            [
+                'route' => '/admin/packages',
+                'title' => 'Packages',
+                'icon' => 'military-rank',
+                'role_id' => '3',
+                'is_editable' => FALSE,
+            ],
+            [
                 'route' => '/visa',
                 'title' => 'Visa',
                 'icon' => 'brand-visa',
@@ -96,13 +117,19 @@ class PageSeeder extends Seeder {
             $new->save();
 
             if ($page['route'] == '/profile') {
-                $ids = ['1', '2', '3'];
+                $ids = ['1', '2'];
                 foreach ($ids as $id) {
                     DB::table('field_category_page')->insert([
                         'field_category_id' => $id,
                         'page_id' => $new->page_id,
                     ]);
                 }
+            }
+            if ($page['route'] === '/documents') {
+                DB::table('field_category_page')->insert([
+                    'field_category_id' => '3',
+                    'page_id' => $new->page_id,
+                ]);
             }
         }
     }

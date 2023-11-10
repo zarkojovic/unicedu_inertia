@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\DeleteBitrixDeal;
 use App\Jobs\sendingBitrixDeal;
 use App\Models\Deal;
 use App\Models\Field;
@@ -18,8 +19,17 @@ class DealController extends RootController {
 
     public function showApplication() {
         try {
-            // Fetch all deals from the 'deals' table and select 'deal_id' as 'id'
-            $data = Deal::select('deal_id as id', 'intake', 'program')
+            $data = DB::table('deals')
+                ->join('users', 'users.user_id', 'deals.user_id')
+                ->join('user_intake_packages', 'user_intake_packages.user_id',
+                    'users.user_id')
+                ->select('users.profile_image as Profile Image',
+                    'users.first_name as Name',
+                    'deals.deal_id as id', 'deals.intake', 'deals.program',
+                    'deals.university', 'deals.degree',
+                    'user_intake_packages.package_id as Package',
+                    'deals.created_at as applied at',
+                    DB::raw('CASE WHEN deals.active = 1 THEN "active" ELSE "inactive" END AS active'))
                 ->paginate(10);
 
             // Return the admin template view with necessary data
@@ -39,12 +49,23 @@ class DealController extends RootController {
         }
     }
 
-    public function showUserDeals() {
+    public function showUserDeals(Request $request) {
+        //        dd($request->isModalOpen);
         $user = auth()->user();
-        $applications = Deal::where('user_id', $user->user_id)
-            ->where('active', '1')
+        //        $applications = Deal::where('user_id', $user->user_id)
+        //            ->where('active', '1')
+        //            ->get()
+        //            ->toArray();
+
+        $applications = DB::table('deals')
+            ->join('stages', 'stages.stage_id', 'deals.stage_id')
+            ->where('deals.user_id', $user->user_id)
+            ->where('deals.active', '1')
+            ->select('deals.*', 'stages.stage_name')
             ->get()
             ->toArray();
+
+        $applications = json_decode(json_encode($applications), TRUE);
 
         $intakes = DB::table('user_intake_packages')
             ->where('user_id', $user->user_id)
@@ -78,6 +99,7 @@ class DealController extends RootController {
         //        dd($result);
         return Inertia::render("Student/Applications", [
             'applications' => $result,
+            'isModalOpen' => $request->isModalOpen === '1',
         ]);
     }
 
@@ -98,7 +120,7 @@ class DealController extends RootController {
             }
 
             // Create a new university application deal if there are items in the request
-            if (count($request->items) > 0) {
+            if (count($request->items)) {
                 $deal = new Deal();
 
                 $deal->active = TRUE;
@@ -153,31 +175,19 @@ class DealController extends RootController {
                 }
 
                 if ($deal->save()) {
-                    //                    $dealFields = Deal::generateDealObject($user,
-                    //                        []);
-                    //                    dd($dealFields);
-
-                    sendingBitrixDeal::dispatch($user, $request->items);
-                    //                    dd('pozz');
-                    //                    // Make API call to create the deal in Bitrix24
-                    //                    $result = CRest::call("crm.deal.add",
-                    //                        ['FIELDS' => $dealFields]);
-
+                    sendingBitrixDeal::dispatch($user, $request->items,
+                        $deal->deal_id);
                     //IF DEAL SUCCESSFULLY ADDED IN BITRIX
                     //                    if (isset($result['result']) && $result['result'] > 0) {
-                    if (1) {
-                        return redirect()
-                            ->route('applications')
-                            ->with([
-                                'toast' => [
-                                    'message' => 'Your application to the university has been successfully created.',
-                                    'type' => 'success',
-                                ],
-                            ]);
-                    }
-                    else {
-                        throw new Exception('There was an error while saving the application!');
-                    }
+
+                    return redirect()
+                        ->route('applications')
+                        ->with([
+                            'toast' => [
+                                'message' => 'Your application to the university has been successfully created.',
+                                'type' => 'success',
+                            ],
+                        ]);
                 }
                 else {
                     throw new Exception('An error occurred while saving the application.');
@@ -220,6 +230,8 @@ class DealController extends RootController {
         //OVDE MOZDA TRY CATCH
         // Retrieve the Bitrix deal ID associated with the deal
         $bitrix_deal_id = $deal->bitrix_deal_id;
+
+        DeleteBitrixDeal::dispatch($bitrix_deal_id, $user->user_id);
 
         // Make an API call to delete the deal in Bitrix24
         //        $result = CRest::call("crm.deal.delete",
