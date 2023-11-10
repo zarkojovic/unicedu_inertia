@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\FieldsUpdateRequest;
 use App\Models\Deal;
 use App\Models\Field;
 use App\Models\FieldCategory;
@@ -74,47 +75,80 @@ class FieldController extends Controller
 
     public function setFieldCategory(Request $request)
     {
-        try {
-            $fieldsOrders = $request->fieldsOrders;
+        // Define validation rules, this should be moved to a custom request
+        $rules = [
+            'fieldsOrders' => 'required|array', // Ensure 'fieldsOrders' is present and an array
+            'fieldsOrders.*.field_id' => 'required|integer', // Validate 'field_id' within each array element
+            'fieldsOrders.*.field_name' => 'required|string', // Validate 'field_name' within each array element
+        ];
 
-            //UPDATE ORDERS, FIELD_CATEGORY_IDS, IS_REQUIRED SETTINGS IN DATABASE
-            if (count($fieldsOrders) > 0) {
-//                dd($fieldsOrders);
-                Field::upsert(
-                    $fieldsOrders, //insert or update this
-                    ["field_id", "field_name"], //determine by this
-                    ["order", "is_required", "field_category_id"]); //if exists update this
+        $validatedData = $request->validate($rules);
+        dd($validatedData);
 
-                Log::apiLog('Fields updated in admin panel!', Auth::user()->user_id);
+        if ($request->validated()) {
+            $fieldIds = collect($validatedData['fieldsOrders'])->pluck('field_id')->toArray();
+            $fieldNames = collect($validatedData['fieldsOrders'])->pluck('field_name')->toArray();
+
+            // Check if all submitted fields exist in the database
+            $fieldsExist = Field::whereIn('field_id', $fieldIds)
+                    ->whereIn('field_name', $fieldNames)
+                    ->count() === count($fieldIds);
+            dd($fieldsExist);
+            if (!$fieldsExist) {
                 return redirect()
                     ->route("admin_home")
                     ->with([
                         'toast' => [
-                            'message' => "Fields updated successfully!",
-                            'type' => 'success',
+                            'message' => "One or more of the submitted fields do not exist in the database.",
+                            'type' => 'danger',
                         ],
                     ]);
             }
 
-//            return redirect()
-//                ->route("admin_home")
-//                ->with([
-//                    'toast' => [
-//                        'message' => "No changes made.",
-//                        'type' => 'warning',
-//                    ],
-//                ]);
-        } catch (Exception $e) {
-            Log::errorLog($e->getMessage(), Auth::user()->user_id);
+            try {
+//            $fieldsOrders = $request->fieldsOrders;
+                $fieldsOrders = $validatedData["fieldsOrders"];
+
+                //UPDATE ORDERS, FIELD_CATEGORY_IDS, IS_REQUIRED SETTINGS IN DATABASE
+                if (count($fieldsOrders)) {
+                    Field::upsert(
+                        $fieldsOrders, //insert or update this
+                        ["field_id", "field_name"], //determine by this
+                        ["order", "is_required", "field_category_id"]); //if exists update this
+
+                    Log::apiLog('Fields updated in admin panel!', Auth::user()->user_id);
+                    return redirect()
+                        ->route("admin_home")
+                        ->with([
+                            'toast' => [
+                                'message' => "Fields updated successfully!",
+                                'type' => 'success',
+                            ],
+                        ]);
+                }
+            } catch (Exception $e) {
+                Log::errorLog($e->getMessage(), Auth::user()->user_id);
+                return redirect()
+                    ->route("admin_home")
+                    ->with([
+                        'toast' => [
+                            'message' => "An error occurred on the server.",
+                            'type' => 'danger',
+                        ],
+                    ]);
+            }
+        } else {
+//            Log::errorLog($e->getMessage(), Auth::user()->user_id);
             return redirect()
                 ->route("admin_home")
                 ->with([
                     'toast' => [
-                        'message' => "An error occurred on the server.",
+                        'message' => "The request didn't pass validation.",//change message
                         'type' => 'danger',
                     ],
                 ]);
         }
+
     }
 
     //OLD FUNCTION WITH JSON

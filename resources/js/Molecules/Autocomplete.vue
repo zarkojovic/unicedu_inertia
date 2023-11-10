@@ -147,21 +147,4 @@ const toggleCombobox = (() => {
     query = ''
     emits("hide");
 });
-// const delaySearch = (() => {
-//     let searchTimeout;
-//     let searchedItems = ref([]);
-//
-//     clearTimeout(searchTimeout);
-//     searchTimeout = setTimeout(function() {
-//         searchedItems.value = items.value.filter((item) =>
-//             item.title
-//                 .toLowerCase()
-//                 .replace(/\s+/g, '')
-//                 .includes(query.value.toLowerCase().replace(/\s+/g, ''))
-//         ).slice(0, 20);
-//     }, 400);
-//     console.log(searchedItems.value)
-//     return searchedItems.value;
-//     // console.log(filteredItems.value)
-// })
 </script>
