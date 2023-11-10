@@ -11,6 +11,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
 
 class sendingBitrixDeal implements ShouldQueue {
 
@@ -35,8 +36,11 @@ class sendingBitrixDeal implements ShouldQueue {
      * Execute the job.
      */
     public function handle(): void {
+        $package = DB::table('packages')
+            ->where('package_id', $this->user->package_id)
+            ->first();
         $dealFields = Deal::generateDealObject($this->user->user_id,
-            $this->items, $this->user->contact_id);
+            $this->items, $this->user->contact_id, $package->package_bitrix_id);
 
         // Make API call to create the deal in Bitrix24
         $result = CRest::call("crm.deal.add",

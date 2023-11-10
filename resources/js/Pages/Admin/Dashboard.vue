@@ -9,6 +9,24 @@ const props = defineProps({
     },
 });
 
+const rowHighlight = [
+    {
+        name: 'action_name',
+        value: 'information',
+        className: 'bg-blue-100',
+    },
+    {
+        name: 'action_name',
+        value: 'errors',
+        className: 'bg-red-100',
+    },
+    {
+        name: 'action_name',
+        value: 'api',
+        className: 'bg-green-100',
+    },
+];
+
 </script>
 
 <template>
@@ -18,7 +36,7 @@ const props = defineProps({
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Admin Panel</h2>
         </template>
         <div class="py-6 mt-6">
-            <ModelDataDisplay :columns="props.columns" :data="props.data"
+            <ModelDataDisplay :columns="props.columns" :data="props.data" :row-highlight="rowHighlight"
                               section-title="Logs"/>
         </div>
     </AuthenticatedLayout>

@@ -37,6 +37,10 @@ return new class extends Migration {
                 ->references('user_intake_package_id')
                 ->on('user_intake_packages')
                 ->onDelete('cascade');
+            $table->foreign('stage_id')
+                ->references('stage_id')
+                ->on('stages')
+                ->onDelete('cascade');
         });
         Schema::table('fields', function(Blueprint $table) {
             $table->foreign('field_category_id')

@@ -50,7 +50,8 @@ const refreshFields = () => {
                 </div>
 
                 <div class="flex justify-center">
-                    <Link v-if="navBtnType === 'studentProfile'" :href="route('applications')">
+                    <Link v-if="navBtnType === 'studentProfile'"
+                          :href="route('applications',{isModalOpen: true})">
                         <Button :type="'primary'" class="me-3 ">
                             Apply Now
                         </Button>

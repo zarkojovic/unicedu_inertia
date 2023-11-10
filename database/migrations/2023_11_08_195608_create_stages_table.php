@@ -11,15 +11,15 @@ return new class extends Migration {
      * Run the migrations.
      */
     public function up(): void {
-        Schema::create('packages', function(Blueprint $table) {
-            $table->id('package_id');
-            $table->string('package_name');
-            $table->string('package_bitrix_id');
+        Schema::create('stages', function(Blueprint $table) {
+            $table->id('stage_id');
+            $table->string('stage_name');
+            $table->string('bitrix_stage_id');
             $table->timestamps();
         });
 
         Artisan::call('db:seed', [
-            '--class' => 'PackageSeeder',
+            '--class' => 'StageSeeder',
         ]);
     }
 
@@ -27,7 +27,7 @@ return new class extends Migration {
      * Reverse the migrations.
      */
     public function down(): void {
-        Schema::dropIfExists('packages');
+        Schema::dropIfExists('stages');
     }
 
 };

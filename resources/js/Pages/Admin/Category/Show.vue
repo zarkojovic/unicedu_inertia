@@ -22,7 +22,7 @@ const checkRow = [
     }, {
         name: 'is_visible',
         value: true,
-        className: 'bg-blue-100',
+        className: 'bg-green-100',
     },
 ];
 </script>

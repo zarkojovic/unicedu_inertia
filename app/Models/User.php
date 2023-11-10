@@ -81,15 +81,7 @@ class User extends Authenticatable implements MustVerifyEmail {
     }
 
     public function package(): hasOne {
-        return $this->hasONe(Package::class);
-    }
-
-    //    public function getUserById($id) {
-    //        return $this->find($id);
-    //    }
-
-    public function updateUser($id, $data) {
-        return $this->where('id', $id)->update($data);
+        return $this->hasONe(Package::class, 'package_id', 'package_id');
     }
 
 }

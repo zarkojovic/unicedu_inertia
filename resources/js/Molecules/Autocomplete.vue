@@ -57,7 +57,7 @@
 </template>
 
 <script setup>
-import {ref, computed, onMounted, onBeforeUnmount, watch} from 'vue';
+import {ref, computed, onMounted, onBeforeUnmount, watch, inject} from 'vue';
 import {useFetch} from '@/Composables/fetch.js';
 import {useForm} from '@inertiajs/vue3';
 import {
@@ -92,15 +92,18 @@ const vFocus = {
 };
 
 //WATCHER
+const updateFieldsOrders = inject('fieldsOrders');
 watch(selected, (newVal, oldVal) => {
     try {
         form.field_id = JSON.parse(JSON.stringify(newVal.field_id));
         form.field_category_id = JSON.parse(JSON.stringify(props.catId));
         form.order = JSON.parse(JSON.stringify(props.order));
 
-        // console.log(form.field_id, form.field_category_id, form.order)
         toggleCombobox();
-        form.submit("post", "/admin/fields-add", {preserveScroll: true});
+        form.submit("post", "/admin/fields-add", {
+            preserveScroll: true,
+            onSuccess: () => updateFieldsOrders(form.field_id)
+        });
     } catch (error) {
         console.error('Error in watch callback:', error);
     }
