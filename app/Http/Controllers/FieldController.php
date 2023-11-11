@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\FieldsUpdateRequest;
 use App\Models\Deal;
 use App\Models\Field;
 use App\Models\FieldCategory;
@@ -12,6 +13,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Kafka0238\Crest\Src;
 
 class FieldController extends Controller
@@ -74,36 +76,67 @@ class FieldController extends Controller
 
     public function setFieldCategory(Request $request)
     {
+        //Validate incoming request
+        $validator = Validator::make($request->all(), [
+            'fieldsOrders' => 'required|array', // Ensure 'fieldsOrders' is present and an array
+            'fieldsOrders.*.field_id' => 'required|integer', // Validate 'field_id' within each array element
+            'fieldsOrders.*.field_name' => 'required|string', // Validate 'field_name' within each array element
+            'fieldsOrders.*.order' => 'integer|nullable', // Validate 'order' within each array element
+            'fieldsOrders.*.is_required' => 'required|boolean', // Validate 'is_required' within each array element
+            'fieldsOrders.*.field_category_id' => 'integer|nullable',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()
+                ->route("admin_home")
+                ->with([
+                    'toast' => [
+                        'message' => "Validation failed. One or more fields are invalid.",
+                        'type' => 'danger',
+                    ],
+                ]);
+        }
+
+        // If validated, check if all received fields exist in the database
+        $validatedData = $validator->validated(); // Get the validated data
+
+        $fieldIds = collect($validatedData['fieldsOrders'])->pluck('field_id')->toArray();
+        $fieldNames = collect($validatedData['fieldsOrders'])->pluck('field_name')->toArray();
+
+        // Check if all submitted fields exist in the database
+        $fieldsExist = Field::whereIn('field_id', $fieldIds)
+                ->whereIn('field_name', $fieldNames)
+                ->count() === count($fieldIds);
+
+        if (!$fieldsExist) {
+            return redirect()
+                ->route("admin_home")
+                ->with([
+                    'toast' => [
+                        'message' => "Validation failed",
+                        'type' => 'danger',
+                    ],
+                ]);
+        }
+
         try {
-            $fieldsOrders = $request->fieldsOrders;
+            $fieldsOrders = $validatedData["fieldsOrders"];
 
             //UPDATE ORDERS, FIELD_CATEGORY_IDS, IS_REQUIRED SETTINGS IN DATABASE
-            if (count($fieldsOrders) > 0) {
-//                dd($fieldsOrders);
-                Field::upsert(
-                    $fieldsOrders, //insert or update this
-                    ["field_id", "field_name"], //determine by this
-                    ["order", "is_required", "field_category_id"]); //if exists update this
+            Field::upsert(
+                $fieldsOrders, //insert or update this
+                ["field_id", "field_name"], //determine by this
+                ["order", "is_required", "field_category_id"]); //if exists update this
 
-                Log::apiLog('Fields updated in admin panel!', Auth::user()->user_id);
-                return redirect()
-                    ->route("admin_home")
-                    ->with([
-                        'toast' => [
-                            'message' => "Fields updated successfully!",
-                            'type' => 'success',
-                        ],
-                    ]);
-            }
-
-//            return redirect()
-//                ->route("admin_home")
-//                ->with([
-//                    'toast' => [
-//                        'message' => "No changes made.",
-//                        'type' => 'warning',
-//                    ],
-//                ]);
+            Log::apiLog('Fields updated in admin panel!', Auth::user()->user_id);
+            return redirect()
+                ->route("admin_home")
+                ->with([
+                    'toast' => [
+                        'message' => "Fields updated successfully!",
+                        'type' => 'success',
+                    ],
+                ]);
         } catch (Exception $e) {
             Log::errorLog($e->getMessage(), Auth::user()->user_id);
             return redirect()
