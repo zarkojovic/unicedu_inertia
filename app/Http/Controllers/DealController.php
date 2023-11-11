@@ -8,7 +8,10 @@ use App\Models\Deal;
 use App\Models\Field;
 use App\Models\Intake;
 use App\Models\Log;
+use App\Models\Stage;
+use CRest;
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -23,10 +26,12 @@ class DealController extends RootController {
                 ->join('users', 'users.user_id', 'deals.user_id')
                 ->join('user_intake_packages', 'user_intake_packages.user_id',
                     'users.user_id')
+                ->join('stages', 'stages.stage_id', 'deals.stage_id')
                 ->select('users.profile_image as Profile Image',
                     'users.first_name as Name',
                     'deals.deal_id as id', 'deals.intake', 'deals.program',
                     'deals.university', 'deals.degree',
+                    'stages.stage_name as Stage',
                     'user_intake_packages.package_id as Package',
                     'deals.created_at as applied at',
                     DB::raw('CASE WHEN deals.active = 1 THEN "active" ELSE "inactive" END AS active'))
@@ -269,6 +274,98 @@ class DealController extends RootController {
                     'type' => 'success',
                 ],
         ]);
+    }
+
+    public function editApplication(string $id) {
+        //        $dealInfo = Deal::select('*', 'deal_id as id')->findOrFail($id);
+
+        $dealInfo = DB::table('deals')
+            ->join('users', 'deals.user_id', 'users.user_id')
+            ->join('stages', 'stages.stage_id', 'deals.stage_id')
+            ->where('deals.deal_id', $id)
+            ->select('deals.deal_id as id', 'deals.program', 'deals.degree',
+                'deals.intake', 'deals.university', 'deals.stage_id',
+                'deals.user_id', 'deals.created_at', 'deals.active',
+                'users.first_name',
+                'users.last_name', 'stages.stage_name')
+            ->first();
+
+        $stages = Stage::select('stage_name as label',
+            DB::raw('CAST(stage_id AS CHAR) AS value'))->get()->toArray();
+
+        return Inertia::render("Admin/Application/Edit",
+            [
+                'dealInfo' => $dealInfo,
+                'stages' => $stages,
+            ]);
+    }
+
+    public function changeDealStage(Request $request) {
+        try {
+            // Find the deal to update or throw an exception if not found
+            $dealToUpdate = Deal::where('deal_id', $request->deal_id)
+                ->where('active', 1)
+                ->firstOrFail();
+
+            // Begin a database transaction using transaction scope
+            DB::transaction(function() use ($dealToUpdate, $request) {
+                // Update deal information
+                $dealToUpdate->stage_id = $request->stage_id;
+
+                // Save the changes
+                if ($dealToUpdate->save()) {
+                    // Retrieve the stage key from the Stage model
+                    $stageKey = Stage::findOrFail($request->stage_id);
+
+                    // Make API call to update the deal in Bitrix24
+                    CRest::call("crm.deal.update", [
+                        'id' => (string) $dealToUpdate->bitrix_deal_id,
+                        'fields' => [
+                            'STAGE_ID' => $stageKey->bitrix_stage_id,
+                        ],
+                    ]);
+
+                    // Commit the transaction if successful
+                    DB::commit();
+                }
+                else {
+                    // Rollback the transaction if saving fails
+                    DB::rollBack();
+
+                    return redirect()->back()->with([
+                        'toast' => [
+                            'type' => 'danger',
+                            'message' => 'Error has occurred while updating!',
+                        ],
+                    ]);
+                }
+            });
+
+            return redirect()->back()->with([
+                'toast' => [
+                    'type' => 'success',
+                    'message' => 'You successfully changed the stage of the deal!',
+                ],
+            ]);
+        }
+        catch (ModelNotFoundException $exception) {
+            // Handle the case when the deal is not found or not active
+            return redirect()->back()->with([
+                'toast' => [
+                    'type' => 'danger',
+                    'message' => 'Deal not found or not editable!',
+                ],
+            ]);
+        }
+        catch (Exception $exception) {
+            // Handle other exceptions
+            return redirect()->back()->with([
+                'toast' => [
+                    'type' => 'danger',
+                    'message' => 'An unexpected error occurred!',
+                ],
+            ]);
+        }
     }
 
 }

@@ -41,7 +41,7 @@ const stageClass = computed(() => {
 </script>
 <template>
     <div class="mt-2">
-    <span :class="stageClass" class="px-3 py-2 bg-li text-sm rounded-3xl">
+    <span :class="stageClass" class="px-3 py-2 bg-li text-sm rounded-3xl whitespace-nowrap">
         {{ props.stageName }}
     </span></div>
 </template>

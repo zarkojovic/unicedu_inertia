@@ -151,6 +151,13 @@ Route::middleware('auth')->group(function() {
             Route::get('/applications',
                 [DealController::class, 'showApplication'])
                 ->name('showApplication');
+            Route::get('/applications/edit/{id}',
+                [DealController::class, 'editApplication'])
+                ->name('editApplication');
+            Route::post('/applications/change-deal-stage', [
+                DealController::class,
+                'changeDealStage',
+            ])->name('changeDealStage');
 
             //USER ROUTES
             Route::get('/users',

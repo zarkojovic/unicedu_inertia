@@ -21,6 +21,9 @@ const rowTypes = [
     }, {
         name: 'Package',
         type: 'package',
+    }, {
+        name: 'Stage',
+        type: 'stage',
     },
 ];
 
@@ -43,7 +46,8 @@ const checkRow = [
 
         <div class="py-6 mt-6">
             <ModelDataDisplay :column-types="rowTypes" :columns="props.columns" :data="props.data"
-                              :excluded-columns="hidden" :row-highlight="checkRow"
+                              :excluded-columns="hidden" :is-editable="true" :row-highlight="checkRow"
+                              edit-route="editApplication"
                               section-title="Student Applications"/>
         </div>
     </AuthenticatedLayout>

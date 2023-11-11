@@ -8,6 +8,7 @@ import {Link, useForm, usePage} from '@inertiajs/vue3';
 
 import {Icon} from '@iconify/vue';
 import PackageIndicator from '@/Atoms/PackageIndicator.vue';
+import DisplayStage from '@/Atoms/DisplayStage.vue';
 
 const props = defineProps({
     data: {
@@ -131,6 +132,7 @@ onMounted(() => {
                         <Icon v-if="typeOfColumn(col) === 'icon'" :icon="'tabler:'+item[col]" class="text-2xl me-2"
                               inline/>
                         <PackageIndicator v-if="typeOfColumn(col) === 'package'" :package-id="item[col]"/>
+                        <DisplayStage v-if="typeOfColumn(col) === 'stage'" :stage-name="item[col]"/>
                     </div>
                     <div v-else>
                         {{ item[col] }}
