@@ -215,57 +215,32 @@ class UserController extends RootController {
 
                     else {
                         if (!empty($value)) {
-                            if ($value['value'] !== NULL) {
-                                if (isset($value['label'])) {
-                                    DB::table('user_infos')
-                                        ->where('user_info_id', '=',
-                                            $user_info->user_info_id)
-                                        ->update([
-                                            'value' => $value['value'],
-                                            'display_value' => $value['label'],
-                                        ]);
-                                }
-                                else {
-                                    if (is_string($value['value'])) {
-                                        $value = ucfirst($value['value']);
-                                        DB::table('user_infos')
-                                            ->where('user_info_id', '=',
-                                                $user_info->user_info_id)
-                                            ->update([
-                                                'value' => $value,
-                                            ]);
-                                    }
-                                    else {
-                                        DB::table('user_infos')
-                                            ->where('user_info_id', '=',
-                                                $user_info->user_info_id)
-                                            ->update([
-                                                'value' => $value['value'],
-                                            ]);
-                                    }
-                                }
+                            $updateData = [
+                                'value' => isset($value['value']) ? $value['value'] : NULL,
+                                'display_value' => isset($value['label']) ? $value['label'] : NULL,
+                            ];
+
+                            if (is_string($value['value'])) {
+                                $updateData['value'] = ucfirst($value['value']);
                             }
-                            else {
-                                DB::table('user_infos')
-                                    ->where('user_info_id', '=',
-                                        $user_info->user_info_id)
-                                    ->update([
-                                        'value' => NULL,
-                                        'display_value' => NULL,
-                                    ]);
-                            }
+
+                            DB::table('user_infos')
+                                ->where('user_info_id',
+                                    $user_info->user_info_id)
+                                ->update($updateData);
                         }
                         else {
                             DB::table('user_infos')
-                                ->where('user_info_id', '=',
+                                ->where('user_info_id',
                                     $user_info->user_info_id)
                                 ->update([
                                     'value' => NULL,
                                     'display_value' => NULL,
                                 ]);
+
                             session([
                                 'toast' => [
-                                    'message' => "Field Category updated!!",
+                                    'message' => 'Field Category updated!!',
                                     'type' => 'success',
                                 ],
                             ]);
@@ -294,12 +269,6 @@ class UserController extends RootController {
             ->pluck('user_id', 'bitrix_deal_id')
             ->toArray();
 
-        //        dd($deals);
-
-        //        $deals = Deal::where('user_id', $user->user_id)
-        //            ->pluck('user_id', 'bitrix_deal_id')
-        //            ->toArray();
-        //
         if (count($deals)) {
             $user->unsaved_changes = 1;
 
@@ -313,23 +282,6 @@ class UserController extends RootController {
                         'duration' => '10000',
                     ],
                 ]);
-
-            //            $fields = User::getAllUserFieldsValue();
-            //
-            //            foreach ($deals as $key => $val) {
-            //                // Make API call t*3o create the deal in Bitrix24
-            //                $res = CRest::call("crm.deal.update", [
-            //                    'ID' => (string) $key,
-            //                    'FIELDS' => $fields,
-            //                ]);
-            //
-            //                if ($res['result']) {
-            //                    Log::apiLog('Deal '.$key.' successfully updated!');
-            //                }
-            //                else {
-            //                    Log::errorLog('Failed to update deal '.$key);
-            //                }
-            //            }
         }
     }
 
