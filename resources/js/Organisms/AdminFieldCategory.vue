@@ -72,7 +72,10 @@ function updateFieldsOrders(field_id) {
     if (fieldToAdd) {
         form.fieldsOrders.push(fieldToAdd);
     } else {
-        console.log("The field doesn't exist.");
+        addToast({
+            message: "We received a field that doesn't exist in this category.",
+            type: "danger",
+        });
     }
 }
 
@@ -91,7 +94,10 @@ const reorderFields = () => {
                 orderItem.order = index + reduceByInactive;
             }
         } else {
-            console.log("Field doesn't exist in this category.")
+            addToast({
+                message: "We received a field that doesn't exist in this category.",
+                type: "danger",
+            });
         }
     });
 };
@@ -102,7 +108,12 @@ const updateIsRequiredValue = (event) => {
     // Update the existing object with the new is_required value
     if (indexToUpdate !== -1) {
         form.fieldsOrders[indexToUpdate].is_required = event.is_required;
-    } else console.log("You're trying to set a required field that does not exist.");
+    } else {
+        addToast({
+            message: "You're trying to set a required field that doesn't exist.",
+            type: "danger",
+        });
+    }
 }
 
 const updateFieldCategoryId = (event) => {
@@ -117,7 +128,10 @@ const updateFieldCategoryId = (event) => {
             reorderFields();
         }
     } else {
-        console.log("You're trying to set a field that does not exist.");
+        addToast({
+            message: "You're trying to change the active setting for a field that does not exist.",
+            type: "danger",
+        });
     }
 }
 
@@ -129,8 +143,16 @@ const highestOrder = computed(() => {
 });
 
 const submitForm = () => {
-    form.post("/admin/fields-modify", {preserveScroll: true});
-    form.fieldsOrders = form.fieldsOrders.filter(orderItem => orderItem.field_category_id !== null);
+    try {
+        form.post("/admin/fields-modify", {preserveScroll: true});
+        form.fieldsOrders = form.fieldsOrders.filter(orderItem => orderItem.field_category_id !== null);
+    } catch {
+        addToast({
+            message: "Submitting your changes failed.",
+            type: "danger"
+        });
+    }
+
 };
 
 const addToast = (obj) => {

@@ -66,6 +66,7 @@ import {
     ComboboxOptions,
     ComboboxOption,
 } from '@headlessui/vue'
+import toast from "@/Stores/toast.js";
 
 const emits = defineEmits(['hide']);
 
@@ -105,7 +106,11 @@ watch(selected, (newVal, oldVal) => {
             onSuccess: () => updateFieldsOrders(form.field_id)
         });
     } catch (error) {
-        console.error('Error in watch callback:', error);
+        // console.error('Error in watch callback:', error);
+        addToast({
+            message: "An error occurred while trying to add a field to the category.",
+            type: "danger",
+        });
     }
 })
 
@@ -114,7 +119,10 @@ onMounted(async () => {
     try {
         items.value = await useFetch('/admin/fields-fetch');
     } catch (error) {
-        console.error(error);
+        addToast({
+            message: "An error occurred while retrieving uncategorized fields.",
+            type: "danger",
+        });
     }
 
     document.addEventListener('click', handleClickOutside);
@@ -147,4 +155,8 @@ const toggleCombobox = (() => {
     query = ''
     emits("hide");
 });
+
+const addToast = (obj) => {
+    toast.add(obj);
+};
 </script>
