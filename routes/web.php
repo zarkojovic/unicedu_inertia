@@ -203,7 +203,6 @@ Route::get('/test', function() {
     $package = DB::table('packages')
         ->where('package_id', $user->package_id)
         ->first();
-    //    $package = Package::where('package_id', $user->package_id)->first();
     dd($package->package_bitrix_id);
 });
 

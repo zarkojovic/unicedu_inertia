@@ -129,11 +129,15 @@ const syncData = () => {
                             </h5>
                         </div>
                         <div class="pt-4">
-                            <span class="text-gray-400 font-medium text-md mt-3">Delete</span>
-                            <h5 class="text-md">
+                            <span class="text-gray-400 font-medium text-md mt-3">Delete </span>
+                            <h5 v-if="item.stage_id === 1" class="text-md">
                                 <Button type="danger" @click="openDeleteModal = true; dealId= item.deal_id">Delete
                                 </Button>
                             </h5>
+                            <h5 v-else class="text-md">
+                                You can't delete this!
+                            </h5>
+
                         </div>
                     </div>
                     <div v-else>

@@ -1,15 +1,14 @@
 <script setup>
 import {useForm, usePage} from '@inertiajs/vue3';
-import {computed, ref} from "vue";
-import Modal from "@/Molecules/Modal.vue";
-import Button from "@/Atoms/Button.vue";
-import PackageIndicator from "@/Atoms/PackageIndicator.vue";
+import {computed, ref} from 'vue';
+import Modal from '@/Molecules/Modal.vue';
+import Button from '@/Atoms/Button.vue';
+import PackageIndicator from '@/Atoms/PackageIndicator.vue';
+import toast from '@/Stores/toast.js';
 
 defineProps({
     img: String,
-})
-
-// const that = this;
+});
 
 const showModal = ref(false);
 const imagePreview = ref(false); // Store the image preview URL
@@ -22,6 +21,7 @@ const form = useForm({
 
 const agreedToUsePicture = ref(false);
 
+const isNotValidType = ref(false);
 
 //Disabled if user didn't accept usage of picture or didn't upload picture
 const isSubmitButtonDisabled = computed(() => {
@@ -31,18 +31,18 @@ const openProfilePictureModal = () => {
     showModal.value = !showModal.value;
     imagePreview.value = false;
     agreedToUsePicture.value = false;
-}
+};
 const submitForm = ($event) => {
     const type = $event.target.files[0].type;
     const allowedTypes = ['image/png', 'image/jpg', 'image/jpeg'];
     if (allowedTypes.includes(type)) {
-
+        isNotValidType.value = false;
         form.profileImage = $event.target.files[0];
         if (form.profileImage) {
-
             imagePreview.value = URL.createObjectURL(form.profileImage);
         }
     } else {
+        isNotValidType.value = true;
         toast.add({
             message: 'Only jpeg and png formats are allowed!',
             type: 'danger',
@@ -135,6 +135,8 @@ const labelProgressClasses = computed(() => ({
                                         class="text-left text-sm font-semibold  text-gray-600 ">I
                                         agree that Poland Study can use this picture for my university
                                         applications.</label>
+                                </div>
+                                <div v-if="isNotValidType" class="text-red-500">Only jpeg and png formats are allowed!
                                 </div>
                             </div>
                         </template>

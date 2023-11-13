@@ -325,7 +325,6 @@ class UserController extends RootController {
                 ],
             ]);
         }
-        //            return Inertia::render("404");
 
         $pathOriginal = "public/profile/original";
         $pathThumbnail = "public/profile/thumbnail";
@@ -483,10 +482,6 @@ class UserController extends RootController {
                 ]);
             }
 
-            //                DB::rollback();
-            //                Log::errorLog("Photo in User Info table not updated.", Auth::user()->user_id);
-            //                return redirect()->route('profile')->with(["errors" => ['An error occurred while saving profile image.']]);
-
             Log::informationLog("Profile image updated.",
                 Auth::user()->user_id);
             DB::commit();
@@ -502,28 +497,6 @@ class UserController extends RootController {
                 ],
             ]);
         }
-
-        #UF_CRM_1667336320092 - polje za sliku
-        #6533 - DEAL ID
-
-        #IF UPDATED IN DATABASE, UPDATE IN BITRIX24
-        //        try {
-        //            $imageContent = Storage::get($pathOriginal.'/'.$newFileName);
-        //
-        //            CRest::call("crm.deal.update", [
-        //                'id' => '6533',//test deal
-        //                'fields' => [
-        //                    'UF_CRM_1667336320092' => [
-        //                        'fileData' => [
-        //                            $newFileName,
-        //                            base64_encode($imageContent)
-        //                        ]
-        //                    ]
-        //                ]
-        //            ]);
-        //        } catch (\Exception $e) {
-        //            return "Error: " . $e->getMessage();
-        //        }
 
         return to_route('home')->with([
             'toast' => [
