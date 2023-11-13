@@ -96,12 +96,11 @@ onMounted(() => {
 
         <template v-slot:modalFooter>
             <div class="flex justify-end">
-
                 <Button type="muted" @click="changeValue(false)">
                     Cancel
                 </Button>
-                <Button class="ms-3" type="primary" @click="submit">
-                    Submit
+                <Button :type="'success'" class="ms-3" @click="submit">
+                    Send Application
                 </Button>
             </div>
         </template>
