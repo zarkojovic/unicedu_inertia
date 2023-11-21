@@ -216,7 +216,7 @@ class DealController extends RootController {
         $deal = Deal::where('user_id', $user->user_id)
             ->find($deal_id);
 
-        if ($deal->stage_id === 1) {
+        if ($deal->stage_id !== 1) {
             return redirect()->back()->with([
                 'toast' =>
                     [
