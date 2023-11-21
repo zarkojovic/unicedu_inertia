@@ -32,21 +32,19 @@ const isPackageChanged = ref(null);
 
 const isRoleChanged = ref(null);
 
-watch(formItems.value.formItems, (value, oldValue) => {
-    const isUserRole = value.userRole && props.userInfo.role_id.toString() === value.userRole.value;
-    const isUserPackage = !value.userRole && props.userInfo.package_id.toString() === value.userPackage.value;
-
-    if (isUserRole) {
-        isRoleChanged.value = false;
-    } else if (isUserPackage) {
-        isPackageChanged.value = false;
-    } else {
-        form[value.userRole ? 'role_id' : 'package_id'] = value.userRole
-            ? value.userRole.value
-            : value.userPackage.value;
-        isPackageChanged.value = !value.userRole;
-        isRoleChanged.value = !!value.userRole;
+watch(formItems.value.formItems, function(value, oldValue) {
+    const userRole = value.userRole;
+    const userPackage = value.userPackage;
+    
+    if (userRole) {
+        isRoleChanged.value = props.userInfo.role_id.toString() !== userRole.value;
+        form.role_id = isRoleChanged.value ? userRole.value : form.role_id;
     }
+    if (userPackage) {
+        isPackageChanged.value = props.userInfo.package_id.toString() !== userPackage.value;
+        form.package_id = isPackageChanged.value ? userPackage.value : form.package_id;
+    }
+
 });
 
 provide('formItems', formItems);
@@ -62,7 +60,7 @@ const changeUserPackage = () => {
 const changeUserRole = () => {
     form.post('/admin/users/change-user-role', {
         onSuccess: () => {
-            isPackageChanged.value = false;
+            isRoleChanged.value = false;
         },
 
     });

@@ -99,8 +99,16 @@ class UserAdminController extends Controller {
 
     public function changeUserRole(Request $request) {
         try {
-            $userToUpdate = User::findOrFail($request->user_id);
-            $userToUpdate->role_id = $request->role_id;
+            $userId = $request->user_id;
+            $newRoleId = $request->role_id;
+
+            // Check if the user is trying to change their own role
+            if (auth()->id() == $userId && auth()->user()->role_id != $newRoleId) {
+                throw new Exception("You cannot change your own role.");
+            }
+
+            $userToUpdate = User::findOrFail($userId);
+            $userToUpdate->role_id = $newRoleId;
 
             if ($userToUpdate->save()) {
                 return redirect()->back()->with([
