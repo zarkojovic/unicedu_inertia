@@ -38,13 +38,21 @@ class UserAdminController extends Controller {
                 throw new Exception('Active intake not found.');
             }
 
-            $userIntake = DB::table('user_intake_packages')
+            // Check if the row exists before updating
+            $userIntakeExists = DB::table('user_intake_packages')
                 ->where('user_id', $user->user_id)
                 ->where('intake_id', $activeIntake->intake_id)
-                ->update(['package_id' => $request->package_id]);
+                ->exists();
 
-            if (!$userIntake) {
-                throw new Exception('User intake update failed.');
+            if ($userIntakeExists) {
+                $userIntake = DB::table('user_intake_packages')
+                    ->where('user_id', $user->user_id)
+                    ->where('intake_id', $activeIntake->intake_id)
+                    ->update(['package_id' => $request->package_id]);
+
+                if (!$userIntake) {
+                    throw new Exception('User intake update failed.');
+                }
             }
 
             $userIntakePackageId = DB::table('user_intake_packages')
