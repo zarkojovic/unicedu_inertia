@@ -199,11 +199,7 @@ Route::middleware('auth')->group(function() {
 });
 
 Route::get('/test', function() {
-    $user = auth()->user();
-    $package = DB::table('packages')
-        ->where('package_id', $user->package_id)
-        ->first();
-    dd($package->package_bitrix_id);
+    echo "Novi primer za projekat";
 });
 
 require __DIR__.'/auth.php';
