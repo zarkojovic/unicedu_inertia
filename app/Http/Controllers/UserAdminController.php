@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\UpdateUserDealPackage;
+use App\Models\Deal;
 use App\Models\Intake;
 use App\Models\Package;
 use App\Models\User;
@@ -18,42 +20,57 @@ class UserAdminController extends Controller {
 
             $user = User::find($request->user_id);
 
-            if ($user) {
-                $user->package_id = $request->package_id;
-
-                if ($user->save()) {
-                    $activeIntake = Intake::where('active', 1)->first();
-
-                    $userIntake = DB::table('user_intake_packages')
-                        ->where('user_id', $user->user_id)
-                        ->where('intake_id', $activeIntake->intake_id)
-                        ->update([
-                            'package_id' => $request->package_id,
-                        ]);
-
-                    if ($userIntake) {
-                        DB::commit(); // Both operations were successful, commit the transaction
-                        return redirect()->back()->with([
-                            'toast' => [
-                                'message' => 'User package successfully updated!',
-                                'type' => 'success',
-                            ],
-                        ]);
-                    }
-                    else {
-                        DB::rollBack(); // User intake update failed, rollback the transaction
-                        throw new Exception('User package update failed.');
-                    }
-                }
-                else {
-                    DB::rollBack(); // User package update failed, rollback the transaction
-                    throw new Exception('User package update failed.');
-                }
-            }
-            else {
-                DB::rollBack(); // User not found, rollback the transaction
+            if (!$user) {
                 throw new Exception('User not found.');
             }
+
+            // Update user package
+            $user->package_id = $request->package_id;
+
+            if (!$user->save()) {
+                throw new Exception('User package update failed.');
+            }
+
+            // Update user intake package
+            $activeIntake = Intake::where('active', 1)->first();
+
+            if (!$activeIntake) {
+                throw new Exception('Active intake not found.');
+            }
+
+            $userIntake = DB::table('user_intake_packages')
+                ->where('user_id', $user->user_id)
+                ->where('intake_id', $activeIntake->intake_id)
+                ->update(['package_id' => $request->package_id]);
+
+            if (!$userIntake) {
+                throw new Exception('User intake update failed.');
+            }
+
+            $userIntakePackageId = DB::table('user_intake_packages')
+                ->where('user_id', $user->user_id)
+                ->where('intake_id', $activeIntake->intake_id)
+                ->pluck('user_intake_package_id')
+                ->first();
+
+            // Fetch active deals
+            $activeDeals = Deal::where('user_intake_package_id',
+                $userIntakePackageId)
+                ->where('user_id', $user->user_id)
+                ->where('active', 1)
+                ->get()->pluck('bitrix_deal_id')->toArray();
+
+            // Uncomment the following lines when ready to dispatch the job
+            UpdateUserDealPackage::dispatch($activeDeals, $userIntakePackageId);
+
+            DB::commit(); // Both operations were successful, commit the transaction
+
+            return redirect()->back()->with([
+                'toast' => [
+                    'message' => 'User package successfully updated!',
+                    'type' => 'success',
+                ],
+            ]);
         }
         catch (Exception $e) {
             DB::rollBack(); // Catch any exceptions and rollback the transaction
