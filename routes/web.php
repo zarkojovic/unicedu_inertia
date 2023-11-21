@@ -175,6 +175,10 @@ Route::middleware('auth')->group(function() {
                 UserAdminController::class,
                 'changeUserPackage',
             ])->name('changeUserPackage');
+            Route::post('/users/change-user-role', [
+                UserAdminController::class,
+                'changeUserRole',
+            ])->name('changeUserRole');
 
             //PACKAGE ROUTES
             Route::get('/packages',

@@ -6,6 +6,7 @@ use App\Jobs\UpdateUserDealPackage;
 use App\Models\Deal;
 use App\Models\Intake;
 use App\Models\Package;
+use App\Models\Role;
 use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
@@ -96,6 +97,33 @@ class UserAdminController extends Controller {
         }
     }
 
+    public function changeUserRole(Request $request) {
+        try {
+            $userToUpdate = User::findOrFail($request->user_id);
+            $userToUpdate->role_id = $request->role_id;
+
+            if ($userToUpdate->save()) {
+                return redirect()->back()->with([
+                    'toast' => [
+                        'type' => 'success',
+                        'message' => 'Successfully changed user role!',
+                    ],
+                ]);
+            }
+            else {
+                throw new Exception('Failed to save changes.');
+            }
+        }
+        catch (Exception $e) {
+            return redirect()->back()->with([
+                'toast' => [
+                    'type' => 'danger',
+                    'message' => 'Error: '.$e->getMessage(),
+                ],
+            ]);
+        }
+    }
+
     public function showUser() {
         $users = DB::table('users')
             ->join('roles', 'roles.role_id', 'users.role_id')
@@ -115,7 +143,7 @@ class UserAdminController extends Controller {
 
     public function editUser(string $id) {
         $users = User::select('first_name', 'last_name', 'email_verified_at',
-            'profile_image', 'contact_id', 'package_id',
+            'profile_image', 'contact_id', 'package_id', 'role_id',
             'created_at', 'phone', 'updated_at', "user_id as id")
             ->findOrFail($id);
 
@@ -128,11 +156,16 @@ class UserAdminController extends Controller {
 
         $packages = Package::select('package_name as label',
             DB::raw('CAST(package_id AS CHAR) AS value'))->get()->toArray();
+
+        $roles = Role::select('role_name as label',
+            DB::raw('CAST(role_id AS CHAR) AS value'))->get()->toArray();
+
         return Inertia::render("Admin/User/Edit",
             [
                 'userLogs' => $history,
                 'userInfo' => $users,
                 'packages' => $packages,
+                'roles' => $roles,
             ]);
     }
 

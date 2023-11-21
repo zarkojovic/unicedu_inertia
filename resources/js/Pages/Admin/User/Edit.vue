@@ -14,12 +14,15 @@ const props = defineProps({
         type: Object,
     }, packages: {
         type: Object,
+    }, roles: {
+        type: Object,
     },
 });
 
 const formItems = ref({
     formItems: {},
     package_id: null,
+    role_id: null,
     user_id: props.userInfo.id,
 });
 
@@ -27,13 +30,22 @@ const form = useForm(formItems.value);
 
 const isPackageChanged = ref(null);
 
-watch(formItems.value.formItems, function(value, oldValue) {
+const isRoleChanged = ref(null);
 
-    if (props.userInfo.package_id.toString() === value.userPackage.value) {
+watch(formItems.value.formItems, (value, oldValue) => {
+    const isUserRole = value.userRole && props.userInfo.role_id.toString() === value.userRole.value;
+    const isUserPackage = !value.userRole && props.userInfo.package_id.toString() === value.userPackage.value;
+
+    if (isUserRole) {
+        isRoleChanged.value = false;
+    } else if (isUserPackage) {
         isPackageChanged.value = false;
     } else {
-        form.package_id = value.userPackage.value;
-        isPackageChanged.value = true;
+        form[value.userRole ? 'role_id' : 'package_id'] = value.userRole
+            ? value.userRole.value
+            : value.userPackage.value;
+        isPackageChanged.value = !value.userRole;
+        isRoleChanged.value = !!value.userRole;
     }
 });
 
@@ -41,6 +53,14 @@ provide('formItems', formItems);
 
 const changeUserPackage = () => {
     form.post('/admin/users/change-user-package', {
+        onSuccess: () => {
+            isPackageChanged.value = false;
+        },
+
+    });
+};
+const changeUserRole = () => {
+    form.post('/admin/users/change-user-role', {
         onSuccess: () => {
             isPackageChanged.value = false;
         },
@@ -77,6 +97,14 @@ const changeUserPackage = () => {
                             label="Users package"
                         />
                         <Button v-if="isPackageChanged" class="mt-3" @click="changeUserPackage">Change Package</Button>
+                        <div class="mt-5"></div>
+                        <DropdownInput
+                            :options="props.roles"
+                            :selected-item="props.userInfo.role_id"
+                            input-name="userRole"
+                            label="Users roles"
+                        />
+                        <Button v-if="isRoleChanged" class="mt-3" @click="changeUserRole">Change Role</Button>
                         <h3 class="h3 font-bold mt-4 mb-0">User History</h3>
                         <ModelDataDisplay :data="props.userLogs"/>
                     </div>
