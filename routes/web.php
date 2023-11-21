@@ -198,9 +198,5 @@ Route::middleware('auth')->group(function() {
         ->name('profile.destroy');
 });
 
-Route::get('/test', function() {
-    echo "Novi primer za projekat";
-});
-
 require __DIR__.'/auth.php';
 // }

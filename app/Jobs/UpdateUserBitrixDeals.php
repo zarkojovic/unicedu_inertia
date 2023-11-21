@@ -77,6 +77,7 @@ class UpdateUserBitrixDeals implements ShouldQueue {
                 if ($res['result']) {
                     Log::apiLog('Deal '.$val.' successfully updated!');
                 }
+
                 else {
                     Log::errorLog('Failed to update deal with id '.$val);
                     throw new Exception('Failed to save it!');
