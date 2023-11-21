@@ -147,6 +147,11 @@ Route::middleware('auth')->group(function() {
             Route::post('/categories/insertNew',
                 [FieldCategoryController::class, 'insertCategories'])
                 ->name('insertCategories');
+            Route::post('/categories/deleteCategory', [
+                FieldCategoryController::class,
+                'deleteCategory',
+            ]);
+
             //APPLICATION ROUTES
             Route::get('/applications',
                 [DealController::class, 'showApplication'])
@@ -196,6 +201,10 @@ Route::middleware('auth')->group(function() {
         ->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
+
+    Route::get('/test1', function() {
+        echo 'aloo';
+    });
 });
 
 require __DIR__.'/auth.php';
