@@ -36,7 +36,7 @@ class UpdateUserDealPackage implements ShouldQueue {
                 $res = CRest::call("crm.deal.update", [
                     'ID' => (string) $deal_id,
                     'FIELDS' => [
-                        ['UF_CRM_1667333858787' => $this->package_id],
+                        'UF_CRM_1667333858787' => $this->package_id,
                     ],
                 ]);
 

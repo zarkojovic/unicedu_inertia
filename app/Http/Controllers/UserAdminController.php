@@ -60,8 +60,12 @@ class UserAdminController extends Controller {
                 ->where('active', 1)
                 ->get()->pluck('bitrix_deal_id')->toArray();
 
+            $bitrixPackageId = Package::where('package_id',
+                $request->package_id)->pluck('package_bitrix_id')->first();
+            //            dd($activeDeals, $bitrixPackageId);
+
             // Uncomment the following lines when ready to dispatch the job
-            UpdateUserDealPackage::dispatch($activeDeals, $userIntakePackageId);
+            UpdateUserDealPackage::dispatch($activeDeals, $bitrixPackageId);
 
             DB::commit(); // Both operations were successful, commit the transaction
 
