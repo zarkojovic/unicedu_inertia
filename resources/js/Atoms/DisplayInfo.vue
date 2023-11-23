@@ -1,6 +1,6 @@
 <script setup>
 
-import {computed, onMounted} from 'vue';
+import {computed} from 'vue';
 import {usePage} from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -40,9 +40,6 @@ const formattedDate = computed(() => {
     const parts = props.fieldInfo.value.split('-');
     return parts[1] + '/' + parts[2] + '/' + parts[0];
 
-});
-onMounted(() => {
-    console.log(props.fieldInfo.value);
 });
 
 </script>

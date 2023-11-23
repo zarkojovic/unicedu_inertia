@@ -33,10 +33,16 @@ class CreateUserContact implements ShouldQueue {
                 'NAME' => $this->user->first_name,
                 'LAST_NAME' => $this->user->last_name,
                 'PHONE' => [
-                    ['VALUE' => $this->user->phone],
+                    [
+                        'VALUE' => $this->user->phone,
+                        'VALUE_TYPE' => 'OTHER',
+                    ],
                 ],
                 'EMAIL' => [
-                    ['VALUE' => $this->user->email],
+                    [
+                        'VALUE' => $this->user->email,
+                        'VALUE_TYPE' => 'OTHER',
+                    ],
                 ],
             ],
         ]);

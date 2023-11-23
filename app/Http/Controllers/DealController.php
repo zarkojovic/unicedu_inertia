@@ -55,12 +55,7 @@ class DealController extends RootController {
     }
 
     public function showUserDeals(Request $request) {
-        //        dd($request->isModalOpen);
         $user = auth()->user();
-        //        $applications = Deal::where('user_id', $user->user_id)
-        //            ->where('active', '1')
-        //            ->get()
-        //            ->toArray();
 
         $applications = DB::table('deals')
             ->join('stages', 'stages.stage_id', 'deals.stage_id')
@@ -221,6 +216,17 @@ class DealController extends RootController {
         $deal = Deal::where('user_id', $user->user_id)
             ->find($deal_id);
 
+        if ($deal->stage_id !== 1) {
+            return redirect()->back()->with([
+                'toast' =>
+                    [
+                        'message' => 'Application past first stage can\'t be deleted!',
+                        'type' => 'danger',
+                    ],
+            ]);
+            //            throw new Exception('Application past first stage can\'t be deleted!');
+        }
+
         if (!$deal) {
             Log::errorLog('Tried to remove a deal that doesn\'t exist.',
                 $user->user_id);
@@ -237,17 +243,6 @@ class DealController extends RootController {
         $bitrix_deal_id = $deal->bitrix_deal_id;
 
         DeleteBitrixDeal::dispatch($bitrix_deal_id, $user->user_id);
-
-        // Make an API call to delete the deal in Bitrix24
-        //        $result = CRest::call("crm.deal.delete",
-        //            ['ID' => (string) $bitrix_deal_id]);
-
-        // Check if the deal was successfully removed from Bitrix24
-        //        if (isset($result['error_description']) && $result['error_description'] === 'Not found') {
-        //            Log::apiLog('Deal failed to delete from Bitrix24.', $user->user_id);
-        //            return redirect('/applications')->with('error',
-        //                'An error occurred while deleting an application.');
-        //        }
 
         // Update the 'active' column to indicate that the deal is inactive (false)
         $deal->active = FALSE;
@@ -277,8 +272,6 @@ class DealController extends RootController {
     }
 
     public function editApplication(string $id) {
-        //        $dealInfo = Deal::select('*', 'deal_id as id')->findOrFail($id);
-
         $dealInfo = DB::table('deals')
             ->join('users', 'deals.user_id', 'users.user_id')
             ->join('stages', 'stages.stage_id', 'deals.stage_id')

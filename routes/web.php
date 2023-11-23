@@ -147,6 +147,11 @@ Route::middleware('auth')->group(function() {
             Route::post('/categories/insertNew',
                 [FieldCategoryController::class, 'insertCategories'])
                 ->name('insertCategories');
+            Route::post('/categories/deleteCategory', [
+                FieldCategoryController::class,
+                'deleteCategory',
+            ]);
+
             //APPLICATION ROUTES
             Route::get('/applications',
                 [DealController::class, 'showApplication'])
@@ -170,6 +175,10 @@ Route::middleware('auth')->group(function() {
                 UserAdminController::class,
                 'changeUserPackage',
             ])->name('changeUserPackage');
+            Route::post('/users/change-user-role', [
+                UserAdminController::class,
+                'changeUserRole',
+            ])->name('changeUserRole');
 
             //PACKAGE ROUTES
             Route::get('/packages',
@@ -196,15 +205,10 @@ Route::middleware('auth')->group(function() {
         ->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
-});
 
-Route::get('/test', function() {
-    $user = auth()->user();
-    $package = DB::table('packages')
-        ->where('package_id', $user->package_id)
-        ->first();
-    //    $package = Package::where('package_id', $user->package_id)->first();
-    dd($package->package_bitrix_id);
+    Route::get('/test1', function() {
+        echo 'aloo';
+    });
 });
 
 require __DIR__.'/auth.php';
