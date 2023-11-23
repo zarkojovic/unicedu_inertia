@@ -15,9 +15,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Kafka0238\Crest\Src;
 
-class FieldController extends Controller {
+class FieldController extends Controller
+{
 
-    public function getAvailableFields(Request $request) {
+    public function getAvailableFields(Request $request)
+    {
         //        OLD WAY WITH THE FIELDS JSON
 
         //        $c_vals = $request->input('id');
@@ -41,7 +43,7 @@ class FieldController extends Controller {
         $categories = FieldCategory::whereIn('field_category_id',
             $c_vals)->get();
         $fields = Field::where('is_active', '1')
-            ->where('field_category_id', '<>', NULL)
+            ->where('field_category_id', '<>', null)
             ->whereIn('field_category_id', $c_vals)
             ->orderBy('order', 'asc')
             ->get();
@@ -51,8 +53,7 @@ class FieldController extends Controller {
             $info = count(Deal::where('user_id', $user->user_id)
                 ->pluck('deal_id')
                 ->toArray());
-        }
-        else {
+        } else {
             $info = Db::table("user_infos")
                 ->selectRaw("`field_id`, `value`, `display_value`, `file_name`,`file_path`")
                 ->where("user_id", $user->user_id)
@@ -72,7 +73,8 @@ class FieldController extends Controller {
         return response()->json($data);
     }
 
-    public function setFieldCategory(Request $request) {
+    public function setFieldCategory(Request $request)
+    {
         //Validate incoming request
         $validator = Validator::make($request->all(), [
             'fieldsOrders' => 'required|array',
@@ -138,7 +140,7 @@ class FieldController extends Controller {
                     "field_category_id",
                 ]); //if exists update this
 
-            Log::apiLog('Fields updated in admin panel!',
+            Log::apiLog('Fields updated in admin panel.',
                 Auth::user()->user_id);
             return redirect()
                 ->route("admin_home")
@@ -148,8 +150,7 @@ class FieldController extends Controller {
                         'type' => 'success',
                     ],
                 ]);
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             Log::errorLog($e->getMessage(), Auth::user()->user_id);
             return redirect()
                 ->route("admin_home")
@@ -163,13 +164,14 @@ class FieldController extends Controller {
     }
 
     //OLD FUNCTION WITH JSON
-    public function updateFieldss() {
+    public function updateFieldss()
+    {
         // Path to the public/js directory
         $jsPath = resource_path('js');
         //Gets content from json file
         $json = file_get_contents($jsPath."/fields.json");
         //Make it in php array
-        $jsonData = json_decode($json, TRUE);
+        $jsonData = json_decode($json, true);
 
         //getting all fields from API
         $fields = CRest::call('crm.deal.fields');
@@ -179,7 +181,7 @@ class FieldController extends Controller {
         $keys = array_keys($fields["result"]);
 
         //getting all keys from api
-        $jsonKeys = array_map(function($el) {
+        $jsonKeys = array_map(function ($el) {
             return $el['field_name'];
         }, $jsonData);
 
@@ -190,7 +192,7 @@ class FieldController extends Controller {
             // checking if the type is dropdown list
             if ($newItem['type'] == 'enumeration') {
                 // gets the dropdown item from json, to check it's fields
-                $jsonItem = array_filter($jsonData, function($item) use ($key) {
+                $jsonItem = array_filter($jsonData, function ($item) use ($key) {
                     return $item['field_name'] == $key;
                 });
                 // make the index goes from zero
@@ -204,13 +206,13 @@ class FieldController extends Controller {
 
                     // checking if the items exists in json dropdown items
                     $checkItem = array_filter($elemItems,
-                        function($el) use ($i_id) {
+                        function ($el) use ($i_id) {
                             return $el["ID"] == $i_id;
                         });
                     // if it doesn't exist add to json
-                    if ($checkItem == NULL) {
+                    if ($checkItem == null) {
                         // get the index of array element with that field name
-                        $id = array_filter($jsonData, function($el) use ($key) {
+                        $id = array_filter($jsonData, function ($el) use ($key) {
                             return $el['field_name'] == $key;
                         });
                         //                    get id and convert to int
@@ -238,8 +240,7 @@ class FieldController extends Controller {
                         'type' => $newItem['type'],
                         'title' => $newItem['formLabel'],
                     ]);
-                }
-                else {
+                } else {
                     Field::create([
                         'field_name' => $newItem['field_name'],
                         'type' => $newItem['type'],
@@ -269,7 +270,8 @@ class FieldController extends Controller {
             ->with(['fieldMessage' => 'Fields are updated!']);
     }
 
-    public function updateFields() {
+    public function updateFields()
+    {
         // Step 1: Retrieve field data from the CRM API
         $fields = CRest::call('crm.deal.fields');
 
@@ -328,8 +330,7 @@ class FieldController extends Controller {
 
             // Step 4: Commit the database transaction
             DB::commit();
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             // Step 5: Handle exceptions and roll back the transaction in case of an error
             DB::rollback();
             // Handle the exception (e.g., log or throw a custom exception)
@@ -357,8 +358,7 @@ class FieldController extends Controller {
 
                     // Create an array with item data for comparison
                     $resultArray = range(0, count($itemsFromDatabase) - 1);
-                    $arrayItemsFromDatabase = array_map(function($key, $id) use
-                    (
+                    $arrayItemsFromDatabase = array_map(function ($key, $id) use (
                         $itemsFromDatabase
                     ) {
                         $val = array_search($id, $itemsFromDatabase);
@@ -368,10 +368,10 @@ class FieldController extends Controller {
                     // Compare items from API with items from the database and perform updates
                     $fieldItemsFromApi = $el['items'];
                     foreach ($fieldItemsFromApi as $apiItem) {
-                        $found = FALSE;
+                        $found = false;
                         foreach ($arrayItemsFromDatabase as $databaseItem) {
                             if ($apiItem == $databaseItem) {
-                                $found = TRUE;
+                                $found = true;
                                 break;
                             }
                         }
@@ -386,10 +386,10 @@ class FieldController extends Controller {
 
                     // Deactivate items in the database that are not present in the API response
                     foreach ($arrayItemsFromDatabase as $databaseItem) {
-                        $found = FALSE;
+                        $found = false;
                         foreach ($fieldItemsFromApi as $apiItem) {
                             if ($apiItem == $databaseItem) {
-                                $found = TRUE;
+                                $found = true;
                                 break;
                             }
                         }
