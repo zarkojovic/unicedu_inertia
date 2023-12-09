@@ -23,7 +23,7 @@ class UpdateImageRequest extends FormRequest
     public function rules()
     {
         return [
-            'profileImage' => 'image|mimes:jpg,jpeg,png|file|max:8192'
+            'profileImage' => 'required|image|mimes:jpg,jpeg,png|file|max:8192'
         ];
     }
     /**
@@ -34,7 +34,7 @@ class UpdateImageRequest extends FormRequest
     public function messages(): array
     {
         return [
-//            'profileImage.required' => 'Profile image not provided!',
+            'profileImage.required' => 'Profile image not provided!',
             'profileImage.image' => 'Provided file is not an image!',
             'profileImage.mimes' => 'Allowed file types are jpg, jpeg and png!',
             'profileImage.max' => 'Maximum allowed file size is 8MB!',
