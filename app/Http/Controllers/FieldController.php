@@ -271,13 +271,13 @@ class FieldController extends Controller {
     }
 
     public function updateFields() {
-        // Step 1: Retrieve field data from the CRM API
-        $fields = CRest::call('crm.deal.fields');
-
-        // Extract field names from the API response
-        $keys = array_keys($fields["result"]);
-
         try {
+            // Step 1: Retrieve field data from the CRM API
+            $fields = CRest::call('crm.deal.fields');
+
+            // Extract field names from the API response
+            $keys = array_keys($fields["result"]);
+
             // Step 2: Begin a database transaction to ensure data consistency
             DB::beginTransaction();
 
@@ -329,6 +329,93 @@ class FieldController extends Controller {
 
             // Step 4: Commit the database transaction
             DB::commit();
+
+            // Step 6: Perform additional checks and updates after the transaction
+            foreach ($keys as $key) {
+                $el = $fields['result'][$key];
+
+                if ($el['type'] == 'enumeration') {
+                    $enumField = Field::where('field_name', $key)->first();
+
+                    if ($enumField) {
+                        // Retrieve items from the database
+                        $itemsFromDatabase = $enumField->items->pluck('item_id',
+                            'item_value')->toArray();
+
+                        // Create an array with item data for comparison
+                        $resultArray = range(0, count($itemsFromDatabase) - 1);
+                        $arrayItemsFromDatabase = array_map(function(
+                            $key,
+                            $id
+                        ) use (
+                            $itemsFromDatabase
+                        ) {
+                            $val = array_search($id, $itemsFromDatabase);
+                            return ['ID' => $id, 'VALUE' => $val];
+                        }, $resultArray, $itemsFromDatabase);
+
+                        // Compare items from API with items from the database and perform updates
+                        $fieldItemsFromApi = $el['items'];
+                        foreach ($fieldItemsFromApi as $apiItem) {
+                            $found = FALSE;
+                            foreach ($arrayItemsFromDatabase as $databaseItem) {
+                                if ($apiItem == $databaseItem) {
+                                    $found = TRUE;
+                                    break;
+                                }
+                            }
+                            if (!$found) {
+                                $new = FieldItem::create([
+                                    'item_value' => $apiItem['VALUE'],
+                                    'item_id' => $apiItem['ID'],
+                                    'field_id' => $enumField->field_id,
+                                ]);
+                            }
+                        }
+
+                        // Deactivate items in the database that are not present in the API response
+                        foreach ($arrayItemsFromDatabase as $databaseItem) {
+                            $found = FALSE;
+                            foreach ($fieldItemsFromApi as $apiItem) {
+                                if ($apiItem == $databaseItem) {
+                                    $found = TRUE;
+                                    break;
+                                }
+                            }
+                            if (!$found) {
+                                $oldItem = FieldItem::where('item_value',
+                                    $databaseItem['VALUE'])
+                                    ->where('item_id', $databaseItem['ID'])
+                                    ->first();
+                                $oldItem->is_active = 0;
+                                $oldItem->save();
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Step 7: Check for fields in the database that are no longer present in the API response and deactivate them
+            foreach ($dataFields as $field) {
+                if (!in_array($field, $keys)) {
+                    $field = Field::where('field_name', $field)->first();
+                    $field->is_active = 0;
+                    $field->save();
+                }
+            }
+
+            Intake::insertNewIntakes();
+
+            Package::insertNewPackages();
+            // Step 8: Redirect with a success message
+            return redirect()
+                ->back()
+                ->with([
+                    'toast' => [
+                        'message' => 'Fields are updated!',
+                        'type' => 'success',
+                    ],
+                ]);
         }
         catch (Exception $e) {
             // Step 5: Handle exceptions and roll back the transaction in case of an error
@@ -343,91 +430,6 @@ class FieldController extends Controller {
                     ],
                 ]);
         }
-
-        // Step 6: Perform additional checks and updates after the transaction
-        foreach ($keys as $key) {
-            $el = $fields['result'][$key];
-
-            if ($el['type'] == 'enumeration') {
-                $enumField = Field::where('field_name', $key)->first();
-
-                if ($enumField) {
-                    // Retrieve items from the database
-                    $itemsFromDatabase = $enumField->items->pluck('item_id',
-                        'item_value')->toArray();
-
-                    // Create an array with item data for comparison
-                    $resultArray = range(0, count($itemsFromDatabase) - 1);
-                    $arrayItemsFromDatabase = array_map(function($key, $id) use
-                    (
-                        $itemsFromDatabase
-                    ) {
-                        $val = array_search($id, $itemsFromDatabase);
-                        return ['ID' => $id, 'VALUE' => $val];
-                    }, $resultArray, $itemsFromDatabase);
-
-                    // Compare items from API with items from the database and perform updates
-                    $fieldItemsFromApi = $el['items'];
-                    foreach ($fieldItemsFromApi as $apiItem) {
-                        $found = FALSE;
-                        foreach ($arrayItemsFromDatabase as $databaseItem) {
-                            if ($apiItem == $databaseItem) {
-                                $found = TRUE;
-                                break;
-                            }
-                        }
-                        if (!$found) {
-                            $new = FieldItem::create([
-                                'item_value' => $apiItem['VALUE'],
-                                'item_id' => $apiItem['ID'],
-                                'field_id' => $enumField->field_id,
-                            ]);
-                        }
-                    }
-
-                    // Deactivate items in the database that are not present in the API response
-                    foreach ($arrayItemsFromDatabase as $databaseItem) {
-                        $found = FALSE;
-                        foreach ($fieldItemsFromApi as $apiItem) {
-                            if ($apiItem == $databaseItem) {
-                                $found = TRUE;
-                                break;
-                            }
-                        }
-                        if (!$found) {
-                            $oldItem = FieldItem::where('item_value',
-                                $databaseItem['VALUE'])
-                                ->where('item_id', $databaseItem['ID'])
-                                ->first();
-                            $oldItem->is_active = 0;
-                            $oldItem->save();
-                        }
-                    }
-                }
-            }
-        }
-
-        // Step 7: Check for fields in the database that are no longer present in the API response and deactivate them
-        foreach ($dataFields as $field) {
-            if (!in_array($field, $keys)) {
-                $field = Field::where('field_name', $field)->first();
-                $field->is_active = 0;
-                $field->save();
-            }
-        }
-
-        Intake::insertNewIntakes();
-
-        Package::insertNewPackages();
-        // Step 8: Redirect with a success message
-        return redirect()
-            ->back()
-            ->with([
-                'toast' => [
-                    'message' => 'Fields are updated!',
-                    'type' => 'success',
-                ],
-            ]);
     }
 
 }
