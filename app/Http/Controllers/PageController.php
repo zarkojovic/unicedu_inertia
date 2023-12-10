@@ -14,11 +14,13 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
-class PageController extends Controller {
+class PageController extends Controller
+{
 
     //
 
-    public function pageCategories(Request $request) {
+    public function pageCategories(Request $request)
+    {
         $page = $request->input('name');
 
         $pagesWithRole = DB::table('pages')
@@ -31,7 +33,8 @@ class PageController extends Controller {
         return response()->json($pagesWithRole);
     }
 
-    public function showPageListView() {
+    public function showPageListView()
+    {
         try {
             $pages = DB::table('pages')
                 ->join('roles', 'roles.role_id', 'pages.role_id')
@@ -44,10 +47,9 @@ class PageController extends Controller {
                 // Pages data to be displayed
                 'data' => $pages,
             ]);
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             // Log the error
-            Log::errorLog("Error showing pages: ".$e->getMessage());
+            Log::errorLog("Error showing pages: " . $e->getMessage());
 
             // Redirect to the home route with an error message
             return redirect()
@@ -56,7 +58,8 @@ class PageController extends Controller {
         }
     }
 
-    public function editPage(string $id) {
+    public function editPage(string $id)
+    {
         try {
             // Find the page by its ID
             $page = Page::findOrFail($id);
@@ -90,10 +93,9 @@ class PageController extends Controller {
                 'categories' => $categories,
                 // All available field categories
             ]);
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             // Log the error
-            Log::errorLog("Error editing page: ".$e->getMessage());
+            Log::errorLog("Error editing page: " . $e->getMessage());
 
             // Redirect to the showPages route with an error message
             return redirect()
@@ -107,7 +109,8 @@ class PageController extends Controller {
         }
     }
 
-    public function createNewPage() {
+    public function createNewPage()
+    {
         // Fetch all roles and field categories
 
         $roles = Role::pluck('role_name', 'role_id'
@@ -142,17 +145,18 @@ class PageController extends Controller {
     //        file_put_contents($jsPath."/tabler.json", $jsonData);
     //    }
 
-    public function updatePage(Request $request) {
+    public function updatePage(Request $request)
+    {
         $data = $request->all();
         //        dd($data);
         try {
             // Validate the incoming data based on defined rules
             $validator = Validator::make($request->all(), [
-                'title' => 'required|string|unique:pages,title,'.$request->id.',page_id',
+                'title' => 'required|string|unique:pages,title,' . $request->id . ',page_id',
                 'route' => [
                     'required',
                     'string',
-                    'unique:pages,route,'.$request->id.',page_id',
+                    'unique:pages,route,' . $request->id . ',page_id',
                     'regex:/^\/(?:[a-z0-9_]+\/)*[a-z0-9_]+$/',
                 ],
                 'icon' => 'required',
@@ -167,10 +171,7 @@ class PageController extends Controller {
             }
 
             // Find the page to update
-            $update = Page::find($request->id);
-            if (!$update) {
-                throw new Exception("Page not found");
-            }
+            $update = Page::findOrFail($request->id);
 
             // Update page data
             $update->title = $request->title;
@@ -202,44 +203,44 @@ class PageController extends Controller {
                 DB::commit();
 
                 // Log the update and redirect to showPages route
-                Log::apiLog("Page ".$update->title." updated",
+                Log::apiLog("Page " . $update->title . " updated",
                     Auth::user()->user_id);
 
                 return redirect()->route('showPage')->with([
                     'toast' => [
-                        'message' => "Page ".$update->title." updated",
+                        'message' => "Page " . $update->title . " updated successfully!",
                         'type' => 'success',
                     ],
                 ]);
-            }
-            catch (Exception $e) {
+            } catch (Exception $e) {
                 // Rollback the transaction on exception
                 DB::rollback();
 
                 // Log the error and redirect with error message
-                Log::errorLog("Error updating page: ".$e->getMessage());
+                Log::errorLog("Error updating page: " . $e->getMessage());
                 return redirect()
                     ->route('showPage')
                     ->with([
                         'toast' => [
-                            'message' => $e->getMessage(),
+                            'message' => "An error occurred while updating the page.",
                             'type' => 'danger',
                         ],
                     ]);
             }
-        }
-        catch (ValidationException $e) {
+        } catch (ValidationException $e) {
             // Redirect back with validation errors and input data
+            Log::errorLog("Error updating page: " . $e->getMessage());
             return redirect()->back()->with([
                 'toast' => [
-                    'message' => $e->getMessage(),
+                    'message' => "An error occurred while updating the page.",
                     'type' => 'danger',
                 ],
             ])->withInput();
         }
     }
 
-    public function createPage(Request $request) {
+    public function createPage(Request $request)
+    {
         //        dd('poz');
         // Start a database transaction
         DB::beginTransaction();
@@ -283,7 +284,7 @@ class PageController extends Controller {
             }
 
             // Log the successful creation of the new page
-            Log::apiLog("New page - ".$newPage->title." added!");
+            Log::apiLog("New page - " . $newPage->title . " added!");
 
             // Insert field-category-page relationships if categories are provided
             if ($request->filled('categories')) {
@@ -299,8 +300,7 @@ class PageController extends Controller {
             DB::commit();
             // Redirect to the showPages route
             return redirect()->route('showPage');
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             // Rollback the transaction on exception
             DB::rollback();
             // Log the error and handle it appropriately
@@ -318,7 +318,8 @@ class PageController extends Controller {
         }
     }
 
-    public function deletePage(Request $request) {
+    public function deletePage(Request $request)
+    {
         try {
             $id = $request->id;
 
@@ -340,17 +341,16 @@ class PageController extends Controller {
                     $page->delete();
 
                     // Log the successful deletion of the page
-                    Log::apiLog("Page '".$page->title."' deleted");
+                    Log::apiLog("Page '" . $page->title . "' deleted");
 
                     // Commit the transaction as everything was successful
                     DB::commit();
-                }
-                catch (Exception $e) {
+                } catch (Exception $e) {
                     // Rollback the transaction on exception
                     DB::rollback();
 
                     // Log the error and handle it appropriately
-                    Log::errorLog("Error deleting page: ".$e->getMessage());
+                    Log::errorLog("Error deleting page: " . $e->getMessage());
 
                     // Redirect to the showPages route with an error message
                     return redirect()
@@ -371,10 +371,9 @@ class PageController extends Controller {
                     'type' => 'success',
                 ],
             ]);
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             // Log the error and handle it appropriately
-            Log::errorLog("Error finding page: ".$e->getMessage());
+            Log::errorLog("Error finding page: " . $e->getMessage());
 
             // Redirect to the showPages route with an error message
             return redirect()
