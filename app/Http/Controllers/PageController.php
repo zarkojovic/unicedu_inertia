@@ -251,12 +251,12 @@ class PageController extends Controller {
                 'route' => [
                     'required',
                     'unique:pages',
-                    'regex:/^\/(?:[a-z0-9_]+\/)*[a-z0-9_]+$/',
+                    'regex:/^\/(?:[a-z0-9_]+\/)*[a-z0-9-]+$/',
                 ],
                 'icon' => 'required',
                 'role_id' => 'required',
             ], [
-                'route.regex' => "Route must start with / and can contain characters, numbers, and '_'",
+                'route.regex' => "Route must start with / and can contain characters, numbers, and '-'",
             ]);
 
             // If validation fails, redirect back with errors and input data

@@ -13,7 +13,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Kafka0238\Crest\Src;
 
 class FieldController extends Controller {
 
@@ -414,6 +413,13 @@ class FieldController extends Controller {
                 $field->save();
             }
         }
+
+        $intakeItems = DB::table('field_items')
+            ->join('fields', 'fields.field_id', 'field_items.field_id')
+            ->where('fields.title', 'Intake')
+            ->get();
+
+        dd($intakeItems);
 
         // Step 8: Redirect with a success message
         return redirect()
