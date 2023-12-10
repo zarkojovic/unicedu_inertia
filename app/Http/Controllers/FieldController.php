@@ -6,7 +6,9 @@ use App\Models\Deal;
 use App\Models\Field;
 use App\Models\FieldCategory;
 use App\Models\FieldItem;
+use App\Models\Intake;
 use App\Models\Log;
+use App\Models\Package;
 use CRest;
 use Exception;
 use Illuminate\Http\Request;
@@ -414,13 +416,9 @@ class FieldController extends Controller {
             }
         }
 
-        $intakeItems = DB::table('field_items')
-            ->join('fields', 'fields.field_id', 'field_items.field_id')
-            ->where('fields.title', 'Intake')
-            ->get();
+        Intake::insertNewIntakes();
 
-        dd($intakeItems);
-
+        Package::insertNewPackages();
         // Step 8: Redirect with a success message
         return redirect()
             ->back()
