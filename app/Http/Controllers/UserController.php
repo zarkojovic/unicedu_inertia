@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdateImageRequest;
 use App\Jobs\UpdateUserBitrixDeals;
 use App\Models\Field;
 use App\Models\FieldCategory;
 use App\Models\Log;
 use App\Models\UserInfo;
 use Exception;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
@@ -315,53 +317,15 @@ class UserController extends RootController {
         }
     }
 
-    public function updateImage(Request $request) {
+    public function updateImage(UpdateImageRequest $request): RedirectResponse {
         #INPUTS
-        if (!$request->hasFile('profileImage')) {
-            return to_route('home')->with([
-                'toast' => [
-                    'message' => 'No file uploaded.',
-                    'type' => 'danger',
-                ],
-            ]);
-        }
-
         $pathOriginal = "public/profile/original";
         $pathThumbnail = "public/profile/thumbnail";
         $pathTiny = "public/profile/tiny";
-        $allowedMimeTypes = ['image/jpg', 'image/jpeg', 'image/png'];
-        $numberOfMegabytes = 8;
-        $kilobyte = 1024; // 2MB in kilobytes
-        $errors = [];
 
         $file = $request->file('profileImage');
-
         $fileName = $file->getClientOriginalName();
-        $tmpName = $file->getPathname(); // tmp_name
-        $fileSize = $file->getSize();
-        $fileType = $file->getClientMimeType();
         $fileExtension = $file->getClientOriginalExtension();
-
-        #VALIDATE INPUTS
-        if (!in_array($fileType, $allowedMimeTypes)) {
-            $errors[] = "Allowed file types are jpg, jpeg and png.";
-        }
-
-        if ($fileSize > $numberOfMegabytes * pow($kilobyte, 2)) {
-            $errors[] = "File size should not exceed 8MB.";
-        }
-
-        if (!empty($errors)) {
-            $errorMessages = implode('\n',
-                $errors); // Concatenate error messages
-            Log::errorLog("Bad file for profile image.", Auth::user()->user_id);
-            return to_route("home")->with([
-                'toast' => [
-                    'message' => $errorMessages,
-                    'type' => 'danger',
-                ],
-            ]);
-        }
 
         #QUESTION: DA LI SU OVDE PRISTUPACNE SLIKE? DA LI MOGU DA SE PRIKAZU IZ STORAGEA? MOZDA MORA SOFTLINK...
         #ODGOVOR: MORAO JE SOFTLINK...
@@ -370,6 +334,7 @@ class UserController extends RootController {
         $currentDate = now()->format('Y-m-d');
         $newFileName = $currentDate.'_'.$uniqueString.'.'.$fileExtension;
 
+        // if original folder doesn't exist
         if (!Storage::exists($pathOriginal)) {
             Log::errorLog("Original folder path not found.",
                 Auth::user()->user_id);
@@ -380,6 +345,8 @@ class UserController extends RootController {
                 ],
             ]);
         }
+
+        // if the file is not moved to the original folder
         $moved = Storage::putFileAs($pathOriginal, $file, $newFileName);
         if (!$moved) {
             Log::errorLog("Failed to move profile image to original folder.",
@@ -407,7 +374,6 @@ class UserController extends RootController {
                 (string) $tinyImage->encode());
         }
         catch (Exception $e) {
-            report($e);
             Log::errorLog("Failed to resize file image.",
                 Auth::user()->user_id);
             return to_route('home')->with([
@@ -488,7 +454,7 @@ class UserController extends RootController {
         }
         catch (Exception $e) {
             DB::rollback();
-            Log::errorLog("Failed to update profile image.",
+            Log::errorLog("Failed to update profile image. Error: ".$e,
                 Auth::user()->user_id);
             return to_route('home')->with([
                 'toast' => [
