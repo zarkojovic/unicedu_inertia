@@ -7,6 +7,7 @@ use App\Jobs\UpdateUserBitrixDeals;
 use App\Models\Field;
 use App\Models\FieldCategory;
 use App\Models\Log;
+use App\Models\Role;
 use App\Models\UserInfo;
 use Exception;
 use Illuminate\Http\RedirectResponse;
@@ -27,10 +28,15 @@ class UserController extends RootController {
      * Display the specified resource.
      */
     public function show() {
+        // Get the authenticated user
         $user = Auth::user();
 
         $categoriesWithFields = FieldCategory::getAllCategoriesWithFields('/profile');
-        if ($user->role_id === 3) {
+        // If the user is admin, redirect him to the admin home page
+        $adminId = Role::where('role_name', 'admin')
+            ->value('role_id');
+
+        if ($user->role_id === $adminId) {
             return redirect()->route('admin_home');
         }
         return Inertia::render("Student/Profile", [
@@ -39,6 +45,7 @@ class UserController extends RootController {
         ]);
     }
 
+    // this is old function for removing user file
     public function removeUserFile(Request $request) {
         $user = Auth::user();
 
@@ -110,9 +117,9 @@ class UserController extends RootController {
                 $field_id = array_values($field_id);
 
                 $field_id = $field_id[0];
-
+                // Get the user info from the user_info_array
                 $user_info = $user_info_array[$key] ?? NULL;
-                //                dd($user_info);
+
                 //CHECKING IF THE REQUEST IS FILE
                 if ($value['value'] instanceof UploadedFile) {
                     //GETTING THE INFO FROM FILE
@@ -128,29 +135,17 @@ class UserController extends RootController {
                         else {
                             $fieldName = $field_id->field_name;
                         }
-                        session([
-                            'toast' => [
-                                'message' => "'$fieldName' File must be pdf!",
-                                'type' => 'danger',
-                            ],
-                        ]);
                         throw ValidationException::withMessages([
                             'error' => "'$fieldName' File must be pdf!",
                         ]);
                     }
 
-                    if ($storeFile->getSize() > 5 * 1024 * 1024) {
-                        session([
-                            'toast' => [
-                                'message' => "File too big (5mb limit)!",
-                                'type' => 'danger',
-                            ],
-                        ]);
-                        // The file is over 8MB (8 * 1024 * 1024 bytes)
+                    // Create me a variable for size of mb
+                    $sizeInMb = 5;
+                    if ($storeFile->getSize() > $sizeInMb * 1024 * 1024) {
                         throw ValidationException::withMessages([
-                            'error' => "File too big (5mb limit)!",
+                            'error' => "File too big (".$sizeInMb."mb limit)!",
                         ]);
-                        // Handle the validation error or other actions here
                     }
 
                     $fileName = $storeFile->getClientOriginalName();
@@ -164,9 +159,9 @@ class UserController extends RootController {
                 //GETTING THE FIELD
                 $fieldCheck = Field::findOrFail($field_id->field_id);
 
-                //IF INFO DOESNT EXIST
+                // Check if the user_info is null (if the user has not entered any data for that field)
                 if (!$user_info) {
-                    //                IF IT IS A FILE
+                    // Check if the value is not empty and not null and not 0 (for the dropdowns)
                     if (isset($value['is_file']) && $value['is_file']) {
                         UserInfo::create([
                             'user_id' => (int) $user->user_id,
@@ -179,23 +174,28 @@ class UserController extends RootController {
                             Auth::user()->user_id);
                     }
                     else {
-                        //                    IF IT'S NOT FILE
+                        // Check if the value is not empty and not null and not 0 (for the dropdowns)
                         if (!empty($value) && $value !== 'null' && $value != 0) {
+                            // If the value is an array, it means that the user has selected a dropdown option
                             if (isset($value['label'])) {
+                                // Create a new record in the UserInfo table
                                 UserInfo::create([
                                     'user_id' => (int) $user->user_id,
                                     'field_id' => (int) $field_id->field_id,
                                     'value' => $value['value'],
                                     'display_value' => $value['label'],
                                 ]);
-
+                                // Log the action
                                 Log::informationLog("User updated ".$fieldCheck->title.' to '.$value['label'].'.',
                                     Auth::user()->user_id);
                             }
                             else {
+                                // If the value is not an array, it means that the user has entered a text value
                                 if (is_string($value['value'])) {
+                                    // Capitalize the first letter of the value
                                     $value = ucfirst($value['value']);
                                 }
+                                // Create a new record in the UserInfo table
                                 UserInfo::create([
                                     'user_id' => (int) $user->user_id,
                                     'field_id' => (int) $field_id->field_id,
@@ -208,17 +208,18 @@ class UserController extends RootController {
                         }
                     }
                 }
+                // If the user_info is not null (if the user has entered some data for that field)
                 else {
-                    // IF ITS AN UPDATING
+                    // If the user has uploaded a new file
                     if ($value['value'] instanceof UploadedFile) {
-                        #REMOVE OLD IMAGE FROM FOLDERS
+                        // Get the old file name
                         $oldProfileImage = $user_info->file_path;
-                        //                        dd($user_info);
+                        // Delete the old file from the storage
                         Storage::delete([
                             "public/profile/documents/$oldProfileImage",
                         ]);
 
-                        // UPDATE INFO
+                        // Update the record in the UserInfo table with the new file name
                         $updateInfo = UserInfo::findOrFail($user_info->user_info_id);
 
                         $updateInfo->file_name = $fileName;
@@ -227,12 +228,12 @@ class UserController extends RootController {
                         Log::informationLog("User changed ".$fieldCheck->title." from ".$user_info->file_name.' to '.$fileName.'.',
                             Auth::user()->user_id);
                     }
-
                     else {
                         if (!empty($value)) {
+                            // If the value is not empty that means the data is updated
                             $updateData = [
-                                'value' => isset($value['value']) ? $value['value'] : NULL,
-                                'display_value' => isset($value['label']) ? $value['label'] : NULL,
+                                'value' => $value['value'] ?? NULL,
+                                'display_value' => $value['label'] ?? NULL,
                             ];
 
                             if (is_string($value['value'])) {
@@ -243,8 +244,9 @@ class UserController extends RootController {
                                 ->where('user_info_id',
                                     $user_info->user_info_id)
                                 ->update($updateData);
-                            Log::informationLog('User changed '.$fieldCheck->title.' from '.$user_info->display_value.' to '.$value['label'].'.');
+                            Log::informationLog('User changed '.$fieldCheck->title.' from '.$user_info->display_value.' to '.isset($value['label']) ?? 'empty'.'.');
                         }
+                        // If the value is empty that means the data is deleted or set to null
                         else {
                             DB::table('user_infos')
                                 ->where('user_info_id',
@@ -267,8 +269,11 @@ class UserController extends RootController {
             }
         }
         catch (Exception $ex) {
-            http_response_code(500);
+            // Rollback the transaction
+            DB::rollback();
+            // Log the error
             Log::errorLog($ex->getMessage(), Auth::user()->user_id);
+            // Redirect back with an error message
             return redirect()
                 ->back()
                 ->with([
@@ -286,6 +291,7 @@ class UserController extends RootController {
             ->toArray();
 
         if (count($deals)) {
+            // Set the unsaved_changes flag to 1 so that the user can sync the data
             $user->unsaved_changes = 1;
 
             $user->save();
@@ -304,7 +310,6 @@ class UserController extends RootController {
     public function syncFields() {
         try {
             $user = Auth::user();
-
             $user->unsaved_changes = 0;
 
             UpdateUserBitrixDeals::dispatch($user);

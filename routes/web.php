@@ -33,8 +33,10 @@ Route::middleware('auth')->group(function() {
         //DYNAMIC ROUTES
         $routeNames = Page::all();
         foreach ($routeNames as $route) {
+            // CHECK IF ROLE IS SET FOR THE ROUTE
             if (!empty($route->role->role_name)) {
                 switch ($route->role->role_name) {
+                    // CHECK IF THE ROLE IS ADMIN
                     case 'admin':
                         Route::middleware(["admin"])->group(function() use (
                             $route
@@ -46,6 +48,7 @@ Route::middleware('auth')->group(function() {
                                 });
                         });
                         break;
+                    // CHECK IF THE ROLE IS STUDENT
                     case 'student':
                         Route::middleware('package')->group(function() use (
                             $route
@@ -60,6 +63,7 @@ Route::middleware('auth')->group(function() {
                         });
                         break;
                     default :
+                        // Dynamic routes
                         Route::get($route->route, function() use ($route) {
                             $categoriesWithFields = FieldCategory::getAllCategoriesWithFields($route->route);
 
@@ -71,7 +75,7 @@ Route::middleware('auth')->group(function() {
                 }
             }
         }
-
+        // Middleware for package
         Route::middleware('package')->group(function() {
             Route::get('/', [UserController::class, 'show'])->name("home");
             Route::get('/profile', [UserController::class, 'show'])
@@ -80,7 +84,7 @@ Route::middleware('auth')->group(function() {
                 [DealController::class, 'showUserDeals'])
                 ->name('applications');
         });
-
+        
         Route::post('/user/sync-deal-fields',
             [UserController::class, 'syncFields'])->name('syncFields');
 

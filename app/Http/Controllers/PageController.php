@@ -16,8 +16,7 @@ use Inertia\Inertia;
 
 class PageController extends Controller {
 
-    //
-
+    // We don't use this method anymore
     public function pageCategories(Request $request) {
         $page = $request->input('name');
 
@@ -33,6 +32,7 @@ class PageController extends Controller {
 
     public function showPageListView() {
         try {
+            // Fetch all pages from the 'pages' table to be displayed in the list view
             $pages = DB::table('pages')
                 ->join('roles', 'roles.role_id', 'pages.role_id')
                 ->select('pages.page_id as id', 'pages.title as title',
@@ -60,7 +60,7 @@ class PageController extends Controller {
         try {
             // Find the page by its ID
             $page = Page::findOrFail($id);
-
+            
             //            if (!$page->is_editable) {
             //                throw new Exception('This page is not editable!');
             //            }
@@ -124,6 +124,7 @@ class PageController extends Controller {
         ]);
     }
 
+    //OLD WAY OF USING ICONS - NOW WE USE TABLER ICONS VUE COMPONENT
     //    public function generateIcons() {
     //        // Path to the resource/js directory
     //        $jsPath = resource_path('css/icons/tabler-icons');
@@ -144,7 +145,6 @@ class PageController extends Controller {
 
     public function updatePage(Request $request) {
         $data = $request->all();
-        //        dd($data);
 
         try {
             // Validate the incoming data based on defined rules

@@ -88,6 +88,9 @@ class FieldController extends Controller {
         ]);
 
         if ($validator->fails()) {
+            // If validation fails, redirect back with errors and input data
+            Log::errorLog('Validation failed. One or more fields are invalid.',
+                Auth::user()->user_id);
             return redirect()
                 ->route("admin_home")
                 ->with([
@@ -114,6 +117,9 @@ class FieldController extends Controller {
                 ->count() === count($fieldIds);
 
         if (!$fieldsExist) {
+            // If not, log the error and redirect back with an error message
+            Log::errorLog('Validation failed. One or more fields do not exist.',
+                Auth::user()->user_id);
             return redirect()
                 ->route("admin_home")
                 ->with([
