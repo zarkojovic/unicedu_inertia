@@ -34,6 +34,7 @@ class UpdateFields implements ShouldQueue {
             // Step 1: Retrieve field data from the CRM API
             $fields = CRest::call('crm.deal.fields');
 
+            throw new Exception('Pozzz');
             // Extract field names from the API response
             $keys = array_keys($fields["result"]);
 
@@ -175,7 +176,5 @@ class UpdateFields implements ShouldQueue {
 
         }
     }
-
-    public function fail() {}
 
 }

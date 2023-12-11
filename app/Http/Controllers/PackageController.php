@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Package;
 use App\Models\Page;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -67,10 +68,22 @@ class PackageController extends Controller {
      * Update the specified resource in storage.
      */
     public function setPackagePages(Request $request) {
+        //        dd($request->colors);
         try {
             // Begin a database transaction
             DB::beginTransaction();
 
+            //We are receiving from front array of three colors for package indicator (primary,secondary,text)
+            $colors = $request->colors;
+            //Pulling the package that needs updating
+            $packageForUpdating = Package::find($request->package_id);
+
+            //Setting those colors for that package
+            $packageForUpdating->primary_color = $colors[0];
+            $packageForUpdating->secondary_color = $colors[1];
+            $packageForUpdating->text_color = $colors[2];
+
+            $packageForUpdating->save();
             // Convert request pages to integers
             $pagesArray = array_map('intval', $request->pages);
 

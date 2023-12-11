@@ -18,7 +18,7 @@ class FieldSeeder extends Seeder {
         $hiddenFields = [];
 
         // Function to process and store CRM fields in the database
-        function processAndStoreFields($res, $isContactField = FALSE) {
+        function processAndStoreFields($res, $isContactField = FALSE): void {
             // Initialize an array to store processed objects.
             $arrayOfObjects = [];
 
@@ -72,13 +72,11 @@ class FieldSeeder extends Seeder {
 
         // Example usage for CRM deal fields
         $resDeal = CRest::call('crm.deal.fields');
-        //        $resCon = CRest::call('crm.contact.fields');
         processAndStoreFields($resDeal);
-        //        processAndStoreFields($resCon, TRUE);
 
         $personalCategory = [
             [
-                "field_name" => 'UF_CRM_1695238253680',
+                "field_name" => 'UF_CRM_1697975635',
                 "is_required" => '1',
                 "order" => '3',
                 "field_category_id" => '1',

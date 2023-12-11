@@ -1,17 +1,30 @@
 <template>
-    <div :class="packageClass">
-        <span class="package-level font-light">{{ packageTitle }}</span>
+    <div
+        :style="{ color: activePackage.text_color,background:activePackage.primary_color, background: `linear-gradient(to right, ${activePackage.primary_color}, ${activePackage.secondary_color})` }"
+        class="package-indicator">
+        <span class="package-level font-light">{{ activePackage.package_name }}</span>
     </div>
 </template>
 
 <script setup>
-import {computed, ref} from 'vue';
+import {computed, onMounted, ref} from 'vue';
+import {usePage} from '@inertiajs/vue3';
+
+const page = usePage();
 
 const props = defineProps({
     packageId: {
         type: Number,
         required: true,
     },
+});
+
+const activePackage = computed(() => {
+    return page.props.packages.filter(el => el.package_id === props.packageId)[0];
+});
+
+onMounted(() => {
+    console.log(activePackage.value);
 });
 
 const packageTitle = ref(null);
@@ -60,23 +73,23 @@ const packageClass = computed(() => {
 }
 
 .gold-package {
-    background: rgb(249, 222, 85);
-    background: linear-gradient(90deg, rgba(249, 222, 85, 1) 2%, rgba(230, 194, 0, 1) 99%);
+    background: #f5df6c;
+    background: linear-gradient(to right, #f5df6c, #e0c340);
 }
 
 .silver-package {
-    background: #757F9A; /* fallback for old browsers */
-    background: -webkit-linear-gradient(to right, #D7DDE8, #757F9A); /* Chrome 10-25, Safari 5.1-6 */
-    background: linear-gradient(to right, #D7DDE8, #757F9A); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    background: #757f9a; /* fallback for old browsers */
+    background: -webkit-linear-gradient(to right, #d7dde8, #757f9a); /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to right, #d7dde8, #757f9a); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
 }
 
 .platinum-package {
-    background: rgb(192, 205, 230);
-    background: linear-gradient(93deg, rgba(192, 205, 230, 1) 0%, rgba(218, 175, 227, 1) 100%);
+    background: #c2cde4;
+    background: linear-gradient(to right, #c2cde4, #d3b1df);
 }
 
 .bronze-package {
-    background: rgb(240, 175, 110);
-    background: linear-gradient(90deg, rgba(240, 175, 110, 1) 2%, rgba(205, 127, 50, 1) 99%);
+    background: #e6b278;
+    background: linear-gradient(to right, #e6b278, #c28342);
 }
 </style>
