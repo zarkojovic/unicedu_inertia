@@ -19,16 +19,21 @@ const formattedActiveItems = computed(() => {
 
 const realItems = ref(formattedActiveItems.value);
 
+const primaryColor = ref(props.data.primary_color);
+const secondaryColor = ref(props.data.secondary_color);
+const textColor = ref(props.data.text_color);
+
 const form = useForm({
     pages: formattedActiveItems.value,
     package_id: props.data.package_id,
+    colors: [primaryColor.value, secondaryColor.value, textColor.value],
 });
 
 const updateFields = () => {
+    form.colors = [primaryColor.value, secondaryColor.value, textColor.value];
     form.post('/admin/set-package-pages', {
         preserveScroll: true,
     });
-    console.log(form.pages, form.package_id);
 };
 
 </script>
@@ -37,6 +42,16 @@ const updateFields = () => {
 
     <PackageIndicator :package-id="props.data.package_id" class="mb-5"/>
 
+    <label for="first_color">First Color</label>
+    <input v-model="primaryColor" class="w-full" type="color">
+
+    <label for="second_color">Second Color</label>
+    <input v-model="secondaryColor" class="w-full mb-4" type="color">
+
+    <label for="second_color">Text Color</label>
+    <input v-model="textColor" class="w-full mb-4" type="color">
+
+    <h2>Pages</h2>
     <ListInput
         v-model="form.pages"
         :items="props.data.pages"

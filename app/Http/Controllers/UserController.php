@@ -67,10 +67,12 @@ class UserController extends RootController {
         //GET ALL OF THE DATA FROM REQUEST
         $items = $request['formItems'];
 
-        //        GET AUTH-ED USER FOR UPDATING HIS DATA
+        //GET AUTH-ED USER FOR UPDATING HIS DATA
         $user = Auth::user();
+
         // GETTING FIELD NAME VALUES
         $field_names = array_column($items, 'field_name');
+
         // GETTING ALL THE FIELDS WITH THAT FIELD NAME
         $field_id_array = DB::table('fields')
             ->select('field_name', 'title', 'field_id')
@@ -78,10 +80,11 @@ class UserController extends RootController {
                 $field_names)
             ->orderBy('field_id')
             ->get();
+
         // GETTING JUST THE IDS OF THEM
         $field_ids = array_column($field_id_array->toArray(), 'field_id');
-        // GETTING THE USER INFO FROM THE FIELD IDS1
 
+        // GETTING THE USER INFO FROM THE FIELD IDS1
         $user_info_array = DB::table('user_infos')
             ->join('fields', 'fields.field_id', 'user_infos.field_id')
             ->where("user_infos.user_id", (int) $user->user_id)
@@ -112,9 +115,9 @@ class UserController extends RootController {
                 //                dd($user_info);
                 //CHECKING IF THE REQUEST IS FILE
                 if ($value['value'] instanceof UploadedFile) {
-                    //                GETTING THE INFO FROM FILE
+                    //GETTING THE INFO FROM FILE
                     $storeFile = $value['value'];
-
+                    // GETTING THE EXTENSION OF FILE
                     $extension = $storeFile->extension();
 
                     // Check if the file extension is 'pdf'
@@ -157,9 +160,11 @@ class UserController extends RootController {
                     //                GETTING THE NEW NAME OF FILE
                     $fileNewName = basename($storedPath);
                 }
-                //IF INFO DOESNT EXIST
+
+                //GETTING THE FIELD
                 $fieldCheck = Field::findOrFail($field_id->field_id);
 
+                //IF INFO DOESNT EXIST
                 if (!$user_info) {
                     //                IF IT IS A FILE
                     if (isset($value['is_file']) && $value['is_file']) {
@@ -170,7 +175,7 @@ class UserController extends RootController {
                             'file_path' => $fileNewName,
                         ]);
 
-                        Log::informationLog("User updated ".$field_id->field_name.'.',
+                        Log::informationLog("User updated ".$fieldCheck->title.' to '.$fileName.'.',
                             Auth::user()->user_id);
                     }
                     else {
@@ -183,6 +188,9 @@ class UserController extends RootController {
                                     'value' => $value['value'],
                                     'display_value' => $value['label'],
                                 ]);
+
+                                Log::informationLog("User updated ".$fieldCheck->title.' to '.$value['label'].'.',
+                                    Auth::user()->user_id);
                             }
                             else {
                                 if (is_string($value['value'])) {
@@ -193,9 +201,10 @@ class UserController extends RootController {
                                     'field_id' => (int) $field_id->field_id,
                                     'value' => $value,
                                 ]);
+
+                                Log::informationLog("User updated ".$fieldCheck->title.' to '.$value.'.',
+                                    Auth::user()->user_id);
                             }
-                            Log::informationLog("User updated ".$field_id->field_name.'.',
-                                Auth::user()->user_id);
                         }
                     }
                 }
@@ -204,15 +213,19 @@ class UserController extends RootController {
                     if ($value['value'] instanceof UploadedFile) {
                         #REMOVE OLD IMAGE FROM FOLDERS
                         $oldProfileImage = $user_info->file_path;
-
+                        //                        dd($user_info);
                         Storage::delete([
                             "public/profile/documents/$oldProfileImage",
                         ]);
 
                         // UPDATE INFO
-                        $user_info->file_name = $fileName;
-                        $user_info->file_path = $fileNewName;
-                        $user_info->save();
+                        $updateInfo = UserInfo::findOrFail($user_info->user_info_id);
+
+                        $updateInfo->file_name = $fileName;
+                        $updateInfo->file_path = $fileNewName;
+                        $updateInfo->save();
+                        Log::informationLog("User changed ".$fieldCheck->title." from ".$user_info->file_name.' to '.$fileName.'.',
+                            Auth::user()->user_id);
                     }
 
                     else {
@@ -230,6 +243,7 @@ class UserController extends RootController {
                                 ->where('user_info_id',
                                     $user_info->user_info_id)
                                 ->update($updateData);
+                            Log::informationLog('User changed '.$fieldCheck->title.' from '.$user_info->display_value.' to '.$value['label'].'.');
                         }
                         else {
                             DB::table('user_infos')

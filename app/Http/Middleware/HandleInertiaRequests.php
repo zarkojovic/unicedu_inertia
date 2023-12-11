@@ -4,11 +4,11 @@ namespace App\Http\Middleware;
 
 use App\Models\FieldCategory;
 use App\Models\Intake;
+use App\Models\Package;
 use App\Models\Page;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Middleware;
-use Tightenco\Ziggy\Ziggy;
 
 class HandleInertiaRequests extends Middleware {
 
@@ -39,7 +39,7 @@ class HandleInertiaRequests extends Middleware {
                 'img' => auth()->check() ? asset("storage/profile/tiny/".$request->user()->profile_image) : '',
             ],
             'ziggy' => fn() => [
-//                ...(new Ziggy())->toArray(), //this returns all routes to front, which I don't see a reason for (Martin)
+                //                ...(new Ziggy())->toArray(), //this returns all routes to front, which I don't see a reason for (Martin)
                 'location' => $request->url(),
             ],
             'toast' => session('toast'),
@@ -50,6 +50,9 @@ class HandleInertiaRequests extends Middleware {
             'deal_fields' => Route::current()->uri === 'applications' ? FieldCategory::getAllDealFields() : NULL,
             'recaptcha_site_key' => config('services.recaptcha.site_key'),
             'active_intake' => Intake::where('active', '1')->first(),
+            'packages' => Package::select('package_name', 'package_id',
+                'primary_color',
+                'secondary_color', 'text_color')->get()->toArray(),
         ];
     }
 

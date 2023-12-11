@@ -279,6 +279,8 @@ class FieldController extends Controller {
                 ],
             ]);
 
+        // this is old way of updating fields before the job
+
         //        try {
         //            // Step 1: Retrieve field data from the CRM API
         //            $fields = CRest::call('crm.deal.fields');
