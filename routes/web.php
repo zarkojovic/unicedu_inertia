@@ -8,11 +8,11 @@ use App\Http\Controllers\IntakeController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserAdminController;
 use App\Http\Controllers\UserController;
+use App\Models\FieldCategory;
 use App\Models\Page;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
 
 /*
@@ -21,20 +21,10 @@ use Inertia\Inertia;
 |--------------------------------------------------------------------------
 |
 */
-
+//  404 ROUTE
 Route::fallback(function() {
     return Inertia::render('404');
 });
-
-Route::get('/welcome', function() {
-    echo __('messages.welcome');
-});
-
-Route::post('/change-lang', function(Request $request) {
-    $lang = $request->lang;
-    App()->setLocale($lang);
-    Session::put('locale', $lang);
-})->name('change-lang');
 
 //FOR AUTHENTICATED USERS
 Route::middleware('auth')->group(function() {
@@ -61,13 +51,21 @@ Route::middleware('auth')->group(function() {
                             $route
                         ) {
                             Route::get($route->route, function() use ($route) {
-                                return Inertia::render('Dashboard');
+                                $categoriesWithFields = FieldCategory::getAllCategoriesWithFields($route->route);
+
+                                return Inertia::render('Dashboard', [
+                                    'categoriesWithFields' => $categoriesWithFields,
+                                ]);
                             });
                         });
                         break;
                     default :
                         Route::get($route->route, function() use ($route) {
-                            return Inertia::render('Dashboard');
+                            $categoriesWithFields = FieldCategory::getAllCategoriesWithFields($route->route);
+
+                            return Inertia::render('Dashboard', [
+                                'categoriesWithFields' => $categoriesWithFields,
+                            ]);
                         });
                         break;
                 }
@@ -82,6 +80,11 @@ Route::middleware('auth')->group(function() {
                 [DealController::class, 'showUserDeals'])
                 ->name('applications');
         });
+
+        Route::post('/user/sync-deal-fields',
+            [UserController::class, 'syncFields'])->name('syncFields');
+
+        // DEAL/APPLICATION ROUTES
         Route::post('/applications/addNew',
             [DealController::class, 'apply'])
             ->name('newApplication');
@@ -99,6 +102,10 @@ Route::middleware('auth')->group(function() {
 
         //ADMIN
         Route::middleware('admin')->prefix('admin')->group(function() {
+            //DASHBOARD
+            Route::get('/dashboard', [AdminController::class, 'show'])
+                ->name('adminDashboard');
+
             //FIELDS
             Route::get('/fields', [AdminController::class, "home"])
                 ->name("admin_home");
@@ -106,9 +113,14 @@ Route::middleware('auth')->group(function() {
                 [AdminController::class, "fetchFields"]);
             Route::post("/fields-add",
                 [AdminController::class, "setFieldCategory"]);
+            Route::post("/fields-modify",
+                [FieldController::class, "setFieldCategory"]);
             Route::post('/update-fields',
                 [FieldController::class, 'updateFields'])
                 ->name('updateFields');
+            Route::post('/fields-modify',
+                [FieldController::class, 'setFieldCategory'])
+                ->name('setFieldCategory');
 
             //PAGES ROUTES
             Route::get('/pages',
@@ -132,23 +144,41 @@ Route::middleware('auth')->group(function() {
             Route::get('/categories/new',
                 [FieldCategoryController::class, 'createNewCategory'])
                 ->name('createNewCategory');
+            Route::post('/categories/insertNew',
+                [FieldCategoryController::class, 'insertCategories'])
+                ->name('insertCategories');
+            Route::post('/categories/deleteCategory', [
+                FieldCategoryController::class,
+                'deleteCategory',
+            ]);
 
             //APPLICATION ROUTES
             Route::get('/applications',
                 [DealController::class, 'showApplication'])
                 ->name('showApplication');
+            Route::get('/applications/edit/{id}',
+                [DealController::class, 'editApplication'])
+                ->name('editApplication');
+            Route::post('/applications/change-deal-stage', [
+                DealController::class,
+                'changeDealStage',
+            ])->name('changeDealStage');
 
             //USER ROUTES
             Route::get('/users',
-                [UserController::class, 'showUser'])
+                [UserAdminController::class, 'showUser'])
                 ->name('showUser');
             Route::get('/users/edit/{id}',
-                [UserController::class, 'editUser'])
+                [UserAdminController::class, 'editUser'])
                 ->name('editUser');
             Route::post('/users/change-user-package', [
-                UserController::class,
+                UserAdminController::class,
                 'changeUserPackage',
             ])->name('changeUserPackage');
+            Route::post('/users/change-user-role', [
+                UserAdminController::class,
+                'changeUserRole',
+            ])->name('changeUserRole');
 
             //PACKAGE ROUTES
             Route::get('/packages',
@@ -175,26 +205,11 @@ Route::middleware('auth')->group(function() {
         ->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
+
+    Route::get('/test1', function() {
+        echo 'aloo';
+    });
 });
-
-Route::get('/test', function() {
-    //    $fieldItems = FieldItem::with('field')->get();
-
-    //    dd($pages);
-
-    dd(Page::getCurrentPagesForSidebar());
-    //    FieldCategory::getAllCategoriesWithFields('/profile');
-    //
-    //    $broze_package_pages = ['/profile', '/applications'];
-    //
-    //    $page_ids = Page::whereIn('route', $broze_package_pages)
-    //        ->pluck('page_id')->toArray();
-    //
-    //    dd($page_ids);
-});
-
-//LARAVEL STARTER KIT DEFAULT ROUTES {
-//Route::get('/user', [\App\Http\Controllers\UserController::class, 'show'])->name('user.show');
 
 require __DIR__.'/auth.php';
 // }

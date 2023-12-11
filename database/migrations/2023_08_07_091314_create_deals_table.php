@@ -20,6 +20,7 @@ return new class extends Migration {
             $table->string('intake');
             $table->boolean('active')->default(1);
             $table->unsignedBigInteger('user_intake_package_id');
+            $table->unsignedBigInteger('stage_id')->default(1);
             $table->timestamps();
         });
     }

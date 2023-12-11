@@ -43,7 +43,7 @@
     </div>
 </template>
 <script setup>
-import {ref, defineProps, defineEmits, watch} from 'vue';
+import {ref, defineProps, defineEmits, watch, computed} from 'vue';
 import {IconAdjustments} from '@tabler/icons-vue';
 import Modal from '@/Molecules/Modal.vue';
 import Button from "@/Atoms/Button.vue";
@@ -60,35 +60,17 @@ const is_required = ref(props.is_required);
 const is_active = ref(!!props.catId);
 const emit = defineEmits();
 
+
 watch(is_required, (newValue) => {
     emit("onIsRequiredChange", {field_id: props.field_id, is_required: newValue});
 });
 
 watch(is_active, (newValue) => {
+    if (!newValue) {
+        // If the field is made inactive, uncheck the "Required" checkbox
+        is_required.value = false;
+    }
     emit("onIsActiveChange", {field_id: props.field_id, is_active: newValue});
 });
 
 </script>
-<!--<script>-->
-<!--import {IconAdjustments} from '@tabler/icons-vue';-->
-<!--import Modal from "@/Molecules/Modal.vue";-->
-
-<!--export default {-->
-<!--    name: "AdminField",-->
-<!--    props: {-->
-<!--        field_id: Number,-->
-<!--        title: String,-->
-<!--        is_required: Number,-->
-<!--    },-->
-<!--    components: {-->
-<!--        Modal,-->
-<!--        IconAdjustments-->
-<!--    },-->
-<!--    data() {-->
-<!--        return {-->
-<!--            openModal: false,-->
-<!--            is_required: this.is_required-->
-<!--        }-->
-<!--    }-->
-<!--}-->
-<!--</script>-->

@@ -2,7 +2,7 @@
 
 import toast from '@/Stores/toast.js';
 import Button from '@/Atoms/Button.vue';
-import {provide, ref} from 'vue';
+import {onMounted, provide, ref} from 'vue';
 import DisplayInfo from '@/Atoms/DisplayInfo.vue';
 import {useForm} from '@inertiajs/vue3';
 import FieldsForm from '@/Molecules/FieldsForm.vue';
@@ -57,6 +57,9 @@ const submitForm = () => {
     });
 
 };
+
+onMounted(() => {
+});
 </script>
 
 <template>

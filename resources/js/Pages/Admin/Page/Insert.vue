@@ -29,8 +29,8 @@ const props = defineProps({
 const form = useForm({
     title: props.editPage !== null ? props.editPage.title : '',
     route: props.editPage !== null ? props.editPage.route : '',
-    categories: [],
-    role_id: [],
+    categories: props.editPage !== null ? props.editPage.categories.map(obj => String(obj.field_category_id)) : [],
+    role_id: props.editPage !== null ? props.editPage.role_id.toString() : [],
     id: props.editPage !== null ? props.editPage.page_id : null,
     icon: props.editPage !== null ? props.editPage.icon : '',
 });

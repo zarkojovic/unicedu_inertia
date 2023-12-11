@@ -12,7 +12,16 @@ const removeFinishEventListener = router.on('finish', () => {
         toast.add({
             message: page.props.toast.message,
             type: page.props.toast.type
-        })
+        });
+    }
+    else if (page.props.errors) {
+        for (let errorMessage of Object.values(page.props.errors)) {
+            // Dynamically add a toast for each error (but there should always be 1)
+            toast.add({
+                message: errorMessage,
+                type: "danger"
+            });
+        }
     }
 });
 

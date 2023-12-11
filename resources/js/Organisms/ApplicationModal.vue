@@ -3,7 +3,7 @@
 import FieldsForm from '@/Molecules/FieldsForm.vue';
 import Modal from '@/Molecules/Modal.vue';
 import Button from '@/Atoms/Button.vue';
-import {provide, ref} from 'vue';
+import {onMounted, provide, ref} from 'vue';
 import {useForm, usePage} from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -75,6 +75,9 @@ const submit = () => {
 const changeValue = (value) => {
     emits('update:modelValue', value);
 };
+onMounted(() => {
+    // console.log(props.modelValue);
+});
 
 </script>
 
@@ -93,12 +96,11 @@ const changeValue = (value) => {
 
         <template v-slot:modalFooter>
             <div class="flex justify-end">
-
                 <Button type="muted" @click="changeValue(false)">
                     Cancel
                 </Button>
-                <Button class="ms-3" type="primary" @click="submit">
-                    Submit
+                <Button :type="'success'" class="ms-3" @click="submit">
+                    Send Application
                 </Button>
             </div>
         </template>

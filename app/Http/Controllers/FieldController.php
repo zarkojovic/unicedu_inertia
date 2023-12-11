@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\UpdateFields;
 use App\Models\Deal;
 use App\Models\Field;
 use App\Models\FieldCategory;
-use App\Models\FieldItem;
 use App\Models\Log;
 use CRest;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Kafka0238\Crest\Src;
+use Illuminate\Support\Facades\Validator;
 
 class FieldController extends Controller {
 
@@ -50,7 +50,8 @@ class FieldController extends Controller {
             $info = count(Deal::where('user_id', $user->user_id)
                 ->pluck('deal_id')
                 ->toArray());
-        } else {
+        }
+        else {
             $info = Db::table("user_infos")
                 ->selectRaw("`field_id`, `value`, `display_value`, `file_name`,`file_path`")
                 ->where("user_id", $user->user_id)
@@ -70,123 +71,84 @@ class FieldController extends Controller {
         return response()->json($data);
     }
 
-    public function setFieldCategory(Request $request)
-    {
+    public function setFieldCategory(Request $request) {
+        //Validate incoming request
+        $validator = Validator::make($request->all(), [
+            'fieldsOrders' => 'required|array',
+            // Ensure 'fieldsOrders' is present and an array
+            'fieldsOrders.*.field_id' => 'required|integer',
+            // Validate 'field_id' within each array element
+            'fieldsOrders.*.field_name' => 'required|string',
+            // Validate 'field_name' within each array element
+            'fieldsOrders.*.order' => 'integer|nullable',
+            // Validate 'order' within each array element
+            'fieldsOrders.*.is_required' => 'required|boolean',
+            // Validate 'is_required' within each array element
+            'fieldsOrders.*.field_category_id' => 'integer|nullable',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()
+                ->route("admin_home")
+                ->with([
+                    'toast' => [
+                        'message' => "Validation failed. One or more fields are invalid.",
+                        'type' => 'danger',
+                    ],
+                ]);
+        }
+
+        // If validated, check if all received fields exist in the database
+        $validatedData = $validator->validated(); // Get the validated data
+
+        $fieldIds = collect($validatedData['fieldsOrders'])
+            ->pluck('field_id')
+            ->toArray();
+        $fieldNames = collect($validatedData['fieldsOrders'])
+            ->pluck('field_name')
+            ->toArray();
+
+        // Check if all submitted fields exist in the database
+        $fieldsExist = Field::whereIn('field_id', $fieldIds)
+                ->whereIn('field_name', $fieldNames)
+                ->count() === count($fieldIds);
+
+        if (!$fieldsExist) {
+            return redirect()
+                ->route("admin_home")
+                ->with([
+                    'toast' => [
+                        'message' => "Validation failed",
+                        'type' => 'danger',
+                    ],
+                ]);
+        }
+
         try {
-//        dd($request);
-//        $fields = $request->fields;
-//        $category_id = $request->category_id;
-//        $requiredFields = $request->requiredFields ?? [];
-            $fieldsOrders = $request->fieldsOrders;
-            $fieldsSettings = $request->fieldsSettings;
-//            dd($fieldsOrders, $fieldsSettings);
-//        dd($fieldsOrders);
-            //        $requiredFieldsFromDatabase = Field::where('is_required', 1)->get();
-            //        $requiredFieldsFromDatabaseIDs = $requiredFieldsFromDatabase->pluck('field_id')->toArray();
+            $fieldsOrders = $validatedData["fieldsOrders"];
 
-//        $existingFields = Field::where('field_category_id', $category_id)
-//            ->get();
-//        $existingFieldIds = $existingFields->pluck('field_id')->toArray();
-//
-//        // Remove fields that are no longer selected
-//        $fieldsToRemove = array_diff($existingFieldIds, $fields ?? []);
-//        Field::whereIn('field_id', $fieldsToRemove)->update([
-//            'field_category_id' => null,
-//            'order' => null,
-//        ]);
-//
-//        // Update required fields
-//        Field::whereIn('field_id', $requiredFields)->update([
-//            'is_required' => true,
-//        ]);
-//        Field::where('field_category_id', $category_id)
-//            ->whereNotIn('field_id', $requiredFields)
-//            ->update([
-//                'is_required' => false,
-//            ]);
-//        //        Field::whereIn('field_id', array_diff($requiredFieldsFromDatabaseIDs, $requiredFields))->update([
-//        //            'is_required' => false,
-//        //        ]);
-//
-//        // Associate fields with the new category
-//        Field::whereIn('field_id', $fields ?? [])->update([
-//            'field_category_id' => $category_id,
-//        ]);
+            //UPDATE ORDERS, FIELD_CATEGORY_IDS, IS_REQUIRED SETTINGS IN DATABASE
+            Field::upsert(
+                $fieldsOrders, //insert or update this
+                ["field_id", "field_name"], //determine by this
+                [
+                    "order",
+                    "is_required",
+                    "field_category_id",
+                ]); //if exists update this
 
-            //UPDATE PRIORITIES IN DATABASE BASED ON ORDER
-            if (count($fieldsOrders) > 0) {
-                //HAS CHANGED ORDERS
-//                $fieldsToUpdate = [];
-//                    $fieldsToUpdate = $fieldsOrders;
-//            }
-
-//                if (count($fieldsSettings) > 0) {
-//                    //HAS CHANGED SETTINGS
-//                    if (count($fieldsOrders) > 0) {
-//                        //HAS CHANGED ORDERS
-//                        //OVDE TREBA NEKAKO SPOJITI FIELDSSETTINGS SA FIELDSORDERS
-//
-//                        // Merge $fieldsOrders and $fieldsSettings based on field_id
-//                        foreach ($fieldsOrders as $key => $fieldOrder) {
-//                            $fieldId = $fieldOrder['field_id'];
-//                            // Find the corresponding field in $fieldsSettings
-//                            $matchingFieldSettings = collect($fieldsSettings)->first(function ($fieldSettings) use (
-//                                $fieldId
-//                            ) {
-//                                return $fieldSettings['field_id'] === $fieldId;
-//                            });
-//
-//                            if ($matchingFieldSettings) {
-//                                // Merge is_required from $fieldsSettings into $fieldsOrders
-//                                $fieldsOrders[$key]['is_required'] = $matchingFieldSettings['is_required'];
-//                            }
-//                        }
-//
-//                        $fieldsToUpdate = $fieldsOrders;
-//                    } else {
-//                        // Create a mapping of field_id to field_name from the database
-//                        $fieldNamesFromDatabase = Field::whereIn('field_id', array_column($fieldsSettings, 'field_id'))
-//                            ->pluck('field_name', 'field_id')
-//                            ->all();
-//
-//                        // Update $fieldsSettings with field_name from the database
-//                        foreach ($fieldsSettings as &$fieldSetting) {
-//                            $fieldId = $fieldSetting['field_id'];
-//                            if (isset($fieldNamesFromDatabase[$fieldId])) {
-//                                $fieldSetting['field_name'] = $fieldNamesFromDatabase[$fieldId];
-//                            }
-//                        }
-//                        $fieldsToUpdate = $fieldsSettings;
-//                    }
-//                }
-
-//                dd($fieldsToUpdate);
-//                dd($fieldsOrders);
-                Field::upsert(
-                    $fieldsOrders, //insert or update this
-                    ["field_id", "field_name"], //determine by this
-                    ["order", "is_required", "field_category_id"]); //if exists update this
-
-                Log::apiLog('Fields updated in admin panel!', Auth::user()->user_id);
-                return redirect()
-                    ->route("admin_home")
-                    ->with([
-                        'toast' => [
-                            'message' => "Fields updated successfully!",
-                            'type' => 'success',
-                        ],
-                    ]);
-            }
-
-//            return redirect()
-//                ->route("admin_home")
-//                ->with([
-//                    'toast' => [
-//                        'message' => "No changes made.",
-//                        'type' => 'warning',
-//                    ],
-//                ]);
-        } catch (Exception $e) {
+            Log::apiLog('Fields updated in admin panel!',
+                Auth::user()->user_id);
+            return redirect()
+                ->route("admin_home")
+                ->with([
+                    'toast' => [
+                        'message' => "Fields updated successfully!",
+                        'type' => 'success',
+                    ],
+                ]);
+        }
+        catch (Exception $e) {
             Log::errorLog($e->getMessage(), Auth::user()->user_id);
             return redirect()
                 ->route("admin_home")
@@ -200,8 +162,7 @@ class FieldController extends Controller {
     }
 
     //OLD FUNCTION WITH JSON
-    public function updateFieldss()
-    {
+    public function updateFieldss() {
         // Path to the public/js directory
         $jsPath = resource_path('js');
         //Gets content from json file
@@ -217,7 +178,7 @@ class FieldController extends Controller {
         $keys = array_keys($fields["result"]);
 
         //getting all keys from api
-        $jsonKeys = array_map(function ($el) {
+        $jsonKeys = array_map(function($el) {
             return $el['field_name'];
         }, $jsonData);
 
@@ -228,7 +189,7 @@ class FieldController extends Controller {
             // checking if the type is dropdown list
             if ($newItem['type'] == 'enumeration') {
                 // gets the dropdown item from json, to check it's fields
-                $jsonItem = array_filter($jsonData, function ($item) use ($key) {
+                $jsonItem = array_filter($jsonData, function($item) use ($key) {
                     return $item['field_name'] == $key;
                 });
                 // make the index goes from zero
@@ -242,13 +203,13 @@ class FieldController extends Controller {
 
                     // checking if the items exists in json dropdown items
                     $checkItem = array_filter($elemItems,
-                        function ($el) use ($i_id) {
+                        function($el) use ($i_id) {
                             return $el["ID"] == $i_id;
                         });
                     // if it doesn't exist add to json
-                    if ($checkItem == null) {
+                    if ($checkItem == NULL) {
                         // get the index of array element with that field name
-                        $id = array_filter($jsonData, function ($el) use ($key) {
+                        $id = array_filter($jsonData, function($el) use ($key) {
                             return $el['field_name'] == $key;
                         });
                         //                    get id and convert to int
@@ -276,7 +237,8 @@ class FieldController extends Controller {
                         'type' => $newItem['type'],
                         'title' => $newItem['formLabel'],
                     ]);
-                } else {
+                }
+                else {
                     Field::create([
                         'field_name' => $newItem['field_name'],
                         'type' => $newItem['type'],
@@ -307,160 +269,175 @@ class FieldController extends Controller {
     }
 
     public function updateFields() {
-        // Step 1: Retrieve field data from the CRM API
-        $fields = CRest::call('crm.deal.fields');
-
-        // Extract field names from the API response
-        $keys = array_keys($fields["result"]);
-
-        try {
-            // Step 2: Begin a database transaction to ensure data consistency
-            DB::beginTransaction();
-
-            // Retrieve existing field names from the database
-            $dataFields = Field::pluck('field_name')->toArray();
-
-            // Step 3: Iterate through the API response and update database fields
-            foreach ($keys as $key) {
-                if (!in_array($key, $dataFields)) {
-                    $newItem = $fields['result'][$key];
-
-                    // Prepare field data for database insertion
-                    $fieldData = [
-                        'field_name' => $key,
-                        'type' => $newItem['type'],
-                    ];
-
-                    if (isset($newItem['formLabel'])) {
-                        $fieldData['title'] = $newItem['formLabel'];
-                    }
-
-                    // Create a new field in the database
-                    $newField = Field::create($fieldData);
-
-                    // If the field type is 'enumeration', process its items
-                    if ($newItem['type'] == 'enumeration') {
-                        $items = $newItem['items'];
-                        foreach ($items as $item) {
-                            FieldItem::create([
-                                'field_id' => $newField->field_id,
-                                'item_value' => $item['VALUE'],
-                                'item_id' => $item['ID'],
-                            ]);
-
-                            // Check if an identical item exists in another field and remove it
-                            $checkIfExists = FieldItem::where('field_id', '<>',
-                                $newField->field_id)
-                                ->where('item_value', $item['VALUE'])
-                                ->where('item_id', $item['ID'])
-                                ->first();
-
-                            if ($checkIfExists) {
-                                $checkIfExists->delete();
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Step 4: Commit the database transaction
-            DB::commit();
-        }
-        catch (Exception $e) {
-            // Step 5: Handle exceptions and roll back the transaction in case of an error
-            DB::rollback();
-            // Handle the exception (e.g., log or throw a custom exception)
-            return redirect()
-                ->back()
-                ->with([
-                    'toast' => [
-                        'message' => $e->getMessage(),
-                        'type' => 'danger',
-                    ],
-                ]);
-        }
-
-        // Step 6: Perform additional checks and updates after the transaction
-        foreach ($keys as $key) {
-            $el = $fields['result'][$key];
-
-            if ($el['type'] == 'enumeration') {
-                $enumField = Field::where('field_name', $key)->first();
-
-                if ($enumField) {
-                    // Retrieve items from the database
-                    $itemsFromDatabase = $enumField->items->pluck('item_id',
-                        'item_value')->toArray();
-
-                    // Create an array with item data for comparison
-                    $resultArray = range(0, count($itemsFromDatabase) - 1);
-                    $arrayItemsFromDatabase = array_map(function($key, $id) use
-                    (
-                        $itemsFromDatabase
-                    ) {
-                        $val = array_search($id, $itemsFromDatabase);
-                        return ['ID' => $id, 'VALUE' => $val];
-                    }, $resultArray, $itemsFromDatabase);
-
-                    // Compare items from API with items from the database and perform updates
-                    $fieldItemsFromApi = $el['items'];
-                    foreach ($fieldItemsFromApi as $apiItem) {
-                        $found = FALSE;
-                        foreach ($arrayItemsFromDatabase as $databaseItem) {
-                            if ($apiItem == $databaseItem) {
-                                $found = TRUE;
-                                break;
-                            }
-                        }
-                        if (!$found) {
-                            $new = FieldItem::create([
-                                'item_value' => $apiItem['VALUE'],
-                                'item_id' => $apiItem['ID'],
-                                'field_id' => $enumField->field_id,
-                            ]);
-                        }
-                    }
-
-                    // Deactivate items in the database that are not present in the API response
-                    foreach ($arrayItemsFromDatabase as $databaseItem) {
-                        $found = FALSE;
-                        foreach ($fieldItemsFromApi as $apiItem) {
-                            if ($apiItem == $databaseItem) {
-                                $found = TRUE;
-                                break;
-                            }
-                        }
-                        if (!$found) {
-                            $oldItem = FieldItem::where('item_value',
-                                $databaseItem['VALUE'])
-                                ->where('item_id', $databaseItem['ID'])
-                                ->first();
-                            $oldItem->is_active = 0;
-                            $oldItem->save();
-                        }
-                    }
-                }
-            }
-        }
-
-        // Step 7: Check for fields in the database that are no longer present in the API response and deactivate them
-        foreach ($dataFields as $field) {
-            if (!in_array($field, $keys)) {
-                $field = Field::where('field_name', $field)->first();
-                $field->is_active = 0;
-                $field->save();
-            }
-        }
-
-        // Step 8: Redirect with a success message
+        UpdateFields::dispatch();
         return redirect()
             ->back()
             ->with([
                 'toast' => [
-                    'message' => 'Fields are updated!',
+                    'message' => 'Fields updated',
                     'type' => 'success',
                 ],
             ]);
+
+        //        try {
+        //            // Step 1: Retrieve field data from the CRM API
+        //            $fields = CRest::call('crm.deal.fields');
+        //
+        //            // Extract field names from the API response
+        //            $keys = array_keys($fields["result"]);
+        //
+        //            // Step 2: Begin a database transaction to ensure data consistency
+        //            DB::beginTransaction();
+        //
+        //            // Retrieve existing field names from the database
+        //            $dataFields = Field::pluck('field_name')->toArray();
+        //
+        //            // Step 3: Iterate through the API response and update database fields
+        //            foreach ($keys as $key) {
+        //                if (!in_array($key, $dataFields)) {
+        //                    $newItem = $fields['result'][$key];
+        //
+        //                    // Prepare field data for database insertion
+        //                    $fieldData = [
+        //                        'field_name' => $key,
+        //                        'type' => $newItem['type'],
+        //                    ];
+        //
+        //                    if (isset($newItem['formLabel'])) {
+        //                        $fieldData['title'] = $newItem['formLabel'];
+        //                    }
+        //
+        //                    // Create a new field in the database
+        //                    $newField = Field::create($fieldData);
+        //
+        //                    // If the field type is 'enumeration', process its items
+        //                    if ($newItem['type'] == 'enumeration') {
+        //                        $items = $newItem['items'];
+        //                        foreach ($items as $item) {
+        //                            FieldItem::create([
+        //                                'field_id' => $newField->field_id,
+        //                                'item_value' => $item['VALUE'],
+        //                                'item_id' => $item['ID'],
+        //                            ]);
+        //
+        //                            // Check if an identical item exists in another field and remove it
+        //                            $checkIfExists = FieldItem::where('field_id', '<>',
+        //                                $newField->field_id)
+        //                                ->where('item_value', $item['VALUE'])
+        //                                ->where('item_id', $item['ID'])
+        //                                ->first();
+        //
+        //                            if ($checkIfExists) {
+        //                                $checkIfExists->delete();
+        //                            }
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //
+        //            // Step 4: Commit the database transaction
+        //            DB::commit();
+        //
+        //            // Step 6: Perform additional checks and updates after the transaction
+        //            foreach ($keys as $key) {
+        //                $el = $fields['result'][$key];
+        //
+        //                if ($el['type'] == 'enumeration') {
+        //                    $enumField = Field::where('field_name', $key)->first();
+        //
+        //                    if ($enumField) {
+        //                        // Retrieve items from the database
+        //                        $itemsFromDatabase = $enumField->items->pluck('item_id',
+        //                            'item_value')->toArray();
+        //
+        //                        // Create an array with item data for comparison
+        //                        $resultArray = range(0, count($itemsFromDatabase) - 1);
+        //                        $arrayItemsFromDatabase = array_map(function(
+        //                            $key,
+        //                            $id
+        //                        ) use (
+        //                            $itemsFromDatabase
+        //                        ) {
+        //                            $val = array_search($id, $itemsFromDatabase);
+        //                            return ['ID' => $id, 'VALUE' => $val];
+        //                        }, $resultArray, $itemsFromDatabase);
+        //
+        //                        // Compare items from API with items from the database and perform updates
+        //                        $fieldItemsFromApi = $el['items'];
+        //                        foreach ($fieldItemsFromApi as $apiItem) {
+        //                            $found = FALSE;
+        //                            foreach ($arrayItemsFromDatabase as $databaseItem) {
+        //                                if ($apiItem == $databaseItem) {
+        //                                    $found = TRUE;
+        //                                    break;
+        //                                }
+        //                            }
+        //                            if (!$found) {
+        //                                $new = FieldItem::create([
+        //                                    'item_value' => $apiItem['VALUE'],
+        //                                    'item_id' => $apiItem['ID'],
+        //                                    'field_id' => $enumField->field_id,
+        //                                ]);
+        //                            }
+        //                        }
+        //
+        //                        // Deactivate items in the database that are not present in the API response
+        //                        foreach ($arrayItemsFromDatabase as $databaseItem) {
+        //                            $found = FALSE;
+        //                            foreach ($fieldItemsFromApi as $apiItem) {
+        //                                if ($apiItem == $databaseItem) {
+        //                                    $found = TRUE;
+        //                                    break;
+        //                                }
+        //                            }
+        //                            if (!$found) {
+        //                                $oldItem = FieldItem::where('item_value',
+        //                                    $databaseItem['VALUE'])
+        //                                    ->where('item_id', $databaseItem['ID'])
+        //                                    ->first();
+        //                                $oldItem->is_active = 0;
+        //                                $oldItem->save();
+        //                            }
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //
+        //            // Step 7: Check for fields in the database that are no longer present in the API response and deactivate them
+        //            foreach ($dataFields as $field) {
+        //                if (!in_array($field, $keys)) {
+        //                    $field = Field::where('field_name', $field)->first();
+        //                    $field->is_active = 0;
+        //                    $field->save();
+        //                }
+        //            }
+        //
+        //            Intake::insertNewIntakes();
+        //
+        //            Package::insertNewPackages();
+        //            // Step 8: Redirect with a success message
+        //            return redirect()
+        //                ->back()
+        //                ->with([
+        //                    'toast' => [
+        //                        'message' => 'Fields are updated!',
+        //                        'type' => 'success',
+        //                    ],
+        //                ]);
+        //        }
+        //        catch (Exception $e) {
+        //            // Step 5: Handle exceptions and roll back the transaction in case of an error
+        //            DB::rollback();
+        //            // Handle the exception (e.g., log or throw a custom exception)
+        //            return redirect()
+        //                ->back()
+        //                ->with([
+        //                    'toast' => [
+        //                        'message' => $e->getMessage(),
+        //                        'type' => 'danger',
+        //                    ],
+        //                ]);
+        //        }
     }
 
 }

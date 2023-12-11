@@ -39,7 +39,7 @@ class HandleInertiaRequests extends Middleware {
                 'img' => auth()->check() ? asset("storage/profile/tiny/".$request->user()->profile_image) : '',
             ],
             'ziggy' => fn() => [
-                ...(new Ziggy())->toArray(),
+//                ...(new Ziggy())->toArray(), //this returns all routes to front, which I don't see a reason for (Martin)
                 'location' => $request->url(),
             ],
             'toast' => session('toast'),

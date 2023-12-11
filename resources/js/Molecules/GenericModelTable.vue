@@ -8,6 +8,7 @@ import {Link, useForm, usePage} from '@inertiajs/vue3';
 
 import {Icon} from '@iconify/vue';
 import PackageIndicator from '@/Atoms/PackageIndicator.vue';
+import DisplayStage from '@/Atoms/DisplayStage.vue';
 
 const props = defineProps({
     data: {
@@ -31,6 +32,9 @@ const props = defineProps({
         type: Array,
     },
     excludedColumns: {
+        type: Array,
+    },
+    rowHighlight: {
         type: Array,
     },
 });
@@ -73,7 +77,16 @@ const isIncluded = (col) => {
         return !props.excludedColumns.includes(col);
     }
     return true;
+};
 
+const checkHighlight = (item) => {
+    if (props.rowHighlight) {
+        const foundElement = props.rowHighlight.find(element => item[element.name] === element.value);
+        if (foundElement) {
+            return foundElement.className;
+        }
+    }
+    return '';
 };
 
 onMounted(() => {
@@ -107,7 +120,8 @@ onMounted(() => {
         <tr v-for="(item,index) in props.data.data"
             v-if="props.data.data.length > 0"
             :key="index"
-            class=" border-b dark:bg-gray-900 dark:border-gray-700"
+            :class="checkHighlight(item)"
+            class="border-b  dark:bg-gray-900 dark:border-gray-700"
         >
             <template v-for="(col,idx) in columns" :key="idx">
                 <td v-if="isIncluded(col)" class="px-6 py-4">
@@ -118,6 +132,7 @@ onMounted(() => {
                         <Icon v-if="typeOfColumn(col) === 'icon'" :icon="'tabler:'+item[col]" class="text-2xl me-2"
                               inline/>
                         <PackageIndicator v-if="typeOfColumn(col) === 'package'" :package-id="item[col]"/>
+                        <DisplayStage v-if="typeOfColumn(col) === 'stage'" :stage-name="item[col]"/>
                     </div>
                     <div v-else>
                         {{ item[col] }}

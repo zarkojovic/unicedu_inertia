@@ -12,7 +12,6 @@ const props = defineProps({
 const page = usePage();
 
 const getDisplayValue = computed(() => {
-
     if (props.fieldInfo.file_name !== '') {
         return props.fieldInfo.file_name;
     } else if (props.fieldInfo.display_value !== '') {
@@ -20,7 +19,6 @@ const getDisplayValue = computed(() => {
     } else if (props.fieldInfo.value !== '') {
         if (isDate.value) {
             return formattedDate.value.replace(/^"|"$/g, '');
-
         }
         return props.fieldInfo.value;
     } else {
@@ -34,7 +32,6 @@ const filePath = computed(() => {
 
 const isDate = computed(() => {
     const regex = /^\d{4}-\d{2}-\d{2}$/; // Regular expression for "YYYY-MM-DD" format
-    // const regex = /^\d{4}-\d{2}-\d{2}$/; // Regular expression for "YYYY-MM-DD" format
     return regex.test(props.fieldInfo.value);
 
 });
@@ -44,7 +41,6 @@ const formattedDate = computed(() => {
     return parts[1] + '/' + parts[2] + '/' + parts[0];
 
 });
-
 
 </script>
 

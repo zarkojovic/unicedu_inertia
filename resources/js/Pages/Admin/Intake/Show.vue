@@ -50,6 +50,19 @@ const changeActiveIntake = () => {
     form.post('/admin/intakes/change-active-intake', {});
 };
 
+const rowHighlight = [
+    {
+        name: 'active',
+        value: 'inactive',
+        className: 'bg-red-100',
+    }, {
+        name: 'active',
+        value: 'active',
+        className: 'bg-blue-100',
+    },
+];
+
+
 </script>
 
 <template>
@@ -59,7 +72,7 @@ const changeActiveIntake = () => {
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Admin Panel</h2>
         </template>
         <div class="py-6 mt-6">
-            <ModelDataDisplay :data="props.data" :excluded-columns="hiddenColumns"
+            <ModelDataDisplay :data="props.data" :excluded-columns="hiddenColumns" :row-highlight="rowHighlight"
                               section-title="Intakes"/>
             <div class="my-5"></div>
             <DropdownInput :options="props.intakeSelect" :selected-item="activeIntakeId"

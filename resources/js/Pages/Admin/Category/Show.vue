@@ -14,6 +14,17 @@ const props = defineProps({
 
 const hidden = ['id'];
 
+const checkRow = [
+    {
+        name: 'is_visible',
+        value: false,
+        className: 'bg-red-100',
+    }, {
+        name: 'is_visible',
+        value: true,
+        className: 'bg-green-100',
+    },
+];
 </script>
 
 <template>
@@ -25,6 +36,8 @@ const hidden = ['id'];
 
         <div class="py-6 mt-6">
             <ModelDataDisplay :columns="props.columns" :data="props.data" :excluded-columns="hidden"
+                              :is-deletable="true" :row-highlight="checkRow"
+                              delete-route="/admin/categories/deleteCategory"
                               route-for-new="createNewCategory"
                               section-title="Fields Categories"/>
         </div>

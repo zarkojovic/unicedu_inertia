@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Deal;
+use App\Http\Requests\UpdateImageRequest;
+use App\Jobs\UpdateUserBitrixDeals;
 use App\Models\Field;
 use App\Models\FieldCategory;
 use App\Models\Log;
-use App\Models\Package;
-use App\Models\User;
 use App\Models\UserInfo;
 use Exception;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
@@ -80,11 +80,20 @@ class UserController extends RootController {
             ->get();
         // GETTING JUST THE IDS OF THEM
         $field_ids = array_column($field_id_array->toArray(), 'field_id');
-        // GETTING THE USER INFO FROM THE FIELD IDS
-        $user_info_array = UserInfo::where("user_id", (int) $user->user_id)
-            ->whereIn("field_id", $field_ids)
-            ->orderBy('field_id')
+        // GETTING THE USER INFO FROM THE FIELD IDS1
+
+        $user_info_array = DB::table('user_infos')
+            ->join('fields', 'fields.field_id', 'user_infos.field_id')
+            ->where("user_infos.user_id", (int) $user->user_id)
+            ->whereIn("user_infos.field_id", $field_ids)
+            ->select('user_infos.*', 'fields.field_name')
+            ->orderBy('fields.field_name')
             ->get();
+
+        usort($items, function($a, $b) {
+            return strcmp($a["field_name"], $b["field_name"]);
+        });
+
         try {
             DB::beginTransaction();
             //LOOPING THROUGH EACH ELEMENT IN REQUEST
@@ -100,6 +109,7 @@ class UserController extends RootController {
                 $field_id = $field_id[0];
 
                 $user_info = $user_info_array[$key] ?? NULL;
+                //                dd($user_info);
                 //CHECKING IF THE REQUEST IS FILE
                 if ($value['value'] instanceof UploadedFile) {
                     //                GETTING THE INFO FROM FILE
@@ -115,7 +125,6 @@ class UserController extends RootController {
                         else {
                             $fieldName = $field_id->field_name;
                         }
-                        //                        throw new Exception("'$fieldName' File must be pdf!");
                         session([
                             'toast' => [
                                 'message' => "'$fieldName' File must be pdf!",
@@ -160,7 +169,8 @@ class UserController extends RootController {
                             'file_name' => $fileName,
                             'file_path' => $fileNewName,
                         ]);
-                        Log::informationLog("User updated $key.",
+
+                        Log::informationLog("User updated ".$field_id->field_name.'.',
                             Auth::user()->user_id);
                     }
                     else {
@@ -184,13 +194,13 @@ class UserController extends RootController {
                                     'value' => $value,
                                 ]);
                             }
-                            Log::informationLog("User updated $key.",
+                            Log::informationLog("User updated ".$field_id->field_name.'.',
                                 Auth::user()->user_id);
                         }
                     }
                 }
                 else {
-                    //                IF ITS AN UPDATING
+                    // IF ITS AN UPDATING
                     if ($value['value'] instanceof UploadedFile) {
                         #REMOVE OLD IMAGE FROM FOLDERS
                         $oldProfileImage = $user_info->file_path;
@@ -204,33 +214,35 @@ class UserController extends RootController {
                         $user_info->file_path = $fileNewName;
                         $user_info->save();
                     }
+
                     else {
                         if (!empty($value)) {
-                            if ($value['value'] != 0 && $value['value'] !== 'null') {
-                                if (isset($value['label'])) {
-                                    $user_info->value = $value['value'];
-                                    $user_info->display_value = $value['label'];
-                                }
-                                else {
-                                    if (is_string($value['value'])) {
-                                        $value = ucfirst($value['value']);
-                                    }
-                                    $user_info->value = $value;
-                                }
+                            $updateData = [
+                                'value' => isset($value['value']) ? $value['value'] : NULL,
+                                'display_value' => isset($value['label']) ? $value['label'] : NULL,
+                            ];
+
+                            if (is_string($value['value'])) {
+                                $updateData['value'] = ucfirst($value['value']);
                             }
-                            else {
-                                $user_info->value = NULL;
-                                $user_info->display_value = NULL;
-                            }
-                            $user_info->save();
+
+                            DB::table('user_infos')
+                                ->where('user_info_id',
+                                    $user_info->user_info_id)
+                                ->update($updateData);
                         }
                         else {
-                            $user_info->value = NULL;
-                            $user_info->display_value = NULL;
-                            $user_info->save();
+                            DB::table('user_infos')
+                                ->where('user_info_id',
+                                    $user_info->user_info_id)
+                                ->update([
+                                    'value' => NULL,
+                                    'display_value' => NULL,
+                                ]);
+
                             session([
                                 'toast' => [
-                                    'message' => "Field Category updated!!",
+                                    'message' => 'Field Category updated!!',
                                     'type' => 'success',
                                 ],
                             ]);
@@ -253,113 +265,67 @@ class UserController extends RootController {
                 ]);
         }
 
-        //        $deals = Deal::where('user_id', $user->user_id)
-        //            ->pluck('user_id', 'bitrix_deal_id')
-        //            ->toArray();
-        //
-        //        if (count($deals) > 0) {
-        //            $fields = User::getAllUserFieldsValue();
-        //
-        //            foreach ($deals as $key => $val) {
-        //                // Make API call t*3o create the deal in Bitrix24
-        //                $res = CRest::call("crm.deal.update", [
-        //                    'ID' => (string) $key,
-        //                    'FIELDS' => $fields,
-        //                ]);
-        //
-        //                if ($res['result']) {
-        //                    Log::apiLog('Deal '.$key.' successfully updated!');
-        //                }
-        //                else {
-        //                    Log::errorLog('Failed to update deal '.$key);
-        //                }
-        //            }
-        //        }
-    }
+        $deals = DB::table('deals')
+            ->where('user_id', $user->user_id)
+            ->where('active', 1)
+            ->pluck('user_id', 'bitrix_deal_id')
+            ->toArray();
 
-    public function getUserInfo() {
-        $user = Auth::user();
-        $info = Db::table("user_infos")
-            ->selectRaw("`field_id`, `value`, `display_value`, `file_name`,`file_path`")
-            ->where("user_id", $user->user_id)
-            ->groupBy("field_id", "value", "display_value", "file_name",
-                'file_path')
-            ->get();
+        if (count($deals)) {
+            $user->unsaved_changes = 1;
 
-        echo json_encode($info);
-    }
-
-    public function changeUserPackage(Request $request) {
-        //        dd($request->all());
-        $user = User::find($request->user_id);
-        $user->package_id = $request->package_id;
-
-        if ($user->save()) {
-            return redirect()->back()->with([
-                'toast' => [
-                    'message' => 'User package successfully updated!',
-                    'type' => 'success',
-                ],
-            ]);
+            $user->save();
+            return redirect()
+                ->back()
+                ->with([
+                    'toast' => [
+                        'message' => "You already have deal! You have to synchronize the data!",
+                        'type' => 'warning',
+                        'duration' => '10000',
+                    ],
+                ]);
         }
-        else {
+    }
+
+    public function syncFields() {
+        try {
+            $user = Auth::user();
+
+            $user->unsaved_changes = 0;
+
+            UpdateUserBitrixDeals::dispatch($user);
+
+            if ($user->save()) {
+                return redirect()->back()->with([
+                    'toast' => [
+                        'message' => 'Synced changes!',
+                        'type' => 'success',
+                    ],
+                ]);
+            }
+            else {
+                throw new Exception('Save failed');
+            }
+        }
+        catch (Exception $e) {
             return redirect()->back()->with([
                 'toast' => [
-                    'message' => 'User package successfully updated!',
+                    'message' => 'Sync failed: '.$e->getMessage(),
                     'type' => 'danger',
                 ],
             ]);
         }
     }
 
-    public function updateImage(Request $request) {
+    public function updateImage(UpdateImageRequest $request): RedirectResponse {
         #INPUTS
-        if (!$request->hasFile('profileImage')) {
-            return to_route('home')->with([
-                'toast' => [
-                    'message' => 'No file uploaded.',
-                    'type' => 'danger',
-                ],
-            ]);
-        }
-        //            return Inertia::render("404");
-
         $pathOriginal = "public/profile/original";
         $pathThumbnail = "public/profile/thumbnail";
         $pathTiny = "public/profile/tiny";
-        $allowedMimeTypes = ['image/jpg', 'image/jpeg', 'image/png'];
-        $numberOfMegabytes = 8;
-        $kilobyte = 1024; // 2MB in kilobytes
-        $errors = [];
 
         $file = $request->file('profileImage');
-
         $fileName = $file->getClientOriginalName();
-        $tmpName = $file->getPathname(); // tmp_name
-        $fileSize = $file->getSize();
-        $fileType = $file->getClientMimeType();
         $fileExtension = $file->getClientOriginalExtension();
-
-        #VALIDATE INPUTS
-        if (!in_array($fileType, $allowedMimeTypes)) {
-            $errors[] = "Allowed file types are jpg, jpeg and png.";
-        }
-
-        if ($fileSize > $numberOfMegabytes * pow($kilobyte, 2)) {
-            $errors[] = "File size should not exceed 8MB.";
-        }
-
-        if (!empty($errors)) {
-            $errorMessages = implode('\n',
-                $errors); // Concatenate error messages
-            Log::errorLog("Bad file for profile image.", Auth::user()->user_id);
-            return to_route("home")->with([
-                'toast' => [
-                    'message' => $errorMessages,
-                    'type' => 'danger',
-                ],
-            ]);
-        }
 
         #QUESTION: DA LI SU OVDE PRISTUPACNE SLIKE? DA LI MOGU DA SE PRIKAZU IZ STORAGEA? MOZDA MORA SOFTLINK...
         #ODGOVOR: MORAO JE SOFTLINK...
@@ -368,6 +334,7 @@ class UserController extends RootController {
         $currentDate = now()->format('Y-m-d');
         $newFileName = $currentDate.'_'.$uniqueString.'.'.$fileExtension;
 
+        // if original folder doesn't exist
         if (!Storage::exists($pathOriginal)) {
             Log::errorLog("Original folder path not found.",
                 Auth::user()->user_id);
@@ -378,6 +345,8 @@ class UserController extends RootController {
                 ],
             ]);
         }
+
+        // if the file is not moved to the original folder
         $moved = Storage::putFileAs($pathOriginal, $file, $newFileName);
         if (!$moved) {
             Log::errorLog("Failed to move profile image to original folder.",
@@ -405,7 +374,6 @@ class UserController extends RootController {
                 (string) $tinyImage->encode());
         }
         catch (Exception $e) {
-            report($e);
             Log::errorLog("Failed to resize file image.",
                 Auth::user()->user_id);
             return to_route('home')->with([
@@ -480,17 +448,13 @@ class UserController extends RootController {
                 ]);
             }
 
-            //                DB::rollback();
-            //                Log::errorLog("Photo in User Info table not updated.", Auth::user()->user_id);
-            //                return redirect()->route('profile')->with(["errors" => ['An error occurred while saving profile image.']]);
-
             Log::informationLog("Profile image updated.",
                 Auth::user()->user_id);
             DB::commit();
         }
         catch (Exception $e) {
             DB::rollback();
-            Log::errorLog("Failed to update profile image.",
+            Log::errorLog("Failed to update profile image. Error: ".$e,
                 Auth::user()->user_id);
             return to_route('home')->with([
                 'toast' => [
@@ -500,93 +464,11 @@ class UserController extends RootController {
             ]);
         }
 
-        #UF_CRM_1667336320092 - polje za sliku
-        #6533 - DEAL ID
-
-        #IF UPDATED IN DATABASE, UPDATE IN BITRIX24
-        //        try {
-        //            $imageContent = Storage::get($pathOriginal.'/'.$newFileName);
-        //
-        //            CRest::call("crm.deal.update", [
-        //                'id' => '6533',//test deal
-        //                'fields' => [
-        //                    'UF_CRM_1667336320092' => [
-        //                        'fileData' => [
-        //                            $newFileName,
-        //                            base64_encode($imageContent)
-        //                        ]
-        //                    ]
-        //                ]
-        //            ]);
-        //        } catch (\Exception $e) {
-        //            return "Error: " . $e->getMessage();
-        //        }
-
         return to_route('home')->with([
             'toast' => [
                 'message' => 'Profile image updated successfully!',
                 'type' => 'success',
             ],
-        ]);
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id) {
-        //
-    }
-
-    public function showUser() {
-        $users = DB::table('users')
-            ->join('roles', 'roles.role_id', 'users.role_id')
-            ->select('users.user_id as id', 'users.profile_image',
-                'users.first_name',
-                'users.last_name',
-                'users.email', 'users.phone', 'roles.role_name as role name',
-                'users.package_id as package')
-            ->paginate(10);
-
-        return Inertia::render("Admin/User/Show",
-            [
-                'data' => $users,
-            ]);
-    }
-
-    public function editUser(string $id) {
-        $users = User::select('first_name', 'last_name', 'email_verified_at',
-            'profile_image', 'contact_id', 'package_id',
-            'created_at', 'phone', 'updated_at', "user_id as id")
-            ->findOrFail($id);
-
-        $history = DB::table('logs')
-            ->join('actions', 'actions.action_id', 'logs.action_id')
-            ->select('logs.description', 'logs.created_at',
-                'actions.action_name as action')
-            ->where('logs.user_id', (int) $id)
-            ->paginate(10);
-
-        $packages = Package::select('package_name as label',
-            DB::raw('CAST(package_id AS CHAR) AS value'))->get()->toArray();
-        return Inertia::render("Admin/User/Edit",
-            [
-                'userLogs' => $history,
-                'userInfo' => $users,
-                'packages' => $packages,
-            ]);
-    }
-
-    public function showMyApplications(Request $request) {
-        $user = Auth::user();
-        $userDeals = Deal::where('user_id', $user->user_id)
-            ->where('active', 1)
-            ->get();
-        $showModal = $request->input('showModal');
-
-        // Return a view with the user's deals
-        return view('student.applications', [
-            'userDeals' => $userDeals, // User-specific deals data
-            'showModal' => $showModal,
         ]);
     }
 

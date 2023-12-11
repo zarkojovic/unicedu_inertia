@@ -26,7 +26,10 @@ class Recaptcha implements ValidationRule {
         ])->json();
 
         if (!$response['success'] || !$response['score'] > 0.5) {
-            session(['toast' => ['message' => 'failed to authenticate'.$response]]);
+            //            return redirect()->back()->with([
+            //                'toast' => ['message' => 'failed to authenticate'.$response
+            //            ]);
+            session(['toast' => ['message' => 'Failed to authenticate reCaptcha']]);
             $fail('You are not a valid user!');
         }
     }

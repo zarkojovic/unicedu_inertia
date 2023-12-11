@@ -8,18 +8,29 @@ use App\Models\Log;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
-class AdminController extends RootController
-{
+class AdminController extends RootController {
 
-    public function show()
-    {
-        return Inertia::render("Admin/Dashboard");
+    public function show() {
+        $data = DB::table('logs')
+            ->leftJoin('actions', 'actions.action_id', 'logs.action_id')
+            ->leftJoin('users', 'users.user_id', 'logs.user_id')
+            ->select(
+                DB::raw('COALESCE(users.email, "no user") as user_email'),
+                'actions.action_name',
+                'logs.ip_address',
+                'logs.description',
+                'logs.created_at'
+            )
+            ->paginate(10);
+        return Inertia::render("Admin/Dashboard", [
+            'data' => $data,
+        ]);
     }
 
-    public function home()
-    {
+    public function home() {
         $categories = FieldCategory::where("category_name", "<>", "Hidden")
             ->select("field_category_id", "category_name")
             ->get();
@@ -34,7 +45,7 @@ class AdminController extends RootController
 
         foreach ($categories as $category) {
             $categoryFields = array_filter($sortedFields,
-                function ($field) use ($category) {
+                function($field) use ($category) {
                     return $field['field_category_id'] === $category->field_category_id;
                 });
 
@@ -49,18 +60,16 @@ class AdminController extends RootController
         ]);
     }
 
-    public function fieldSelect()
-    {
+    public function fieldSelect() {
         $categories = FieldCategory::all();
         $fields = Field::where('is_active', '1')
-            ->where('field_category_id', '<>', null)
+            ->where('field_category_id', '<>', NULL)
             ->get();
         return view("category_fields",
             ["fields" => $fields, "categories" => $categories]);
     }
 
-    public function fetchFields(Request $request)
-    {
+    public function fetchFields(Request $request) {
         $fields = Field::whereNull("field_category_id")
             ->select("field_id", "field_name", "title")
             ->get();
@@ -79,16 +88,15 @@ class AdminController extends RootController
         return ['field_id' => 0, 'title' => "No uncategorized fields found..."];
     }
 
-    public function setFieldCategory(Request $request)
-    {
-//        return redirect()
-//            ->route("admin_home")
-//            ->with([
-//                'toast' => [
-//                    'message' => "Intentionally blocked field adding.",
-//                    'type' => 'success',
-//                ],
-//            ]);
+    public function setFieldCategory(Request $request) {
+        //        return redirect()
+        //            ->route("admin_home")
+        //            ->with([
+        //                'toast' => [
+        //                    'message' => "Intentionally blocked field adding.",
+        //                    'type' => 'success',
+        //                ],
+        //            ]);
         try {
             $fieldId = $request->input('field_id');
             $newCategoryId = $request->input('field_category_id');
@@ -99,7 +107,7 @@ class AdminController extends RootController
             $record->field_category_id = $newCategoryId;
             $record->order = $order;
             $record->save();
-            $displayName = $record->title != null ? $record->title : $record->field_name;
+            $displayName = $record->title != NULL ? $record->title : $record->field_name;
             Log::apiLog("Added '".$displayName."' field to ".$record->category->category_name);
             return redirect()
                 ->route("admin_home")
@@ -109,7 +117,8 @@ class AdminController extends RootController
                         'type' => 'success',
                     ],
                 ]);
-        } catch (Exception $ex) {
+        }
+        catch (Exception $ex) {
             http_response_code(500);
             Log::errorLog($ex->getMessage(), Auth::user()->user_id);
             return redirect()

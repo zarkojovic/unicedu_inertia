@@ -57,7 +57,7 @@
 </template>
 
 <script setup>
-import {ref, computed, onMounted, onBeforeUnmount, watch} from 'vue';
+import {ref, computed, onMounted, onBeforeUnmount, watch, inject} from 'vue';
 import {useFetch} from '@/Composables/fetch.js';
 import {useForm} from '@inertiajs/vue3';
 import {
@@ -66,6 +66,7 @@ import {
     ComboboxOptions,
     ComboboxOption,
 } from '@headlessui/vue'
+import toast from "@/Stores/toast.js";
 
 const emits = defineEmits(['hide']);
 
@@ -92,17 +93,24 @@ const vFocus = {
 };
 
 //WATCHER
+const updateFieldsOrders = inject('fieldsOrders');
 watch(selected, (newVal, oldVal) => {
     try {
         form.field_id = JSON.parse(JSON.stringify(newVal.field_id));
         form.field_category_id = JSON.parse(JSON.stringify(props.catId));
         form.order = JSON.parse(JSON.stringify(props.order));
 
-        // console.log(form.field_id, form.field_category_id, form.order)
         toggleCombobox();
-        form.submit("post", "/admin/fields-add", {preserveScroll: true});
+        form.submit("post", "/admin/fields-add", {
+            preserveScroll: true,
+            onSuccess: () => updateFieldsOrders(form.field_id)
+        });
     } catch (error) {
-        console.error('Error in watch callback:', error);
+        // console.error('Error in watch callback:', error);
+        addToast({
+            message: "An error occurred while trying to add a field to the category.",
+            type: "danger",
+        });
     }
 })
 
@@ -111,7 +119,10 @@ onMounted(async () => {
     try {
         items.value = await useFetch('/admin/fields-fetch');
     } catch (error) {
-        console.error(error);
+        addToast({
+            message: "An error occurred while retrieving uncategorized fields.",
+            type: "danger",
+        });
     }
 
     document.addEventListener('click', handleClickOutside);
@@ -144,21 +155,8 @@ const toggleCombobox = (() => {
     query = ''
     emits("hide");
 });
-// const delaySearch = (() => {
-//     let searchTimeout;
-//     let searchedItems = ref([]);
-//
-//     clearTimeout(searchTimeout);
-//     searchTimeout = setTimeout(function() {
-//         searchedItems.value = items.value.filter((item) =>
-//             item.title
-//                 .toLowerCase()
-//                 .replace(/\s+/g, '')
-//                 .includes(query.value.toLowerCase().replace(/\s+/g, ''))
-//         ).slice(0, 20);
-//     }, 400);
-//     console.log(searchedItems.value)
-//     return searchedItems.value;
-//     // console.log(filteredItems.value)
-// })
+
+const addToast = (obj) => {
+    toast.add(obj);
+};
 </script>

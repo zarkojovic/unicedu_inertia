@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\Field;
 use CRest;
 use Illuminate\Database\Seeder;
-use Kafka0238\Crest\Src;
 
 class FieldSeeder extends Seeder {
 
@@ -13,43 +12,73 @@ class FieldSeeder extends Seeder {
      * Run the database seeds.
      */
     public function run(): void {
-        $res = CRest::call('crm.deal.fields');
-
-        $arrayOfObjects = [];
-        $values = $res["result"];
-        $keys = array_keys($res["result"]);
-        foreach ($keys as $i => $key) {
-            $values[$key]["field_name"] = $key;
-            $arrayOfObjects[] = $values[$key];
-        }
+        // Initialize $i and $hiddenFields as global variables
+        global $i, $hiddenFields;
         $i = 0;
         $hiddenFields = [];
-        foreach ($arrayOfObjects as $object) {
-            if (isset($object['formLabel'])) {
-                Field::create([
-                    'field_name' => $object['field_name'],
-                    'type' => $object['type'],
-                    'title' => $object['formLabel'],
-                ]);
+
+        // Function to process and store CRM fields in the database
+        function processAndStoreFields($res, $isContactField = FALSE) {
+            // Initialize an array to store processed objects.
+            $arrayOfObjects = [];
+
+            // Extract values and keys from the API response.
+            $values = $res["result"];
+            $keys = array_keys($res["result"]);
+
+            // Transform the associative array into an array of objects, each containing 'field_name'.
+            foreach ($keys as $i => $key) {
+                $values[$key]["field_name"] = $key;
+                $arrayOfObjects[] = $values[$key];
             }
-            else {
-                $i++;
-                $hiddenFields[] = [
-                    "field_name" => $object['field_name'],
-                    "is_required" => '0',
-                    'order' => $i,
-                    "field_category_id" => '5',
-                ];
-                Field::create([
-                    'field_name' => $object['field_name'],
-                    'type' => $object['type'],
-                ]);
+
+            // Initialize a counter for hidden fields.
+            global $i;  // Access the global variable $i
+
+            // Iterate through the array of objects to create Field records in the database.
+            foreach ($arrayOfObjects as $object) {
+                // Check if the 'formLabel' key is set, indicating a visible field.
+                if (isset($object['formLabel'])) {
+                    // Create a Field record for visible fields.
+                    Field::create([
+                        'field_name' => $object['field_name'],
+                        'type' => $object['type'],
+                        'title' => $object['formLabel'],
+                        'is_contact_field' => $isContactField,
+                    ]);
+                }
+                else {
+                    // Increment the counter for hidden fields.
+                    $i++;
+
+                    // Create an array with details of hidden fields.
+                    global $hiddenFields;  // Access the global variable $hiddenFields
+                    $hiddenFields[] = [
+                        "field_name" => $object['field_name'],
+                        "is_required" => '0',
+                        'order' => $i,
+                        "field_category_id" => '5',
+                    ];
+
+                    // Create a Field record for hidden fields.
+                    Field::create([
+                        'field_name' => $object['field_name'],
+                        'type' => $object['type'],
+                        'is_contact_field' => $isContactField,
+                    ]);
+                }
             }
         }
+
+        // Example usage for CRM deal fields
+        $resDeal = CRest::call('crm.deal.fields');
+        //        $resCon = CRest::call('crm.contact.fields');
+        processAndStoreFields($resDeal);
+        //        processAndStoreFields($resCon, TRUE);
 
         $personalCategory = [
             [
-                "field_name" => 'UF_CRM_1667334040534',
+                "field_name" => 'UF_CRM_1695238253680',
                 "is_required" => '1',
                 "order" => '3',
                 "field_category_id" => '1',

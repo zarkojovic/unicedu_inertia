@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\DeleteBitrixDeal;
 use App\Jobs\sendingBitrixDeal;
 use App\Models\Deal;
 use App\Models\Field;
 use App\Models\Intake;
 use App\Models\Log;
+use App\Models\Stage;
+use CRest;
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -18,8 +22,19 @@ class DealController extends RootController {
 
     public function showApplication() {
         try {
-            // Fetch all deals from the 'deals' table and select 'deal_id' as 'id'
-            $data = Deal::select('deal_id as id', 'intake', 'program')
+            $data = DB::table('deals')
+                ->join('users', 'users.user_id', 'deals.user_id')
+                ->join('user_intake_packages', 'user_intake_packages.user_id',
+                    'users.user_id')
+                ->join('stages', 'stages.stage_id', 'deals.stage_id')
+                ->select('users.profile_image as Profile Image',
+                    'users.first_name as Name',
+                    'deals.deal_id as id', 'deals.intake', 'deals.program',
+                    'deals.university', 'deals.degree',
+                    'stages.stage_name as Stage',
+                    'user_intake_packages.package_id as Package',
+                    'deals.created_at as applied at',
+                    DB::raw('CASE WHEN deals.active = 1 THEN "active" ELSE "inactive" END AS active'))
                 ->paginate(10);
 
             // Return the admin template view with necessary data
@@ -39,12 +54,18 @@ class DealController extends RootController {
         }
     }
 
-    public function showUserDeals() {
+    public function showUserDeals(Request $request) {
         $user = auth()->user();
-        $applications = Deal::where('user_id', $user->user_id)
-            ->where('active', '1')
+
+        $applications = DB::table('deals')
+            ->join('stages', 'stages.stage_id', 'deals.stage_id')
+            ->where('deals.user_id', $user->user_id)
+            ->where('deals.active', '1')
+            ->select('deals.*', 'stages.stage_name')
             ->get()
             ->toArray();
+
+        $applications = json_decode(json_encode($applications), TRUE);
 
         $intakes = DB::table('user_intake_packages')
             ->where('user_id', $user->user_id)
@@ -78,6 +99,7 @@ class DealController extends RootController {
         //        dd($result);
         return Inertia::render("Student/Applications", [
             'applications' => $result,
+            'isModalOpen' => $request->isModalOpen === '1',
         ]);
     }
 
@@ -98,7 +120,7 @@ class DealController extends RootController {
             }
 
             // Create a new university application deal if there are items in the request
-            if (count($request->items) > 0) {
+            if (count($request->items)) {
                 $deal = new Deal();
 
                 $deal->active = TRUE;
@@ -153,31 +175,19 @@ class DealController extends RootController {
                 }
 
                 if ($deal->save()) {
-                    //                    $dealFields = Deal::generateDealObject($user,
-                    //                        []);
-                    //                    dd($dealFields);
-
-                    sendingBitrixDeal::dispatch($user, $request->items);
-                    //                    dd('pozz');
-                    //                    // Make API call to create the deal in Bitrix24
-                    //                    $result = CRest::call("crm.deal.add",
-                    //                        ['FIELDS' => $dealFields]);
-
+                    sendingBitrixDeal::dispatch($user, $request->items,
+                        $deal->deal_id);
                     //IF DEAL SUCCESSFULLY ADDED IN BITRIX
                     //                    if (isset($result['result']) && $result['result'] > 0) {
-                    if (1) {
-                        return redirect()
-                            ->route('applications')
-                            ->with([
-                                'toast' => [
-                                    'message' => 'Your application to the university has been successfully created.',
-                                    'type' => 'success',
-                                ],
-                            ]);
-                    }
-                    else {
-                        throw new Exception('There was an error while saving the application!');
-                    }
+
+                    return redirect()
+                        ->route('applications')
+                        ->with([
+                            'toast' => [
+                                'message' => 'Your application to the university has been successfully created.',
+                                'type' => 'success',
+                            ],
+                        ]);
                 }
                 else {
                     throw new Exception('An error occurred while saving the application.');
@@ -206,6 +216,17 @@ class DealController extends RootController {
         $deal = Deal::where('user_id', $user->user_id)
             ->find($deal_id);
 
+        if ($deal->stage_id !== 1) {
+            return redirect()->back()->with([
+                'toast' =>
+                    [
+                        'message' => 'Application past first stage can\'t be deleted!',
+                        'type' => 'danger',
+                    ],
+            ]);
+            //            throw new Exception('Application past first stage can\'t be deleted!');
+        }
+
         if (!$deal) {
             Log::errorLog('Tried to remove a deal that doesn\'t exist.',
                 $user->user_id);
@@ -221,16 +242,7 @@ class DealController extends RootController {
         // Retrieve the Bitrix deal ID associated with the deal
         $bitrix_deal_id = $deal->bitrix_deal_id;
 
-        // Make an API call to delete the deal in Bitrix24
-        //        $result = CRest::call("crm.deal.delete",
-        //            ['ID' => (string) $bitrix_deal_id]);
-
-        // Check if the deal was successfully removed from Bitrix24
-        //        if (isset($result['error_description']) && $result['error_description'] === 'Not found') {
-        //            Log::apiLog('Deal failed to delete from Bitrix24.', $user->user_id);
-        //            return redirect('/applications')->with('error',
-        //                'An error occurred while deleting an application.');
-        //        }
+        DeleteBitrixDeal::dispatch($bitrix_deal_id, $user->user_id);
 
         // Update the 'active' column to indicate that the deal is inactive (false)
         $deal->active = FALSE;
@@ -257,6 +269,96 @@ class DealController extends RootController {
                     'type' => 'success',
                 ],
         ]);
+    }
+
+    public function editApplication(string $id) {
+        $dealInfo = DB::table('deals')
+            ->join('users', 'deals.user_id', 'users.user_id')
+            ->join('stages', 'stages.stage_id', 'deals.stage_id')
+            ->where('deals.deal_id', $id)
+            ->select('deals.deal_id as id', 'deals.program', 'deals.degree',
+                'deals.intake', 'deals.university', 'deals.stage_id',
+                'deals.user_id', 'deals.created_at', 'deals.active',
+                'users.first_name',
+                'users.last_name', 'stages.stage_name')
+            ->first();
+
+        $stages = Stage::select('stage_name as label',
+            DB::raw('CAST(stage_id AS CHAR) AS value'))->get()->toArray();
+
+        return Inertia::render("Admin/Application/Edit",
+            [
+                'dealInfo' => $dealInfo,
+                'stages' => $stages,
+            ]);
+    }
+
+    public function changeDealStage(Request $request) {
+        try {
+            // Find the deal to update or throw an exception if not found
+            $dealToUpdate = Deal::where('deal_id', $request->deal_id)
+                ->where('active', 1)
+                ->firstOrFail();
+
+            // Begin a database transaction using transaction scope
+            DB::transaction(function() use ($dealToUpdate, $request) {
+                // Update deal information
+                $dealToUpdate->stage_id = $request->stage_id;
+
+                // Save the changes
+                if ($dealToUpdate->save()) {
+                    // Retrieve the stage key from the Stage model
+                    $stageKey = Stage::findOrFail($request->stage_id);
+
+                    // Make API call to update the deal in Bitrix24
+                    CRest::call("crm.deal.update", [
+                        'id' => (string) $dealToUpdate->bitrix_deal_id,
+                        'fields' => [
+                            'STAGE_ID' => $stageKey->bitrix_stage_id,
+                        ],
+                    ]);
+
+                    // Commit the transaction if successful
+                    DB::commit();
+                }
+                else {
+                    // Rollback the transaction if saving fails
+                    DB::rollBack();
+
+                    return redirect()->back()->with([
+                        'toast' => [
+                            'type' => 'danger',
+                            'message' => 'Error has occurred while updating!',
+                        ],
+                    ]);
+                }
+            });
+
+            return redirect()->back()->with([
+                'toast' => [
+                    'type' => 'success',
+                    'message' => 'You successfully changed the stage of the deal!',
+                ],
+            ]);
+        }
+        catch (ModelNotFoundException $exception) {
+            // Handle the case when the deal is not found or not active
+            return redirect()->back()->with([
+                'toast' => [
+                    'type' => 'danger',
+                    'message' => 'Deal not found or not editable!',
+                ],
+            ]);
+        }
+        catch (Exception $exception) {
+            // Handle other exceptions
+            return redirect()->back()->with([
+                'toast' => [
+                    'type' => 'danger',
+                    'message' => 'An unexpected error occurred!',
+                ],
+            ]);
+        }
     }
 
 }

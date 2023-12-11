@@ -35,13 +35,13 @@
                 </template>
             </draggable>
             <hr class="mb-3"/>
-            <AddNewField :catId="category.field_category_id" :order="category.fields.length + 1"/>
+            <AddNewField :catId="category.field_category_id" :order="highestOrder + 1"/>
         </form>
     </div>
 </template>
 
 <script setup>
-import {computed, ref} from 'vue';
+import {computed, ref, onUpdated, onMounted, watch, provide} from 'vue';
 import AddNewField from "@/Molecules/AddNewField.vue";
 import draggable from "vuedraggable";
 import AdminField from "@/Molecules/AdminField.vue";
@@ -66,6 +66,21 @@ const dragOptions = computed(() => {
     };
 });
 
+function updateFieldsOrders(field_id) {
+    const fieldToAdd = props.category.fields.find(field => field.field_id === field_id);
+
+    if (fieldToAdd) {
+        form.fieldsOrders.push(fieldToAdd);
+    } else {
+        addToast({
+            message: "We received a field that doesn't exist in this category.",
+            type: "danger",
+        });
+    }
+}
+
+provide('fieldsOrders', updateFieldsOrders);
+
 const reorderFields = () => {
     let reduceByInactive = 1;
     props.category.fields.forEach((field, index) => {
@@ -77,13 +92,14 @@ const reorderFields = () => {
                 orderItem.order = null;
             } else {
                 orderItem.order = index + reduceByInactive;
-                console.log("u else")
             }
         } else {
-            console.log("Field doesn't exist in this category.")
+            addToast({
+                message: "We received a field that doesn't exist in this category.",
+                type: "danger",
+            });
         }
     });
-    console.log(form.fieldsOrders)
 };
 
 const updateIsRequiredValue = (event) => {
@@ -92,67 +108,51 @@ const updateIsRequiredValue = (event) => {
     // Update the existing object with the new is_required value
     if (indexToUpdate !== -1) {
         form.fieldsOrders[indexToUpdate].is_required = event.is_required;
-    } else console.log("You're trying to set a required field that does not exist.");
-    // // Check if the field_id exists in the array
-    // const indexToUpdate = form.fieldsSettings.findIndex(field => field.field_id === event.field_id);
-    //
-    // if (indexToUpdate !== -1) {
-    //     // If found, update the existing object with the new data
-    //     form.fieldsSettings[indexToUpdate] = event;
-    // } else {
-    //     // If not found, push the event object into the array
-    //     form.fieldsSettings.push(event);
-    // }
-}
-
-const updateFieldCategoryId = (event) => {
-    const fieldToUpdate = form.fieldsOrders.find(field => field.field_id === event.field_id);
-
-    if (fieldToUpdate) {
-        if (!event.is_active) {
-            // If event.is_active is false, set field_category_id to null & order to null
-            fieldToUpdate.field_category_id = null;
-            console.log("set to inactive")
-            //CALL ONCHANGE TO UPDATE ORDERS
-            reorderFields();
-        } else {
-            // If event.is_active is true, find the corresponding field_category_id from props.category.fields and order
-            const matchingField = props.category.fields.find(field => field.field_id === event.field_id);
-            if (matchingField) {
-                fieldToUpdate.field_category_id = matchingField.field_category_id;
-                console.log("set to active")
-                //CALL ONCHANGE TO UPDATE ORDERS
-                reorderFields();
-            }
-        }
     } else {
-        console.log("You're trying to set a field that does not exist.");
+        addToast({
+            message: "You're trying to set a required field that doesn't exist.",
+            type: "danger",
+        });
     }
 }
 
-const submitForm = () => {
-    form.post("/admin/fields-modify", {preserveScroll: true});
+const updateFieldCategoryId = (event) => {
+    const indexToUpdate = form.fieldsOrders.findIndex(field => field.field_id === event.field_id);
 
-    // let isChanged = false;
-    // props.category.fields.forEach((field, index) => {
-    //     console.log(field, form.fieldsOrders[index])
-    //     if (form.fieldsOrders[index].order !== field.order ||
-    //         form.fieldsOrders[index].is_required != field.is_required ||
-    //         form.fieldsOrders[index].field_category_id != field.field_category_id) {
-    //         isChanged = true;
-    //     }
-    // });
-    //
-    // if (isChanged) {
-    //     form.post("/admin/fields-modify", {preserveScroll: true});
-    //     return;
-    // }
-    //
-    // addToast({
-    //     message: "No changes made",
-    //     type: "warning",
-    //     duration: 4000
-    // });
+    if (indexToUpdate !== -1) {
+        if (!event.is_active) {
+            form.fieldsOrders[indexToUpdate].field_category_id = null;
+            reorderFields();
+        } else {
+            form.fieldsOrders[indexToUpdate].field_category_id = props.category.field_category_id;
+            reorderFields();
+        }
+    } else {
+        addToast({
+            message: "You're trying to change the active setting for a field that does not exist.",
+            type: "danger",
+        });
+    }
+}
+
+const highestOrder = computed(() => {
+    const orders = form.fieldsOrders
+        .filter(field => field.field_category_id !== null)
+        .map(field => field.order);
+    return Math.max(...orders, 0);
+});
+
+const submitForm = () => {
+    try {
+        form.post("/admin/fields-modify", {preserveScroll: true});
+        form.fieldsOrders = form.fieldsOrders.filter(orderItem => orderItem.field_category_id !== null);
+    } catch {
+        addToast({
+            message: "Submitting your changes failed.",
+            type: "danger"
+        });
+    }
+
 };
 
 const addToast = (obj) => {

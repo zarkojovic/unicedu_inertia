@@ -1,15 +1,13 @@
 <script setup>
 import {useForm, usePage} from '@inertiajs/vue3';
-import {computed, ref} from "vue";
-import Modal from "@/Molecules/Modal.vue";
-import Button from "@/Atoms/Button.vue";
-import PackageIndicator from "@/Atoms/PackageIndicator.vue";
+import {computed, ref} from 'vue';
+import Modal from '@/Molecules/Modal.vue';
+import Button from '@/Atoms/Button.vue';
+import PackageIndicator from '@/Atoms/PackageIndicator.vue';
 
 defineProps({
     img: String,
-})
-
-// const that = this;
+});
 
 const showModal = ref(false);
 const imagePreview = ref(false); // Store the image preview URL
@@ -22,31 +20,29 @@ const form = useForm({
 
 const agreedToUsePicture = ref(false);
 
+const isNotValidType = ref(false);
 
 //Disabled if user didn't accept usage of picture or didn't upload picture
 const isSubmitButtonDisabled = computed(() => {
-    return !(agreedToUsePicture.value && imagePreview.value !== false);
+    return !(agreedToUsePicture.value && imagePreview.value && !isNotValidType.value);
 });
 const openProfilePictureModal = () => {
     showModal.value = !showModal.value;
     imagePreview.value = false;
     agreedToUsePicture.value = false;
-}
+};
 const submitForm = ($event) => {
     const type = $event.target.files[0].type;
     const allowedTypes = ['image/png', 'image/jpg', 'image/jpeg'];
     if (allowedTypes.includes(type)) {
-
+        isNotValidType.value = false;
         form.profileImage = $event.target.files[0];
         if (form.profileImage) {
-
             imagePreview.value = URL.createObjectURL(form.profileImage);
         }
-    } else {
-        toast.add({
-            message: 'Only jpeg and png formats are allowed!',
-            type: 'danger',
-        });
+    }
+    else {
+        isNotValidType.value = true;
     }
 };
 
@@ -54,11 +50,15 @@ const submitForm = ($event) => {
 const handleConfirmation = () => {
     showModal.value = false;
     form.post('/image/edit');
+    form.profileImage = null;
+    isNotValidType.value = false;
 };
 
 // Handle the modal close action
 const handleCloseModal = () => {
     showModal.value = false;
+    form.profileImage = null;
+    isNotValidType.value = false;
 };
 
 const labelProgressClasses = computed(() => ({
@@ -119,7 +119,7 @@ const labelProgressClasses = computed(() => ({
                                                class="hidden" name="profile-image" type="file"
                                                @change="submitForm($event)"/>
                                             </span>
-                                        <img v-if="imagePreview" :src="imagePreview" alt="image preview"
+                                        <img v-if="imagePreview" :src="imagePreview" alt="Your profile image preview."
                                              class="max-h-96 object-fill mx-auto rounded-sm"/>
 
                                     </label>
@@ -133,8 +133,10 @@ const labelProgressClasses = computed(() => ({
 
                                     <label
                                         class="text-left text-sm font-semibold  text-gray-600 ">I
-                                        agree that Poland Study can use this picture for my university
+                                        agree that Poland Study can use this image for my university
                                         applications.</label>
+                                </div>
+                                <div v-if="isNotValidType" class="text-red-500">Only jpeg and png formats are allowed!
                                 </div>
                             </div>
                         </template>

@@ -6,22 +6,23 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
+
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
-        Schema::create('fields', function (Blueprint $table) {
+    public function up(): void {
+        Schema::create('fields', function(Blueprint $table) {
             $table->id('field_id');
             $table->string('field_name');
             $table->string('title')->nullable();
-            $table->boolean('is_active')->default(true);
-            $table->boolean('is_required')->default(false);
+            $table->boolean('is_active')->default(TRUE);
+            $table->boolean('is_required')->default(FALSE);
+            $table->boolean('is_contact_field')->default(FALSE);
             $table->string('type')->nullable();
             $table->integer('order')->nullable();
             $table->unsignedBigInteger('field_category_id')->nullable();
 
-//            $table->unique(['field_category_id', 'order']);
+            //            $table->unique(['field_category_id', 'order']);
             $table->timestamps();
         });
 
@@ -33,8 +34,8 @@ return new class extends Migration {
     /**
      * Reverse the migrations.
      */
-    public function down(): void
-    {
+    public function down(): void {
         Schema::dropIfExists('fields');
     }
+
 };

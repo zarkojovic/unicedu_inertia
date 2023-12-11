@@ -1,11 +1,12 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import {Head, useForm, usePage} from '@inertiajs/vue3';
-import {provide, ref} from 'vue';
+import {onMounted, provide, ref} from 'vue';
 import Button from '@/Atoms/Button.vue';
 import Modal from '@/Molecules/Modal.vue';
 import PackageIndicator from '@/Atoms/PackageIndicator.vue';
 import ApplicationModal from '@/Organisms/ApplicationModal.vue';
+import DisplayStage from '@/Atoms/DisplayStage.vue';
 
 const page = usePage();
 
@@ -13,38 +14,11 @@ const props = defineProps({
     applications: {
         type: Object,
     },
+    isModalOpen: {
+        type: Boolean,
+        default: false,
+    },
 });
-
-// const getPackageBorderClass = (packageId) => {
-//     switch (packageId) {
-//         case 1:
-//             return 'package-border-1';
-//         case 2:
-//             return 'package-border-2';
-//         case 3:
-//             return 'package-border-3';
-//         case 4:
-//             return 'package-border-4';
-//         default:
-//             return ''; // Default border class or no class
-//     }
-// };
-
-// const packageClass = computed(() => {
-//     switch (props.applications[0].package_id) {
-//         case 1:
-//             return 'bronze-top-border';
-//         case 2:
-//             return 'silver-top-border';
-//         case 3:
-//             return 'gold-top-border';
-//         case 4:
-//             return 'platinum-top-border';
-//         default:
-//             return ''; // Default border class or no class
-//     }
-//
-// });
 
 const packageClass = (package_id) => {
     switch (package_id) {
@@ -73,6 +47,13 @@ const form = useForm({
     deal_id: '',
 });
 
+onMounted(() => {
+    if (props.isModalOpen) {
+        openApplyModal.value = true;
+    }
+
+});
+
 const deleteDeal = () => {
     form.deal_id = dealId.value;
 
@@ -83,6 +64,13 @@ const deleteDeal = () => {
     });
 };
 
+const syncForm = useForm({});
+
+const syncData = () => {
+    console.log('aloooo');
+    syncForm.post('/user/sync-deal-fields');
+};
+
 </script>
 
 <template>
@@ -91,8 +79,10 @@ const deleteDeal = () => {
         <template #header>
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Applications</h2>
         </template>
-
         <div class="py-6 mt-10">
+            <Button v-if="page.props.auth.user.unsaved_changes" class="text-3xl mb-4" @click="syncData">
+                Synchronize data to bitrix
+            </Button>
             <div v-for="(deal,index) in applications" v-if="applications.length > 0"
                  id="applicationsContainerHeader" :key="index"
                  :class="packageClass(deal.package_id)"
@@ -132,14 +122,22 @@ const deleteDeal = () => {
                         </div>
                         <div class="pt-4">
                             <span class="text-gray-400 font-medium text-md mt-3">Status</span>
-                            <h5 class="text-md">New Application</h5>
+                            <h5 class="text-md">
+                                <DisplayStage
+                                    :stage-name="item.stage_name"
+                                />
+                            </h5>
                         </div>
                         <div class="pt-4">
-                            <span class="text-gray-400 font-medium text-md mt-3">Delete</span>
-                            <h5 class="text-md">
+                            <span class="text-gray-400 font-medium text-md mt-3">Delete </span>
+                            <h5 v-if="item.stage_id === 1" class="text-md">
                                 <Button type="danger" @click="openDeleteModal = true; dealId= item.deal_id">Delete
                                 </Button>
                             </h5>
+                            <h5 v-else class="text-md">
+                                You can't delete this!
+                            </h5>
+
                         </div>
                     </div>
                     <div v-else>
