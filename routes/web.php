@@ -96,7 +96,7 @@ Route::middleware('auth')->group(function() {
             [UserController::class, 'updateUserInfo']);
 
         //EDIT IMAGE
-        Route::match(['post', 'put', 'patch'], '/image/edit',
+        Route::match('post', '/image/edit',
             [UserController::class, 'updateImage'])
             ->name("user.image.update");
 
