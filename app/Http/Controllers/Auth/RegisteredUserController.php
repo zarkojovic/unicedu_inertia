@@ -30,21 +30,24 @@ class RegisteredUserController extends Controller {
             'phone' => 'required',
             'email' => 'required|string|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'password_confirmation' => ['required'],
             'recaptcha' => [new Recaptcha()],
         ]);
-        $user = User::create([
-            'first_name' => $request->first_name,
-            'last_name' => $request->last_name,
-            'phone' => $request->phone,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'package_id' => '1',
-        ]);
+        
+        // Creating a new user object and assigning the values from the request to the object.
+        $user = new User();
+
+        $user->first_name = $request->first_name;
+        $user->last_name = $request->last_name;
+        $user->phone = $request->phone;
+        $user->package_id = 1;
+        $user->email = $request->email;
+        $user->password = Hash::make($request->password);
+        $user->save();
 
         SendEmailConfirmation::dispatch($user);
         CreateUserContact::dispatch($user);
         Auth::login($user);
-
         return redirect(RouteServiceProvider::HOME);
     }
 

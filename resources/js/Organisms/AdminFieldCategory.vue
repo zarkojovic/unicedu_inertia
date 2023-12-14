@@ -9,11 +9,11 @@
             </div>
             <draggable
                 :component-data="{
-          tag: 'AdminField',
-          type: 'transition-group',
-          name: !drag ? 'slide' : null,
-          pull: 'clone',
-        }"
+                      tag: 'AdminField',
+                      type: 'transition-group',
+                      name: !drag ? 'slide' : null,
+                      pull: 'clone',
+                    }"
                 :group="'fields_' + category.field_category_id"
                 :list="category.fields"
                 class="fields-container flex flex-wrap"
@@ -26,6 +26,7 @@
                 <template #item="{ element }" class="">
                     <AdminField
                         :catId="element.field_category_id"
+                        :custom_title="element.custom_title ?? ''"
                         :field_id="element.field_id"
                         :is_required="element.is_required === 1"
                         :title="element.title ?? element.field_name"
@@ -41,19 +42,19 @@
 </template>
 
 <script setup>
-import {computed, ref, onUpdated, onMounted, watch, provide} from 'vue';
-import AddNewField from "@/Molecules/AddNewField.vue";
-import draggable from "vuedraggable";
-import AdminField from "@/Molecules/AdminField.vue";
-import {useForm} from "@inertiajs/vue3";
-import toast from "@/Stores/toast";
+import {computed, provide, ref} from 'vue';
+import AddNewField from '@/Molecules/AddNewField.vue';
+import draggable from 'vuedraggable';
+import AdminField from '@/Molecules/AdminField.vue';
+import {useForm} from '@inertiajs/vue3';
+import toast from '@/Stores/toast';
 
 const props = defineProps({
     category: Object,
 });
 
 const form = useForm({
-    fieldsOrders: props.category.fields
+    fieldsOrders: props.category.fields,
 });
 
 const drag = ref(false);
@@ -62,7 +63,7 @@ const dragOptions = computed(() => {
     return {
         animation: 400,
         disabled: false,
-        ghostClass: "ghost",
+        ghostClass: 'ghost',
     };
 });
 
@@ -73,8 +74,8 @@ function updateFieldsOrders(field_id) {
         form.fieldsOrders.push(fieldToAdd);
     } else {
         addToast({
-            message: "We received a field that doesn't exist in this category.",
-            type: "danger",
+            message: 'We received a field that doesn\'t exist in this category.',
+            type: 'danger',
         });
     }
 }
@@ -95,8 +96,8 @@ const reorderFields = () => {
             }
         } else {
             addToast({
-                message: "We received a field that doesn't exist in this category.",
-                type: "danger",
+                message: 'We received a field that doesn\'t exist in this category.',
+                type: 'danger',
             });
         }
     });
@@ -110,11 +111,11 @@ const updateIsRequiredValue = (event) => {
         form.fieldsOrders[indexToUpdate].is_required = event.is_required;
     } else {
         addToast({
-            message: "You're trying to set a required field that doesn't exist.",
-            type: "danger",
+            message: 'You\'re trying to set a required field that doesn\'t exist.',
+            type: 'danger',
         });
     }
-}
+};
 
 const updateFieldCategoryId = (event) => {
     const indexToUpdate = form.fieldsOrders.findIndex(field => field.field_id === event.field_id);
@@ -129,27 +130,25 @@ const updateFieldCategoryId = (event) => {
         }
     } else {
         addToast({
-            message: "You're trying to change the active setting for a field that does not exist.",
-            type: "danger",
+            message: 'You\'re trying to change the active setting for a field that does not exist.',
+            type: 'danger',
         });
     }
-}
+};
 
 const highestOrder = computed(() => {
-    const orders = form.fieldsOrders
-        .filter(field => field.field_category_id !== null)
-        .map(field => field.order);
+    const orders = form.fieldsOrders.filter(field => field.field_category_id !== null).map(field => field.order);
     return Math.max(...orders, 0);
 });
 
 const submitForm = () => {
     try {
-        form.post("/admin/fields-modify", {preserveScroll: true});
+        form.post('/admin/fields-modify', {preserveScroll: true});
         form.fieldsOrders = form.fieldsOrders.filter(orderItem => orderItem.field_category_id !== null);
     } catch {
         addToast({
-            message: "Submitting your changes failed.",
-            type: "danger"
+            message: 'Submitting your changes failed.',
+            type: 'danger',
         });
     }
 

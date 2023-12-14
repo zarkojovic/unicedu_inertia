@@ -167,6 +167,85 @@ class FieldController extends Controller {
         }
     }
 
+    public function updateCustomTitle(Request $request) {
+        //Validate incoming request
+        $validator = Validator::make($request->all(), [
+            'field_id' => 'required|integer',
+            // how to allow null values for customField?
+            'customTitle' => 'nullable|string',
+        ]);
+
+        if ($validator->fails()) {
+            // If validation fails, redirect back with errors and input data
+            Log::errorLog('Validation failed. One or more fields are invalid.',
+                Auth::user()->user_id);
+            return redirect()
+                ->route("admin_home")
+                ->with([
+                    'toast' => [
+                        'message' => "Validation failed. One or more fields are invalid.",
+                        'type' => 'danger',
+                    ],
+                ]);
+        }
+
+        // If validated, check if all received fields exist in the database
+        $validatedData = $validator->validated(); // Get the validated data
+
+        $fieldId = $validatedData['field_id'];
+        $customTitle = $validatedData['customTitle'];
+
+        // Check if the submitted field exists in the database
+
+        $fieldExists = Field::where('field_id', $fieldId)->count() === 1;
+
+        if (!$fieldExists) {
+            // If not, log the error and redirect back with an error message
+            Log::errorLog('Validation failed. One or more fields do not exist.',
+                Auth::user()->user_id);
+            return redirect()
+                ->route("admin_home")
+                ->with([
+                    'toast' => [
+                        'message' => "Validation failed",
+                        'type' => 'danger',
+                    ],
+                ]);
+        }
+
+        try {
+            $field = Field::where('field_id', $fieldId)->first();
+
+            if ($customTitle === '') {
+                $customTitle = NULL;
+            }
+            $field->custom_title = $customTitle;
+            $field->save();
+
+            Log::apiLog('Custom title updated in admin panel!',
+                Auth::user()->user_id);
+            return redirect()
+                ->route("admin_home")
+                ->with([
+                    'toast' => [
+                        'message' => "Custom title ".$field->title." updated successfully to ".$customTitle ?? 'null'."!",
+                        'type' => 'success',
+                    ],
+                ]);
+        }
+        catch (Exception $e) {
+            Log::errorLog($e->getMessage(), Auth::user()->user_id);
+            return redirect()
+                ->route("admin_home")
+                ->with([
+                    'toast' => [
+                        'message' => "An error occurred on the server.",
+                        'type' => 'danger',
+                    ],
+                ]);
+        }
+    }
+
     //OLD FUNCTION WITH JSON
     public function updateFieldss() {
         // Path to the public/js directory

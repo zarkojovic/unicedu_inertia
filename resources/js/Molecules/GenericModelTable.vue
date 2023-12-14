@@ -148,6 +148,9 @@ onMounted(() => {
                 <Button type="danger" @click="openModal = true; formDelete.id = item['id']">Delete</Button>
             </td>
         </tr>
+        <tr v-else>
+            <h1 class="text-center my-3 text-xl">No data right now...</h1>
+        </tr>
         </tbody>
     </table>
 

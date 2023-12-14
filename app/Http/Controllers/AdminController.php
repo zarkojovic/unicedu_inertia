@@ -36,7 +36,8 @@ class AdminController extends RootController {
             ->get();
         $sortedFields = Field::whereNotIn('field_category_id', [5])
             ->where('is_active', '1')
-            ->select("field_id", "field_name", "title", "is_required", "order",
+            ->select("field_id", "field_name", "title", "custom_title",
+                "is_required", "order",
                 "field_category_id")
             ->orderBy("order", "asc")
             ->get()
@@ -106,7 +107,7 @@ class AdminController extends RootController {
             $record->field_category_id = $newCategoryId;
             $record->order = $order;
             $record->save();
-            
+
             $displayName = $record->title != NULL ? $record->title : $record->field_name;
             Log::apiLog("Added '".$displayName."' field to ".$record->category->category_name);
             return redirect()

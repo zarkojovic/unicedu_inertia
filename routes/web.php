@@ -58,6 +58,7 @@ Route::middleware('auth')->group(function() {
 
                                 return Inertia::render('Dashboard', [
                                     'categoriesWithFields' => $categoriesWithFields,
+                                    'title' => $route->title,
                                 ]);
                             });
                         });
@@ -66,9 +67,9 @@ Route::middleware('auth')->group(function() {
                         // Dynamic routes
                         Route::get($route->route, function() use ($route) {
                             $categoriesWithFields = FieldCategory::getAllCategoriesWithFields($route->route);
-
                             return Inertia::render('Dashboard', [
                                 'categoriesWithFields' => $categoriesWithFields,
+                                'title' => $route->title,
                             ]);
                         });
                         break;
@@ -84,7 +85,7 @@ Route::middleware('auth')->group(function() {
                 [DealController::class, 'showUserDeals'])
                 ->name('applications');
         });
-        
+
         Route::post('/user/sync-deal-fields',
             [UserController::class, 'syncFields'])->name('syncFields');
 
@@ -125,6 +126,9 @@ Route::middleware('auth')->group(function() {
             Route::post('/fields-modify',
                 [FieldController::class, 'setFieldCategory'])
                 ->name('setFieldCategory');
+            Route::post('/updateCustomTitle',
+                [FieldController::class, 'updateCustomTitle'])
+                ->name('updateCustomTitle');
 
             //PAGES ROUTES
             Route::get('/pages',

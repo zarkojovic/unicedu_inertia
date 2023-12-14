@@ -95,6 +95,7 @@ class FieldCategory extends Model {
                 'fields.title',
                 'fields.field_name',
                 'fields.is_required',
+                'fields.custom_title',
                 'fields.type',
                 'fields.order',
                 'fields.field_category_id',
