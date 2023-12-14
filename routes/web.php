@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\BitrixController;
 use App\Http\Controllers\DealController;
 use App\Http\Controllers\FieldCategoryController;
 use App\Http\Controllers\FieldController;
@@ -210,6 +211,8 @@ Route::middleware('auth')->group(function() {
         echo 'aloo';
     });
 });
+
+Route::post('/bitrix-outbound', [BitrixController::class, 'receiveOutbound']);
 
 require __DIR__.'/auth.php';
 // }
