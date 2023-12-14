@@ -9,6 +9,7 @@ use App\Models\FieldCategory;
 use App\Models\Log;
 use App\Models\Role;
 use App\Models\UserInfo;
+use App\Services\ImageService;
 use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -337,63 +338,36 @@ class UserController extends RootController {
     }
 
     public function updateImage(UpdateImageRequest $request): RedirectResponse {
-        #INPUTS
+        //paths
         $pathOriginal = "public/profile/original";
         $pathThumbnail = "public/profile/thumbnail";
         $pathTiny = "public/profile/tiny";
 
+        //inputs
         $file = $request->file('profileImage');
         $fileName = $file->getClientOriginalName();
         $fileExtension = $file->getClientOriginalExtension();
 
-        #QUESTION: DA LI SU OVDE PRISTUPACNE SLIKE? DA LI MOGU DA SE PRIKAZU IZ STORAGEA? MOZDA MORA SOFTLINK...
-        #ODGOVOR: MORAO JE SOFTLINK...
-
+        //formatting
+        $thumbnailSize = 150;
+        $tinySize = 35;
         $uniqueString = Str::uuid()->toString();
         $currentDate = now()->format('Y-m-d');
         $newFileName = $currentDate.'_'.$uniqueString.'.'.$fileExtension;
 
-        // if original folder doesn't exist
-        if (!Storage::exists($pathOriginal)) {
-            Log::errorLog("Original folder path not found.",
-                Auth::user()->user_id);
-            return to_route('home')->with([
-                'toast' => [
-                    'message' => 'Saving image on the server failed.',
-                    'type' => 'danger',
-                ],
-            ]);
-        }
-
         // if the file is not moved to the original folder
         $moved = Storage::putFileAs($pathOriginal, $file, $newFileName);
         if (!$moved) {
-            Log::errorLog("Failed to move profile image to original folder.",
-                Auth::user()->user_id);
-            return to_route('home')->with([
-                'toast' => [
-                    'message' => 'Saving image on the server failed.',
-                    'type' => 'danger',
-                ],
-            ]);
+            throw new \Exception("Failed to move profile image to original folder.");
         }
 
-        #MAKE SMALL IMAGES
+        //make small images
         try {
-            #THUMBNAIL
-            $size = 150;
-            $thumbnail = Image::make($file)->fit($size, $size, NULL, "top");
-            Storage::put($pathThumbnail.'/'.$newFileName,
-                (string) $thumbnail->encode());
-
-            #TINY
-            $size = 35;
-            $tinyImage = Image::make($file)->fit($size, $size, NULL, "top");
-            Storage::put($pathTiny.'/'.$newFileName,
-                (string) $tinyImage->encode());
+            ImageService::resize($thumbnailSize, $file, $pathThumbnail, $newFileName);
+            ImageService::resize($tinySize, $file, $pathTiny, $newFileName);
         }
-        catch (Exception $e) {
-            Log::errorLog("Failed to resize file image.",
+        catch (\Exception $e) {
+            Log::errorLog("Failed to resize file image. Error: ".$e->getMessage(),
                 Auth::user()->user_id);
             return to_route('home')->with([
                 'toast' => [
@@ -403,77 +377,27 @@ class UserController extends RootController {
             ]);
         }
 
-        #INSERT INTO DATABASE
+        //save in the database
         try {
             DB::beginTransaction();
 
             $user = Auth::user();
 
-            #REMOVE OLD IMAGE FROM FOLDERS
+            //remove old image from folders
             $oldProfileImage = $user->profile_image;
-            if ($oldProfileImage !== "profile.jpg") {
-                Storage::delete([
-                    "{$pathOriginal}/{$oldProfileImage}",
-                    "{$pathThumbnail}/{$oldProfileImage}",
-                    "{$pathTiny}/{$oldProfileImage}",
-                ]);
-            }
-            $user->profile_image = $newFileName;
-            if (!$user->save()) {
-                DB::rollback();
-                Log::errorLog("Profile image updating not saved.",
-                    Auth::user()->user_id);
-                return to_route('home')->with([
-                    'toast' => [
-                        'message' => 'An error occurred while saving profile image.',
-                        'type' => 'danger',
-                    ],
-                ]);
+            if ($oldProfileImage !== "profile.jpg"){
+                ImageService::remove($oldProfileImage);
             }
 
-            $fieldId = Field::where('field_name', 'UF_CRM_1667336320092')
-                ->value('field_id');
-            //                $imageContent = Storage::get($pathOriginal.'/'.$newFileName);
+            //save profile image
+            $fieldName = "UF_CRM_1667336320092";
+            ImageService::saveProfileImage($fileName, $newFileName, $fieldName);
 
-            if (!$fieldId) {
-                DB::rollback();
-                Log::errorLog("Field id for 'UF_CRM_1667336320092' not found.",
-                    Auth::user()->user_id);
-                return to_route('home')->with([
-                    'toast' => [
-                        'message' => 'An error occurred while saving profile image.',
-                        'type' => 'danger',
-                    ],
-                ]);
-            }
-
-            // Insert a row into the UserInfo table
-            $userInfoImage = UserInfo::where('user_id', $user->user_id)
-                ->where('field_id', $fieldId)
-                ->first();
-
-            if ($userInfoImage) {
-                // Update the existing record
-                $userInfoImage->file_name = $fileName;
-                $userInfoImage->file_path = $newFileName;
-                $userInfoImage->save();
-            } // Insert a new record
-            else {
-                UserInfo::create([
-                    'user_id' => $user->user_id,
-                    'field_id' => $fieldId,
-                    'file_name' => $fileName,
-                    'file_path' => $newFileName,
-                ]);
-            }
-
-            Log::informationLog("Profile image updated.",
-                Auth::user()->user_id);
             DB::commit();
         }
-        catch (Exception $e) {
+        catch (\Exception $e) {
             DB::rollback();
-            Log::errorLog("Failed to update profile image. Error: ".$e,
+            Log::errorLog("Failed to update profile image. Error: ".$e->getMessage(),
                 Auth::user()->user_id);
             return to_route('home')->with([
                 'toast' => [
@@ -483,6 +407,8 @@ class UserController extends RootController {
             ]);
         }
 
+        Log::informationLog("Profile image updated.",
+            Auth::user()->user_id);
         return to_route('home')->with([
             'toast' => [
                 'message' => 'Profile image updated successfully!',

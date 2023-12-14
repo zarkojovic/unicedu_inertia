@@ -3,7 +3,6 @@
 import GenericModelTable from '@/Molecules/GenericModelTable.vue';
 import {Link} from '@inertiajs/vue3';
 import Button from '@/Atoms/Button.vue';
-import {onMounted} from 'vue';
 
 const props = defineProps({
     data: {
@@ -41,12 +40,12 @@ const props = defineProps({
     },
 });
 
-onMounted(() => {
-    props.data.data = props.data.data.filter(el => {
-        return el.action_name === 'information';
-    });
-});
-
+// onMounted(() => {
+//     props.data.data = props.data.data.filter(el => {
+//         return el.action_name === 'information';
+//     });
+// });
+//
 
 </script>
 
