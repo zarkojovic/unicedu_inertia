@@ -42,7 +42,7 @@ const validateEmail = () => {
     if (!email) {
         form.errors.email = 'The email field is required.';
     } else if (!emailRegex.test(email)) {
-        form.errors.email = 'Invalid email format';
+        form.errors.email = 'Please enter a valid email address (e.g., example@example.com)';
     } else {
         form.errors.email = '';
     }

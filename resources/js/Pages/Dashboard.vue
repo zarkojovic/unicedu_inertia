@@ -12,7 +12,7 @@ defineProps({
 </script>
 
 <template>
-    <Head title="Dashboard"/>
+    <Head title="Documents"/>
     <AuthenticatedLayout>
         <div class="mt-16"></div>
         <CategorySection

@@ -66,7 +66,7 @@ onMounted(() => {
     <div class="bg-white rounded-3xl shadow-md mb-6">
         <div class="p-6">
             <div class="flex justify-between items-center">
-                <div class="font-bold text-neutral-800 text-sm sm:text-md md:text-lg mb-2">
+                <div class="font-bold text-neutral-800 text-md sm:text-md md:text-lg mb-2">
                     {{ props.categoryInfo.category_name }}
                 </div>
                 <div v-if="display" class="flex">
