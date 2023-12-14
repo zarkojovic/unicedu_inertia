@@ -19,14 +19,14 @@ const props = defineProps({
                    :input-id="field.field_name"
                    :input-name="field.field_name"
                    :is-category-field="true"
-                   :label="field.title"
+                   :label="field.custom_title ?? field.title"
                    :valid-types="['application/pdf']"
         />
 
         <DropdownInput
             v-else-if="field.type === 'enumeration'"
             :input-name="field.field_name"
-            :label="field.title"
+            :label="field.custom_title ?? field.title"
             :options="field.items"
             :selected-item="field.value"
         />
@@ -36,7 +36,7 @@ const props = defineProps({
                       :input-name="field.field_name"
                       :is-category-field="true"
                       :is_required="!!field.is_required"
-                      :label="field.title"
+                      :label="field.custom_title ?? field.title"
                       :type="field.type === 'string' ? 'text' : field.type"
         />
     </div>

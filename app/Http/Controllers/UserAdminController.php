@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Jobs\UpdateUserDealPackage;
 use App\Models\Deal;
 use App\Models\Intake;
+use App\Models\Log;
 use App\Models\Package;
 use App\Models\Role;
 use App\Models\User;
@@ -88,6 +89,7 @@ class UserAdminController extends Controller {
         }
         catch (Exception $e) {
             DB::rollBack(); // Catch any exceptions and rollback the transaction
+            Log::errorLog('Error updating user package: '.$e->getMessage());
             return redirect()->back()->with([
                 'toast' => [
                     'message' => $e->getMessage(),
@@ -123,6 +125,7 @@ class UserAdminController extends Controller {
             }
         }
         catch (Exception $e) {
+            Log::errorLog('Error changing user role: '.$e->getMessage());
             return redirect()->back()->with([
                 'toast' => [
                     'type' => 'danger',

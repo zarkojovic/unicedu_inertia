@@ -19,7 +19,6 @@ const props = defineProps({
     },
     isDeletable: {
         type: Boolean,
-
     },
     isEditable: {
         type: Boolean,
@@ -41,6 +40,12 @@ const props = defineProps({
     },
 });
 
+// onMounted(() => {
+//     props.data.data = props.data.data.filter(el => {
+//         return el.action_name === 'information';
+//     });
+// });
+//
 
 </script>
 

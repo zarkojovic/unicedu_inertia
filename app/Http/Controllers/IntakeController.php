@@ -65,6 +65,7 @@ class IntakeController extends Controller {
         }
         catch (Exception $e) {
             // Handle any exceptions that may occur
+            Log::errorLog("Error changing active intake: ".$e->getMessage());
             return redirect()
                 ->back()
                 ->with([

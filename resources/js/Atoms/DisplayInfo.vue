@@ -1,6 +1,6 @@
 <script setup>
 
-import {computed} from 'vue';
+import {computed, onMounted} from 'vue';
 import {usePage} from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -42,11 +42,15 @@ const formattedDate = computed(() => {
 
 });
 
+onMounted(() => {
+    console.log(props.fieldInfo);
+});
+
 </script>
 
 <template>
     <div class="mt-4">
-        <p class="font-medium text-slate-900 text-md">{{ props.fieldInfo.title }} <span
+        <p class="font-medium text-slate-900 text-md">{{ props.fieldInfo.custom_title ?? props.fieldInfo.title }} <span
             v-if="!!props.fieldInfo.is_required"
             class="italic text-gray-400 text-sm font-thin">(required)</span>
         </p>

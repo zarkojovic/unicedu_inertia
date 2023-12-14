@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\BitrixController;
 use App\Http\Controllers\DealController;
 use App\Http\Controllers\FieldCategoryController;
 use App\Http\Controllers\FieldController;
@@ -33,8 +34,10 @@ Route::middleware('auth')->group(function() {
         //DYNAMIC ROUTES
         $routeNames = Page::all();
         foreach ($routeNames as $route) {
+            // CHECK IF ROLE IS SET FOR THE ROUTE
             if (!empty($route->role->role_name)) {
                 switch ($route->role->role_name) {
+                    // CHECK IF THE ROLE IS ADMIN
                     case 'admin':
                         Route::middleware(["admin"])->group(function() use (
                             $route
@@ -46,6 +49,7 @@ Route::middleware('auth')->group(function() {
                                 });
                         });
                         break;
+                    // CHECK IF THE ROLE IS STUDENT
                     case 'student':
                         Route::middleware('package')->group(function() use (
                             $route
@@ -55,23 +59,25 @@ Route::middleware('auth')->group(function() {
 
                                 return Inertia::render('Dashboard', [
                                     'categoriesWithFields' => $categoriesWithFields,
+                                    'title' => $route->title,
                                 ]);
                             });
                         });
                         break;
                     default :
+                        // Dynamic routes
                         Route::get($route->route, function() use ($route) {
                             $categoriesWithFields = FieldCategory::getAllCategoriesWithFields($route->route);
-
                             return Inertia::render('Dashboard', [
                                 'categoriesWithFields' => $categoriesWithFields,
+                                'title' => $route->title,
                             ]);
                         });
                         break;
                 }
             }
         }
-
+        // Middleware for package
         Route::middleware('package')->group(function() {
             Route::get('/', [UserController::class, 'show'])->name("home");
             Route::get('/profile', [UserController::class, 'show'])
@@ -96,7 +102,7 @@ Route::middleware('auth')->group(function() {
             [UserController::class, 'updateUserInfo']);
 
         //EDIT IMAGE
-        Route::match(['post', 'put', 'patch'], '/image/edit',
+        Route::match('post', '/image/edit',
             [UserController::class, 'updateImage'])
             ->name("user.image.update");
 
@@ -121,6 +127,9 @@ Route::middleware('auth')->group(function() {
             Route::post('/fields-modify',
                 [FieldController::class, 'setFieldCategory'])
                 ->name('setFieldCategory');
+            Route::post('/updateCustomTitle',
+                [FieldController::class, 'updateCustomTitle'])
+                ->name('updateCustomTitle');
 
             //PAGES ROUTES
             Route::get('/pages',
@@ -210,6 +219,8 @@ Route::middleware('auth')->group(function() {
         echo 'aloo';
     });
 });
+
+Route::post('/bitrix-outbound', [BitrixController::class, 'receiveOutbound']);
 
 require __DIR__.'/auth.php';
 // }

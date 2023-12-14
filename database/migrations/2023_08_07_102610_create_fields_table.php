@@ -19,10 +19,9 @@ return new class extends Migration {
             $table->boolean('is_required')->default(FALSE);
             $table->boolean('is_contact_field')->default(FALSE);
             $table->string('type')->nullable();
+            $table->string('custom_title')->nullable();
             $table->integer('order')->nullable();
             $table->unsignedBigInteger('field_category_id')->nullable();
-
-            //            $table->unique(['field_category_id', 'order']);
             $table->timestamps();
         });
 

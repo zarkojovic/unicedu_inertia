@@ -74,6 +74,7 @@ class FieldSeeder extends Seeder {
         $resDeal = CRest::call('crm.deal.fields');
         processAndStoreFields($resDeal);
 
+        // Array for declaring the order of fields in the 'Personal' category
         $personalCategory = [
             [
                 "field_name" => 'UF_CRM_1697975635',
@@ -120,6 +121,7 @@ class FieldSeeder extends Seeder {
 
         ];
 
+        // Array for declaring the order of fields in the 'Address' category
         $addressCategory = [
             [
                 "field_name" => 'UF_CRM_1680032015767',
@@ -158,7 +160,7 @@ class FieldSeeder extends Seeder {
                 "field_category_id" => '2',
             ],
         ];
-
+        // Array for declaring the order of fields in the 'Documents' category
         $documentsCategory = [
             [
                 "field_name" => 'UF_CRM_1668771731749',
@@ -191,7 +193,7 @@ class FieldSeeder extends Seeder {
                 "field_category_id" => '3',
             ],
         ];
-
+        // Array for declaring the order of fields in the 'Deals' category
         $dealsCategory = [
             [
                 "field_name" => 'UF_CRM_1667335624051',
@@ -214,6 +216,7 @@ class FieldSeeder extends Seeder {
         ];
 
         $i++;
+        // Array for declaring the order of fields in the 'Hidden' category
         $hiddenCategory = [
             [
                 "field_name" => 'UF_CRM_1667336320092',

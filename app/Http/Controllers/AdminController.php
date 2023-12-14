@@ -36,7 +36,8 @@ class AdminController extends RootController {
             ->get();
         $sortedFields = Field::whereNotIn('field_category_id', [5])
             ->where('is_active', '1')
-            ->select("field_id", "field_name", "title", "is_required", "order",
+            ->select("field_id", "field_name", "title", "custom_title",
+                "is_required", "order",
                 "field_category_id")
             ->orderBy("order", "asc")
             ->get()
@@ -60,6 +61,7 @@ class AdminController extends RootController {
         ]);
     }
 
+    // This was from olf project
     public function fieldSelect() {
         $categories = FieldCategory::all();
         $fields = Field::where('is_active', '1')
@@ -69,6 +71,7 @@ class AdminController extends RootController {
             ["fields" => $fields, "categories" => $categories]);
     }
 
+    // Fetching all fields that are not in any category
     public function fetchFields(Request $request) {
         $fields = Field::whereNull("field_category_id")
             ->select("field_id", "field_name", "title")
@@ -89,17 +92,14 @@ class AdminController extends RootController {
     }
 
     public function setFieldCategory(Request $request) {
-        //        return redirect()
-        //            ->route("admin_home")
-        //            ->with([
-        //                'toast' => [
-        //                    'message' => "Intentionally blocked field adding.",
-        //                    'type' => 'success',
-        //                ],
-        //            ]);
         try {
+            // Begin a database transaction
+            DB::beginTransaction();
+            // Get the field ID and new category ID
             $fieldId = $request->input('field_id');
+            // If the field ID is 0, then we are adding a new field
             $newCategoryId = $request->input('field_category_id');
+            // Get the order of the field
             $order = $request->input('order');
 
             $record = Field::findOrFail($fieldId);
@@ -107,6 +107,7 @@ class AdminController extends RootController {
             $record->field_category_id = $newCategoryId;
             $record->order = $order;
             $record->save();
+
             $displayName = $record->title != NULL ? $record->title : $record->field_name;
             Log::apiLog("Added '".$displayName."' field to ".$record->category->category_name);
             return redirect()
@@ -119,13 +120,14 @@ class AdminController extends RootController {
                 ]);
         }
         catch (Exception $ex) {
-            http_response_code(500);
+            // Something went wrong, rollback the transaction
+            DB::rollBack();
             Log::errorLog($ex->getMessage(), Auth::user()->user_id);
             return redirect()
                 ->route("admin_home")
                 ->with([
                     'toast' => [
-                        'message' => "An error occured on the server.",
+                        'message' => "An error occurred on the server.",
                         'type' => 'danger',
                     ],
                 ]);
