@@ -3,31 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\OutboundValidationRequest;
 use App\Models\Log;
 //use Illuminate\Support\Facades\Log;
+use http\Env\Response;
 use Illuminate\Http\Request;
 
 class BitrixController extends Controller
 {
-    //token for validating the outbound webhook
-    private static string $applicationToken = "8nrs8p8wlywhwjo4hs866qqee1illv38";
-    public function receiveOutbound(Request $request)
+    public function receiveOutbound(OutboundValidationRequest $request)
     {
-        // Get the application token from the request
-        $validated = $this->validateBitrixRequest($request->auth["application_token"]);
-
-        if (!$validated){
-            Log::errorLog("Failed to validate Bitrix24 Outbound Webhook!");
-//            Log::info('Bitrix Webhook Request:', $request->all());
-            return ;
-        }
+        // Make sure to still return some response messages as they can still be seen when the response is intercepted.
+        // Because of this avoid returning sensitive information (like mentioning Bitrix CRM, outbound hooks, and stuff that could cause errors
+        // like logging too much content in the database)
+        // We will relly on HTTPS encrypting the requests and validation from our app to ensure secure communication
 
         Log::authLog("Successfully validated Bitrix24 Outbound Webhook!");
-    }
-
-    private function validateBitrixRequest($receivedApplicationToken)
-    {
-        // Compare the application token with the one generated in Bitrix24
-        return $receivedApplicationToken === self::$applicationToken;
+        return "Successfully validated request.";
     }
 }
