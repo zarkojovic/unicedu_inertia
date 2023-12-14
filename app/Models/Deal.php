@@ -21,6 +21,9 @@ class Deal extends Model {
         'program',
         'intake',
         'date',
+        'stage_id',
+        'created_at',
+        'updated_at',
     ];
 
     protected $casts = [
