@@ -13,7 +13,7 @@ use Inertia\Inertia;
 
 class AdminController extends RootController {
 
-    public function show() {
+    public function show($request = NULL) {
         $data = DB::table('logs')
             ->leftJoin('actions', 'actions.action_id', 'logs.action_id')
             ->leftJoin('users', 'users.user_id', 'logs.user_id')
