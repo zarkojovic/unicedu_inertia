@@ -109,9 +109,8 @@ Route::middleware('auth')->group(function() {
         //ADMIN
         Route::middleware('admin')->prefix('admin')->group(function() {
             //DASHBOARD
-            Route::get('/dashboard', [AdminController::class, 'show'])
+            Route::get('/dashboard', [AdminController::class, 'showLogsPage'])
                 ->name('adminDashboard');
-
             //FIELDS
             Route::get('/fields', [AdminController::class, "home"])
                 ->name("admin_home");
