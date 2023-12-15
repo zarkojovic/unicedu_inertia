@@ -29,17 +29,6 @@ class User extends Authenticatable implements MustVerifyEmail {
         'remember_token',
     ];
 
-    //
-    //    protected $visible = [
-    //        'email',
-    //        'first_name',
-    //        'last_name',
-    //        'user_id',
-    //        'phone',
-    //        'profile_image',
-    //        'package_id',
-    //    ];
-
     protected $fillable = [
         'first_name',
         'last_name',
@@ -51,14 +40,7 @@ class User extends Authenticatable implements MustVerifyEmail {
         'package_id',
         'name',
         'email',
-        'password',
     ];
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
 
     /**
      * The attributes that should be cast.
@@ -69,6 +51,12 @@ class User extends Authenticatable implements MustVerifyEmail {
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
 
     //Relationships
 

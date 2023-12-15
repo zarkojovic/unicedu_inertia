@@ -15,12 +15,17 @@ return new class extends Migration {
             $table->id('package_id');
             $table->string('package_name');
             $table->string('package_bitrix_id');
+            $table->string('primary_color')->default('#000000');
+            $table->string('secondary_color')->default('#000000');
+            $table->string('text_color')->default('#ffffff');
             $table->timestamps();
         });
 
         Artisan::call('db:seed', [
             '--class' => 'PackageSeeder',
         ]);
+        //wirte me a code
+
     }
 
     /**

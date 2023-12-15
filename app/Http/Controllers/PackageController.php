@@ -2,46 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Log;
 use App\Models\Package;
 use App\Models\Page;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class PackageController extends Controller {
 
-    /**
-     * Display a listing of the resource.
-     */
-    public function index() {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create() {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request) {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
     public function showPage() {
+        // Fetch all packages from the 'packages' table
         $packages = Package::all();
+        // Fetch all pages from the 'pages' table where 'role_id' is 1 (student)
         $pages = Page::where('role_id', '1')
             ->pluck('title', 'page_id')
             ->toArray();
 
-        // treba mi id page-va koji su u tom paketu
-
+        // Loop through the packages and add the pages to each package
         foreach ($packages as $package) {
             $selectedPackages = DB::table('student_package_pages')
                 ->where('package_id', $package->package_id)
@@ -51,26 +30,32 @@ class PackageController extends Controller {
             $package->pages = $pages;
         }
 
+        // Return the admin template view with necessary data
         return Inertia::render('Admin/Package/Show', [
             'packagePages' => $packages,
         ]);
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id) {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
     public function setPackagePages(Request $request) {
+        //        dd($request->colors);
         try {
             // Begin a database transaction
             DB::beginTransaction();
 
+            //We are receiving from front array of three colors for package indicator (primary,secondary,text)
+            $colors = $request->colors;
+            //Pulling the package that needs updating
+            $packageForUpdating = Package::find($request->package_id);
+
+            //Setting those colors for that package
+            $packageForUpdating->primary_color = $colors[0];
+            $packageForUpdating->secondary_color = $colors[1];
+            $packageForUpdating->text_color = $colors[2];
+
+            $packageForUpdating->save();
             // Convert request pages to integers
             $pagesArray = array_map('intval', $request->pages);
 
@@ -116,7 +101,7 @@ class PackageController extends Controller {
         catch (Exception $e) {
             // An error occurred, so roll back the transaction
             DB::rollBack();
-
+            Log::errorLog('Error updating pages: '.$e->getMessage());
             return redirect()
                 ->back()
                 ->with([
@@ -126,13 +111,6 @@ class PackageController extends Controller {
                     ],
                 ]);
         }
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id) {
-        //
     }
 
 }

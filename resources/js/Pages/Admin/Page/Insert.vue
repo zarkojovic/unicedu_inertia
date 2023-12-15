@@ -5,7 +5,7 @@ import {Head, Link, useForm} from '@inertiajs/vue3';
 import Button from '@/Atoms/Button.vue';
 import GenericInput from '@/Atoms/GenericInput.vue';
 import ListInput from '@/Atoms/ListInput.vue';
-import {computed, onMounted} from 'vue';
+import {computed} from 'vue';
 
 const props = defineProps({
     data: {
@@ -76,9 +76,6 @@ const submit = () => {
     }
 };
 
-onMounted(() => {
-    console.log(props.categories);
-});
 </script>
 
 
@@ -94,7 +91,7 @@ onMounted(() => {
                 <div class="bg-white overflow-hidden dark:bg-gray-800  shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
                         <div class="flex  justify-between items-center mb-5">
-                            <h1 class="text-2xl bold antialiased font-bold">{{
+                            <h1 class="text-md sm:text-xl bold antialiased font-bold">{{
                                     isEdit
                                         ? 'Update page - ' + form.title
                                         : 'Insert Page'

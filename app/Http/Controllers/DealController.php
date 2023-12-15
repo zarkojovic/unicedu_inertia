@@ -259,7 +259,7 @@ class DealController extends RootController {
             ]);
         }
 
-        Log::informationLog('Deal set as inactive (active = 0) in the database.',
+        Log::informationLog('Deal #'.$deal->deal_id.' set as inactive(deleted) in the database.',
             $user->user_id);
 
         return redirect()->back()->with([

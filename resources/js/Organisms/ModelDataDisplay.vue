@@ -19,7 +19,6 @@ const props = defineProps({
     },
     isDeletable: {
         type: Boolean,
-
     },
     isEditable: {
         type: Boolean,
@@ -45,16 +44,16 @@ const props = defineProps({
 </script>
 
 <template>
-    <div class="flex justify-between items-center mb-5 px-5">
+    <div class="flex justify-between items-center mb-5 px-5 mt-5">
         <h1 class="text-2xl bold antialiased font-bold">{{ props.sectionTitle }}</h1>
         <Link v-if="props.routeForNew" :href="route(props.routeForNew)">
             <Button>Add New</Button>
         </Link>
     </div>
+    
     <div class="mx-auto bg-white shadow-lg overflow-hidden rounded-3xl">
         <div class="text-gray-900 dark:text-gray-100">
             <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-
                 <GenericModelTable
                     :column-types="props.columnTypes" :data="props.data"
                     :delete-route="props.deleteRoute" :edit-route="props.editRoute"

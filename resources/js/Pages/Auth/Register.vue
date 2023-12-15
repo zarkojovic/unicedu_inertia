@@ -54,7 +54,7 @@ const validateEmail = () => {
     if (!email) {
         form.errors.email = 'The email field is required.';
     } else if (!emailRegex.test(email)) {
-        form.errors.email = 'Invalid email format';
+        form.errors.email = 'Please enter a valid email address (e.g., example@example.com)';
     } else {
         form.errors.email = '';
     }
@@ -72,15 +72,17 @@ const validatePhone = () => {
 
 const validatePassword = () => {
     const password = form.password;
+    const passwordRegex = /^(?=[A-Za-z0-9@#$%^&+!=]+$)^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[@#$%^&+!=])(?=.{8,}).*$/;
 
     if (!password) {
         form.errors.password = 'The password field is required.';
-    } else if (password.length < 8) {
-        form.errors.password = 'Password must be at least 8 characters long';
+    } else if (!passwordRegex.test(password)) {
+        form.errors.password = 'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character from @#$%^&+!=';
     } else {
         form.errors.password = '';
     }
 };
+
 const validateRepeatPassword = () => {
     const password = form.password;
     const repeatPassword = form.password_confirmation;
@@ -126,7 +128,7 @@ const validateRegistrationForm = () => {
 
         <form class="grid grid-cols-2 md:gap-x-8 gap-2 gap-y-5" @submit.prevent="validateRegistrationForm">
             <div>
-                <InputLabel for="first-name" value="Name"/>
+                <InputLabel for="first-name" value="First Name"/>
 
                 <TextInput
                     id="first-name"
@@ -140,7 +142,7 @@ const validateRegistrationForm = () => {
             </div>
 
             <div>
-                <InputLabel for="last-name" value="Last name"/>
+                <InputLabel for="last-name" value="Last Name"/>
 
                 <TextInput
                     id="last-name"

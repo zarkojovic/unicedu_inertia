@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Action;
 use App\Models\Field;
 use App\Models\FieldCategory;
 use App\Models\Log;
@@ -13,7 +14,13 @@ use Inertia\Inertia;
 
 class AdminController extends RootController {
 
-    public function show() {
+    public function showLogsPage(Request $request) {
+        //I want to check if request has user_email
+
+        if (isset($request->user_email)) {
+            dd($request->user_email);
+        }
+
         $data = DB::table('logs')
             ->leftJoin('actions', 'actions.action_id', 'logs.action_id')
             ->leftJoin('users', 'users.user_id', 'logs.user_id')
@@ -23,10 +30,19 @@ class AdminController extends RootController {
                 'logs.ip_address',
                 'logs.description',
                 'logs.created_at'
-            )
-            ->paginate(10);
+            );
+
+        $actions = Action::select('action_name as label',
+            DB::raw('action_name AS value'))->get()->toArray();
+
+        if ($request->action) {
+            $data = $data->where('actions.action_name', $request->action);
+        }
+        $data = $data->paginate(10);
         return Inertia::render("Admin/Dashboard", [
             'data' => $data,
+            'actions' => $actions,
+            'action' => fn() => $request->action,
         ]);
     }
 
@@ -36,7 +52,8 @@ class AdminController extends RootController {
             ->get();
         $sortedFields = Field::whereNotIn('field_category_id', [5])
             ->where('is_active', '1')
-            ->select("field_id", "field_name", "title", "is_required", "order",
+            ->select("field_id", "field_name", "title", "custom_title",
+                "is_required", "order",
                 "field_category_id")
             ->orderBy("order", "asc")
             ->get()
@@ -60,6 +77,7 @@ class AdminController extends RootController {
         ]);
     }
 
+    // This was from olf project
     public function fieldSelect() {
         $categories = FieldCategory::all();
         $fields = Field::where('is_active', '1')
@@ -69,6 +87,7 @@ class AdminController extends RootController {
             ["fields" => $fields, "categories" => $categories]);
     }
 
+    // Fetching all fields that are not in any category
     public function fetchFields(Request $request) {
         $fields = Field::whereNull("field_category_id")
             ->select("field_id", "field_name", "title")
@@ -89,17 +108,14 @@ class AdminController extends RootController {
     }
 
     public function setFieldCategory(Request $request) {
-        //        return redirect()
-        //            ->route("admin_home")
-        //            ->with([
-        //                'toast' => [
-        //                    'message' => "Intentionally blocked field adding.",
-        //                    'type' => 'success',
-        //                ],
-        //            ]);
         try {
+            // Begin a database transaction
+            DB::beginTransaction();
+            // Get the field ID and new category ID
             $fieldId = $request->input('field_id');
+            // If the field ID is 0, then we are adding a new field
             $newCategoryId = $request->input('field_category_id');
+            // Get the order of the field
             $order = $request->input('order');
 
             $record = Field::findOrFail($fieldId);
@@ -107,6 +123,7 @@ class AdminController extends RootController {
             $record->field_category_id = $newCategoryId;
             $record->order = $order;
             $record->save();
+
             $displayName = $record->title != NULL ? $record->title : $record->field_name;
             Log::apiLog("Added '".$displayName."' field to ".$record->category->category_name);
             return redirect()
@@ -119,13 +136,14 @@ class AdminController extends RootController {
                 ]);
         }
         catch (Exception $ex) {
-            http_response_code(500);
+            // Something went wrong, rollback the transaction
+            DB::rollBack();
             Log::errorLog($ex->getMessage(), Auth::user()->user_id);
             return redirect()
                 ->route("admin_home")
                 ->with([
                     'toast' => [
-                        'message' => "An error occured on the server.",
+                        'message' => "An error occurred on the server.",
                         'type' => 'danger',
                     ],
                 ]);
