@@ -15,6 +15,12 @@ use Inertia\Inertia;
 class AdminController extends RootController {
 
     public function showLogsPage(Request $request) {
+        //I want to check if request has user_email
+
+        if (isset($request->user_email)) {
+            dd($request->user_email);
+        }
+
         $data = DB::table('logs')
             ->leftJoin('actions', 'actions.action_id', 'logs.action_id')
             ->leftJoin('users', 'users.user_id', 'logs.user_id')
@@ -36,6 +42,7 @@ class AdminController extends RootController {
         return Inertia::render("Admin/Dashboard", [
             'data' => $data,
             'actions' => $actions,
+            'action' => fn() => $request->action,
         ]);
     }
 
