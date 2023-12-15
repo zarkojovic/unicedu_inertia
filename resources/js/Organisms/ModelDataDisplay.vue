@@ -44,7 +44,7 @@ const props = defineProps({
 </script>
 
 <template>
-    <div class="flex justify-between items-center mb-5 px-5">
+    <div class="flex justify-between items-center mb-5 px-5 mt-5">
         <h1 class="text-2xl bold antialiased font-bold">{{ props.sectionTitle }}</h1>
         <Link v-if="props.routeForNew" :href="route(props.routeForNew)">
             <Button>Add New</Button>

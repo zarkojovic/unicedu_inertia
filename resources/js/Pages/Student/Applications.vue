@@ -74,7 +74,7 @@ const syncData = () => {
 </script>
 
 <template>
-    <Head title="Profile"/>
+    <Head title="Applications"/>
     <AuthenticatedLayout>
         <template #header>
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Applications</h2>
@@ -153,7 +153,7 @@ const syncData = () => {
                             Confirm your action
                         </template>
                         <template #modalContent>
-                            <h2>Are you sure you want to delete this application {{ dealId }}?</h2>
+                            <h2>Are you sure you want to delete this application?</h2>
                         </template>
                         <template #modalFooter>
                             <div class="flex justify-end">

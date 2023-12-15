@@ -46,7 +46,7 @@ onMounted(() => {
             v-if="is_required" class="text-sm text-red-600">*</span></label>
         <ul>
             <li v-for="(item, index) in items" :key="index"
-                :class="isChecked(index) ? 'bg-orange-500 text-white border-orange-500' : 'border-gray-300'"
+                :class="isChecked(index) ? 'text-orange-500 bg-orange-50 border-orange-200' : 'border-gray-300'"
                 class=" mb-2 p-2 rounded-3xl border flex items-center">
                 <input
                     :id="name + '-' + index"

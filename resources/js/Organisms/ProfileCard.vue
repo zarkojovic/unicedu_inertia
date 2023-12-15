@@ -40,8 +40,7 @@ const submitForm = ($event) => {
         if (form.profileImage) {
             imagePreview.value = URL.createObjectURL(form.profileImage);
         }
-    }
-    else {
+    } else {
         isNotValidType.value = true;
     }
 };
@@ -89,7 +88,7 @@ const labelProgressClasses = computed(() => ({
                     </div>
 
                     <label :class="labelProgressClasses"
-                           class="profile-image-label cursor-pointer md:text-left align-bottom "
+                           class="profile-image-label cursor-pointer text-center md:text-left align-bottom mt-3"
                            @click="openProfilePictureModal">
                         Upload Profile Image</label>
                     <Modal v-if="showModal" :imagePreview="imagePreview" @close="handleCloseModal"
