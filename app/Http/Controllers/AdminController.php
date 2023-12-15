@@ -109,8 +109,6 @@ class AdminController extends RootController {
 
     public function setFieldCategory(Request $request) {
         try {
-            // Begin a database transaction
-            DB::beginTransaction();
             // Get the field ID and new category ID
             $fieldId = $request->input('field_id');
             // If the field ID is 0, then we are adding a new field
