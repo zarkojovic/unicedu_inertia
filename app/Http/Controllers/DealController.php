@@ -8,6 +8,7 @@ use App\Models\Deal;
 use App\Models\Field;
 use App\Models\Intake;
 use App\Models\Log;
+use App\Models\Package;
 use App\Models\Stage;
 use CRest;
 use Exception;
@@ -20,7 +21,8 @@ use function Webmozart\Assert\Tests\StaticAnalysis\length;
 
 class DealController extends RootController {
 
-    public function showApplication() {
+    public function showApplication(Request $request) {
+        //        dd($request->all());
         try {
             $data = DB::table('deals')
                 ->join('users', 'users.user_id', 'deals.user_id')
@@ -28,19 +30,108 @@ class DealController extends RootController {
                     'users.user_id')
                 ->join('stages', 'stages.stage_id', 'deals.stage_id')
                 ->select('users.profile_image as Profile Image',
-                    'users.first_name as Name',
+                    'users.email as Email',
                     'deals.deal_id as id', 'deals.intake', 'deals.program',
                     'deals.university', 'deals.degree',
                     'stages.stage_name as Stage',
                     'user_intake_packages.package_id as Package',
                     'deals.created_at as applied at',
-                    DB::raw('CASE WHEN deals.active = 1 THEN "active" ELSE "inactive" END AS active'))
-                ->paginate(10);
+                    DB::raw('CASE WHEN deals.active = 1 THEN "active" ELSE "inactive" END AS active'));
+            if ($request->intake) {
+                $data = $data->where('deals.intake', $request->intake);
+            }
+            if ($request->stage) {
+                $data = $data->where('deals.stage_id', $request->stage);
+            }
+            if ($request->package) {
+                $data = $data->where('user_intake_packages.package_id',
+                    $request->package);
+            }
+            if ($request->university) {
+                $data = $data->where('deals.university', $request->university);
+            }
+            if ($request->degree) {
+                $data = $data->where('deals.degree', $request->degree);
+            }
+            if ($request->begin_date) {
+                $data = $data->where('deals.created_at', '>=',
+                    $request->begin_date);
+            }
+            if ($request->end_date) {
+                $data = $data->where('deals.created_at', '<=',
+                    $request->end_date);
+            }
+            if ($request->userInfo) {
+                $userInfo = strtolower(trim($request->userInfo));
+                $data->whereRaw('LOWER(users.first_name) like ?',
+                    ['%'.$userInfo.'%'])
+                    ->orWhereRaw('LOWER(users.last_name) like ?',
+                        ['%'.$userInfo.'%'])
+                    ->orWhereRaw('LOWER(users.email) like ?',
+                        ['%'.$userInfo.'%'])
+                    ->orWhereRaw('LOWER(users.phone) like ?',
+                        ['%'.$userInfo.'%']);
+            }
+            if ($request->program) {
+                $program = strtolower(trim($request->program));
+                $data->whereRaw('LOWER(deals.program) like ?',
+                    ['%'.$program.'%']);
+            }
+            if ($request->has('active')) {
+                $isActive = filter_var($request->active,
+                    FILTER_VALIDATE_BOOLEAN);
+                $data = $data->where('deals.active', $isActive);
+            }
+            $data = $data->paginate(10);
 
             // Return the admin template view with necessary data
             return Inertia::render("Admin/Application/Show", [
                 'data' => $data,
-                // Actions data to be displayed
+                'dealIntakes' => fn() => Intake::select('intake_name as label',
+                    'intake_name as value')->get()->toArray(),
+                'dealStages' => fn() => Stage::select('stage_name as label',
+                    DB::raw('CAST(stage_id AS CHAR) AS value'))
+                    ->get()
+                    ->toArray(),
+                'dealPackages' => fn(
+                ) => Package::select('package_name as label',
+                    DB::raw('CAST(package_id AS CHAR) AS value'))
+                    ->get()
+                    ->toArray(),
+                'dealUniversities' => fn() => DB::table('field_items')
+                    ->join('fields', 'fields.field_id',
+                        'field_items.field_id')
+                    ->where('fields.title', 'University name')
+                    ->select('field_items.item_value as label',
+                        'field_items.item_value as value')
+                    ->get()->toArray(),
+                'dealDegrees' => fn() => DB::table('field_items')
+                    ->join('fields', 'fields.field_id',
+                        'field_items.field_id')
+                    ->where('fields.title', 'Degree')
+                    ->select('field_items.item_value as label',
+                        'field_items.item_value as value')
+                    ->get()->toArray(),
+                'activeFields' => fn() => [
+                    [
+                        'label' => 'Active',
+                        'value' => '1',
+                    ],
+                    [
+                        'label' => 'Inactive',
+                        'value' => '0',
+                    ],
+                ],
+                'intake' => fn() => $request->intake,
+                'stage' => fn() => $request->stage,
+                'package' => fn() => $request->package,
+                'university' => fn() => $request->university,
+                'degree' => fn() => $request->degree,
+                'userInfo' => fn() => $request->userInfo,
+                'program' => fn() => $request->program,
+                'begin_date' => fn() => $request->begin_date,
+                'end_date' => fn() => $request->end_date,
+                'active' => fn() => $request->active,
             ]);
         }
         catch (Exception $e) {

@@ -30,7 +30,7 @@ class PageController extends Controller {
         return response()->json($pagesWithRole);
     }
 
-    public function showPageListView() {
+    public function showPageListView(Request $request) {
         try {
             // Fetch all pages from the 'pages' table to be displayed in the list view
             $pages = DB::table('pages')
@@ -38,11 +38,20 @@ class PageController extends Controller {
                 ->select('pages.page_id as id', 'pages.title as title',
                     'pages.route as route',
                     'pages.icon as icon',
-                    'roles.role_name as role name')->paginate(10);
-
+                    'roles.role_name as role name');
+            if ($request->role) {
+                $pages = $pages->where('roles.role_id', $request->role);
+            }
+            $pages = $pages->paginate(10);
+          
             return Inertia::render("Admin/Page/Show", [
                 // Pages data to be displayed
                 'data' => $pages,
+                'roles' => fn() => Role::select('role_name as label',
+                    DB::raw('CAST(role_id AS CHAR) AS value'))
+                    ->get()
+                    ->toArray(),
+                'role' => fn() => $request->role,
             ]);
         }
         catch (Exception $e) {
@@ -60,7 +69,7 @@ class PageController extends Controller {
         try {
             // Find the page by its ID
             $page = Page::findOrFail($id);
-            
+
             //            if (!$page->is_editable) {
             //                throw new Exception('This page is not editable!');
             //            }
