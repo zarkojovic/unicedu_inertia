@@ -3,31 +3,48 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\OutboundValidationRequest;
 use App\Models\Log;
 //use Illuminate\Support\Facades\Log;
+use App\Services\OutboundService;
+use http\Env\Response;
 use Illuminate\Http\Request;
 
 class BitrixController extends Controller
 {
-    //token for validating the outbound webhook
-    private static string $applicationToken = "8nrs8p8wlywhwjo4hs866qqee1illv38";
-    public function receiveOutbound(Request $request)
+    public function receiveOutbound(OutboundValidationRequest $request)
     {
-        // Get the application token from the request
-        $validated = $this->validateBitrixRequest($request->auth["application_token"]);
+        // Make sure to still return some response messages as they can still be seen when the response is intercepted.
+        // Because of this avoid returning sensitive information (like mentioning Bitrix CRM, outbound hooks, and stuff that could cause errors
+        // like logging too much content in the database)
+        // We will relly on HTTPS encrypting the requests and validation from our app to ensure secure communication
 
-        if (!$validated){
-            Log::errorLog("Failed to validate Bitrix24 Outbound Webhook!");
-//            Log::info('Bitrix Webhook Request:', $request->all());
-            return ;
+
+        // Separate deal update and contact update events
+        $bitrixId = $request->data["FIELDS"]["ID"];
+        $event = $request->input('event');
+        switch ($event) {
+            case 'ONCRMDEALUPDATE':
+                Log::authLog("Successfully validated Bitrix24 Outbound Webhook! Deal ID: " . $bitrixId);
+                OutboundService::handleUpdate("deal", $bitrixId);
+                break;
+            case 'ONCRMCONTACTUPDATE':
+                Log::authLog("Successfully validated Bitrix24 Outbound Webhook! Contact ID: " . $bitrixId);
+                OutboundService::handleUpdate("contact", $bitrixId);
+                break;
+            default:
+                // Handle other or unknown events
+                return response()->json(['error' => 'Unknown event.'], 422);
         }
 
-        Log::authLog("Successfully validated Bitrix24 Outbound Webhook!");
+        return "Successfully validated request.";
     }
 
-    private function validateBitrixRequest($receivedApplicationToken)
+    private function handleUpdate($type, $bitrixId)
     {
-        // Compare the application token with the one generated in Bitrix24
-        return $receivedApplicationToken === self::$applicationToken;
+        // 1. check if deal/contact exists in our database
+        // 2. use rest api method to retrieve fresh values from bitrix for all fields for that deal/contact
+        // 3. check if there are any differences between our data and received from bitrix
+        // 4. if there are differences, update the appropriate fields in our database
     }
 }

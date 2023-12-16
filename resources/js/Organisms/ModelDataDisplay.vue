@@ -40,12 +40,6 @@ const props = defineProps({
     },
 });
 
-// onMounted(() => {
-//     props.data.data = props.data.data.filter(el => {
-//         return el.action_name === 'information';
-//     });
-// });
-//
 
 </script>
 
@@ -56,10 +50,10 @@ const props = defineProps({
             <Button>Add New</Button>
         </Link>
     </div>
+    
     <div class="mx-auto bg-white shadow-lg overflow-hidden rounded-3xl">
         <div class="text-gray-900 dark:text-gray-100">
             <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
-
                 <GenericModelTable
                     :column-types="props.columnTypes" :data="props.data"
                     :delete-route="props.deleteRoute" :edit-route="props.editRoute"

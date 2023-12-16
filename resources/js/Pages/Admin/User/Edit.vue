@@ -35,7 +35,7 @@ const isRoleChanged = ref(null);
 watch(formItems.value.formItems, function(value, oldValue) {
     const userRole = value.userRole;
     const userPackage = value.userPackage;
-    
+
     if (userRole) {
         isRoleChanged.value = props.userInfo.role_id.toString() !== userRole.value;
         form.role_id = isRoleChanged.value ? userRole.value : form.role_id;
@@ -44,7 +44,6 @@ watch(formItems.value.formItems, function(value, oldValue) {
         isPackageChanged.value = props.userInfo.package_id.toString() !== userPackage.value;
         form.package_id = isPackageChanged.value ? userPackage.value : form.package_id;
     }
-
 });
 
 provide('formItems', formItems);

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Action;
 use App\Models\Field;
 use App\Models\FieldCategory;
 use App\Models\Log;
@@ -13,7 +14,13 @@ use Inertia\Inertia;
 
 class AdminController extends RootController {
 
-    public function show() {
+    public function showLogsPage(Request $request) {
+        //I want to check if request has user_email
+
+        if (isset($request->user_email)) {
+            dd($request->user_email);
+        }
+
         $data = DB::table('logs')
             ->leftJoin('actions', 'actions.action_id', 'logs.action_id')
             ->leftJoin('users', 'users.user_id', 'logs.user_id')
@@ -23,10 +30,19 @@ class AdminController extends RootController {
                 'logs.ip_address',
                 'logs.description',
                 'logs.created_at'
-            )
-            ->paginate(10);
+            );
+
+        $actions = Action::select('action_name as label',
+            DB::raw('action_name AS value'))->get()->toArray();
+
+        if ($request->action) {
+            $data = $data->where('actions.action_name', $request->action);
+        }
+        $data = $data->paginate(10);
         return Inertia::render("Admin/Dashboard", [
             'data' => $data,
+            'actions' => $actions,
+            'action' => fn() => $request->action,
         ]);
     }
 
@@ -93,8 +109,6 @@ class AdminController extends RootController {
 
     public function setFieldCategory(Request $request) {
         try {
-            // Begin a database transaction
-            DB::beginTransaction();
             // Get the field ID and new category ID
             $fieldId = $request->input('field_id');
             // If the field ID is 0, then we are adding a new field
