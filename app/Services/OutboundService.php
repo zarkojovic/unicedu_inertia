@@ -21,7 +21,7 @@ class OutboundService
     // 4. if there are differences, update the appropriate fields in our database
     public static function handleUpdate($type, $bitrixId)
     {
-        // Check if deal/contact exists in our database and get column values (GET INTAKE LATER ALSO!!!)
+        // Check if deal exists in our database and get column values
         $record = Deal::where('bitrix_deal_id', $bitrixId)
             ->select('user_id', 'university', 'degree', 'program', 'intake')
             ->first();
@@ -31,7 +31,7 @@ class OutboundService
             return null;
         }
 
-        // Extract values as separate array members
+        // Extract values as separate array members to be able to get their option values later
         $fieldValues = [
             $record->university,
             $record->degree,
@@ -67,44 +67,56 @@ class OutboundService
             return $itemIds[$fieldValue] ?? null;
         }, $fieldValues));
 
+        $fieldItemMap["UF_CRM_1667335742921"] = $record->program; // add program to array
+
 
         // retrieve data from DEALS and USER_INFOS tables
         $userId = $record["user_id"];
 
         // here the minimum number of records should be the required fields! Otherwise, no deal should exist
-        $userInfoFromDatabase = UserInfo::where("user_id", $userId)
-                                        ->select(
-                                            "value",
-                                            "display_value",
-                                            "file_name",
-                            //                "file_path"
-                                        )->get();
+        $userInfoFromDatabase = UserInfo::join('fields', 'user_infos.field_id', '=', 'fields.field_id')
+                                        ->where('user_infos.user_id', $userId)
+                                        ->whereNotNull('user_infos.value') // Only include rows where value is not null
+                                        ->pluck('user_infos.value', 'fields.field_name')
+                                        ->toArray();
 
         if (!$userInfoFromDatabase) {
             Log::errorLog("Outbound webhook error: Couldn't find records in User_infos table (missing required fields).");
             return null;
         }
-        //NASTAVI OVDE
-        var_dump($userInfoFromDatabase->toArray());
-        die;
-//        $mergedData = array_merge($record->toArray(), $userInfoFromDatabase->toArray());
-//        var_dump($mergedData);
-//        die;
+
+        $dataFromDatabase = array_merge($fieldItemMap, $userInfoFromDatabase);
+
 
         // retrieve fresh data from bitrix
-//        try {
-//
-//            $dataFromBitrix = self::fetchDataFromBitrix($type, $bitrixId);
-//                var_dump($dataFromBitrix);
-////                var_dump($userInfoFromDatabase);
-////                var_dump($userId);
-//        }
-//        catch (\Exception $e){
-//            Log::errorLog("Outbound webhook error: ".$e->getMessage());
-//        }
+        $dataFromBitrix = [];
+        try {
+            $dataFromBitrix = self::fetchDataFromBitrix($type, $bitrixId);
+        }
+        catch (\Exception $e){
+            Log::errorLog("Outbound webhook error: ".$e->getMessage());
+        }
 
-//            $dataFromDatabaseArray = array_change_key_case($dataFromDatabase->toArray(), CASE_LOWER);
-//            $dataFromBitrixArray = array_change_key_case($dataFromBitrix["result"], CASE_LOWER);
+
+        // Convert timestamps to formatted strings without timezone information
+        $format = 'Y-m-d';
+
+        $bitrixTimestamp = date($format, strtotime($dataFromBitrix["result"]["UF_CRM_1680032383794"]));
+        $dataFromBitrix["result"]["UF_CRM_1680032383794"] = $bitrixTimestamp;
+
+
+        // COMPARE DATABASE AND BITRIX DATA AND CHECK FOR DIFFERENCES
+        $differences = array_diff_assoc($dataFromDatabase, $dataFromBitrix["result"]);
+
+        if ($differences){
+            // here check if the fields found in differences belong to DEALS or USER_INFOS tables and update the values accordingly
+
+        }
+        else { // ELSE THE VALUE OF A FIELD THAT THE USER HASN'T FILLED IN OUR APP HAS CHANGED
+            // 1. if the field already exists in our database, insert the new value into USER_INFOS table (special case for DEALS table)
+            // 2. if the field doesn't exist in our database, refresh fields and then insert the new value --||--
+
+        }
 
 //            var_dump($dataFromDatabaseArray["stage_id"]);
 //            $downloadUrl = $dataFromBitrixArray["uf_crm_1668771731749"]["downloadUrl"];
