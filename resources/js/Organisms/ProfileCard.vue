@@ -126,12 +126,14 @@ const labelProgressClasses = computed(() => ({
                                 </form>
                                 <div class="flex items-center bg-orange-100 mt-7 mb-3 py-3 rounded-lg">
                                     <input
+                                        id="agreedToUsePicture"
                                         v-model="agreedToUsePicture"
                                         class="w-4 h-4 text-orange-500 bg-gray-100 border-gray-300 rounded focus:ring-0 transition focus:ring-offset-0 mx-3"
                                         type="checkbox">
 
                                     <label
-                                        class="text-left text-sm font-semibold  text-gray-600 ">I
+                                        class="text-left text-sm font-semibold  text-gray-600 "
+                                        for="agreedToUsePicture">I
                                         agree that Poland Study can use this image for my university
                                         applications.</label>
                                 </div>
