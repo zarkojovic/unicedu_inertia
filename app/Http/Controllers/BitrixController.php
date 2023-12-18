@@ -39,12 +39,4 @@ class BitrixController extends Controller
 
         return "Successfully validated request.";
     }
-
-    private function handleUpdate($type, $bitrixId)
-    {
-        // 1. check if deal/contact exists in our database
-        // 2. use rest api method to retrieve fresh values from bitrix for all fields for that deal/contact
-        // 3. check if there are any differences between our data and received from bitrix
-        // 4. if there are differences, update the appropriate fields in our database
-    }
 }

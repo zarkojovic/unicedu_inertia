@@ -38,7 +38,7 @@ class OutboundValidationRequest extends FormRequest
      */
     protected function failedValidation($validator)
     {
-        Log::errorLog('Error: '.$validator->errors());
+        Log::errorLog('Outbound Webhook error: '.$validator->errors());
         abort(response()->json(['error' => 'Failed validating request.'], 422));
     }
 }

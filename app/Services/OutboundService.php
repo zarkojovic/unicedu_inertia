@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
-use App\Models\Deal; // Adjust the model as needed
-use App\Models\Contact; // Adjust the model as needed
+use App\Models\Deal;
+use App\Models\Field;
+use App\Models\FieldItem;
 use App\Models\Stage;
 use App\Models\User;
+use App\Models\UserInfo;
 use CRest;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Http;
@@ -13,111 +15,211 @@ use App\Models\Log;
 
 class OutboundService
 {
+    // 1. check if deal/contact exists in our database
+    // 2. use rest api method to retrieve fresh values from bitrix for all fields for that deal/contact
+    // 3. check if there are any differences between our data and received from bitrix
+    // 4. if there are differences, update the appropriate fields in our database
     public static function handleUpdate($type, $bitrixId)
     {
-        // Check if deal/contact exists in our database
+        // Check if deal exists in our database and get column values
+        $record = Deal::where('bitrix_deal_id', $bitrixId)
+            ->select('user_id', 'university', 'degree', 'program', 'intake')
+            ->first();
+
+        if (!$record) {
+            Log::errorLog("Outbound webhook error: Couldn't find a matching record in the database.");
+            return null;
+        }
+
+        // Extract values as separate array members to be able to get their option values later
+        $fieldValues = [
+            $record->university,
+            $record->degree,
+            $record->intake,
+        ];
+
+        // Retrieve field_ids for correct field_names from deal table (university, degree, intake)
+        $fieldNames = ["UF_CRM_1667335624051", "UF_CRM_1667335695035", "UF_CRM_1668001651504"];
+        $fieldIds = Field::whereIn('field_name', $fieldNames)
+                            ->pluck('field_id')
+                            ->toArray();
+
+        if (!$fieldIds) {
+            Log::errorLog("Outbound webhook error: Couldn't find matching fieldId records in the database for fieldNames array.");
+            return null;
+        }
+
+
+        // Find corresponding item_id values from Field_items table
+        $itemIds = FieldItem::whereIn('item_value', $fieldValues)
+            ->whereIn('field_id', $fieldIds)
+            ->pluck('item_id', 'item_value')
+            ->toArray();
+
+        if (!$itemIds) {
+            Log::errorLog("Outbound webhook error: Couldn't find matching itemId records in the database for fieldIds and fieldValues arrays.");
+            return null;
+        }
+
+
+        // Map field_names with corresponding item_ids
+        $fieldItemMap = array_combine($fieldNames, array_map(function ($fieldValue) use ($itemIds) {
+            return $itemIds[$fieldValue] ?? null;
+        }, $fieldValues));
+
+        $fieldItemMap["UF_CRM_1667335742921"] = $record->program; // add program to array
+
+
+        // retrieve data from DEALS and USER_INFOS tables
+        $userId = $record["user_id"];
+
+        // here the minimum number of records should be the required fields! Otherwise, no deal should exist
+        $userInfoFromDatabase = UserInfo::join('fields', 'user_infos.field_id', '=', 'fields.field_id')
+                                        ->where('user_infos.user_id', $userId)
+                                        ->whereNotNull('user_infos.value') // Only include rows where value is not null
+                                        ->pluck('user_infos.value', 'fields.field_name')
+                                        ->toArray();
+
+        if (!$userInfoFromDatabase) {
+            Log::errorLog("Outbound webhook error: Couldn't find records in User_infos table (missing required fields).");
+            return null;
+        }
+
+        $dataFromDatabase = array_merge($fieldItemMap, $userInfoFromDatabase);
+
+
+        // retrieve fresh data from bitrix
+        $dataFromBitrix = [];
         try {
-            $localData = self::fetchData("database", $type, $bitrixId);
+            $dataFromBitrix = self::fetchDataFromBitrix($type, $bitrixId);
         }
-        catch (ModelNotFoundException $e) {
-            Log::errorLog("No deals or contacts found in the database for Bitrix ID: ".$bitrixId);
-            $localData = null;
-        }
-        catch (\Exception $e) {
-            Log::errorLog($e->getMessage());
-            $localData = null;
+        catch (\Exception $e){
+            Log::errorLog("Outbound webhook error: ".$e->getMessage());
         }
 
-        if ($localData) {
-//            Log::informationLog("Deal ID in database: ".$localData->deal_id);
-//            var_dump($localData->toArray());
-            // retrieve fresh data from bitrix
-            $bitrixData = self::fetchData('bitrix', $type, $bitrixId);
 
-            $localDataArray = array_change_key_case($localData->toArray(), CASE_LOWER);
-            $bitrixDataArray = array_change_key_case($bitrixData["result"], CASE_LOWER);
+        // Convert timestamps to formatted strings without timezone information
+        $format = 'Y-m-d';
 
-            var_dump($localDataArray["stage_id"]);
-            var_dump($bitrixDataArray["stage_id"]);
+        $bitrixTimestamp = date($format, strtotime($dataFromBitrix["result"]["UF_CRM_1680032383794"]));
+        $dataFromBitrix["result"]["UF_CRM_1680032383794"] = $bitrixTimestamp;
 
-            $correctStageId = Stage::where('bitrix_stage_id', $bitrixDataArray["stage_id"])->value('stage_id');
-            var_dump($correctStageId);
+
+        // COMPARE DATABASE AND BITRIX DATA AND CHECK FOR DIFFERENCES
+        $differences = array_diff_assoc($dataFromDatabase, $dataFromBitrix["result"]);
+
+        if ($differences){
+            // here check if the fields found in differences belong to DEALS or USER_INFOS tables and update the values accordingly
+
+        }
+        else { // ELSE THE VALUE OF A FIELD THAT THE USER HASN'T FILLED IN OUR APP HAS CHANGED
+            // 1. if the field already exists in our database, insert the new value into USER_INFOS table (special case for DEALS table)
+            // 2. if the field doesn't exist in our database, refresh fields and then insert the new value --||--
+
+        }
+
+//            var_dump($dataFromDatabaseArray["stage_id"]);
+//            $downloadUrl = $dataFromBitrixArray["uf_crm_1668771731749"]["downloadUrl"];
+//            $fileName = "ime-fajla-sa-bitrixa.pdf";
+//            $fileContents = Http::get("https://polandstudy.bitrix24.pl".$downloadUrl)->body();
+//            file_put_contents(storage_path("app/public/profile/documents/".$fileName), $fileContents);
+
+
+
+//            $correctStageId = Stage::where('bitrix_stage_id', $dataFromBitrixArray["stage_id"])->value('stage_id');
 //            var_dump($correctStageId);
-            // Update the stage_id in $localData
-            try {
-//                $localData->stage_id = $correctStageId;
-                $deal = Deal::where('bitrix_deal_id', $bitrixId)->firstOrFail();
-                $deal->stage_id = $correctStageId;
-                $deal->save();
-                var_dump($deal->stage_id);
-//                if($localData->save()){
-//                    var_dump("uspeh");
-//                };
-//                var_dump($localData->stage_id);
-            }
-            catch (\Exception $e){
-                var_dump("neuspeh ".$e->getMessage());
-            }
+//            var_dump($correctStageId);
+            // Update the stage_id in $dataFromDatabase
+//            try {
+////                $dataFromDatabase->stage_id = $correctStageId;
+//                $deal = Deal::where('bitrix_deal_id', $bitrixId)->firstOrFail();
+////                $deal->stage_id = $correctStageId;
+////                $deal->save();
+//                var_dump($deal->stage_id);
+////                if($dataFromDatabase->save()){
+////                    var_dump("uspeh");
+////                };
+////                var_dump($dataFromDatabase->stage_id);
+//            }
+//            catch (\Exception $e){
+//                var_dump("neuspeh ".$e->getMessage());
+//            }
 
-//            var_dump($bitrixData["result"]["STAGE_ID"]);
+//            var_dump($dataFromBitrix["result"]["STAGE_ID"]);
 
             // Check if there are any differences between our data and received from Bitrix
-//            $differences = self::compareData($localData, $bitrixData);
+//            $differences = self::compareData($dataFromDatabase, $dataFromBitrix);
 //            var_dump($differences);
             // If there are differences, update the appropriate fields in our database
 //            if ($differences) {
 //                self::updateDatabase('database', $type, $bitrixId, $differences);
 //            }
-        }
+//        }
 //        else {
 //            Log::informationLog("No matching record in our database with received Outbound webhook.");
 //        }
     }
 
-    private static function fetchData($location, $type, $bitrixId)
+    private static function fetchDataFromDatabase($type, $bitrixId)
     {
-        // Fetch data based on the specified location (database or Bitrix24)
-        switch ($location) {
-            case 'database':
-                if ($type === "deal"){
-                    return Deal::where('deals.bitrix_deal_id', $bitrixId)->
-                                 join('stages', 'deals.stage_id', '=', 'stages.stage_id')->
-                                 select("deals.bitrix_deal_id as id", "deals.university", "deals.degree", "deals.program as uf_crm_1667335742921",
-                                        "deals.intake", "stages.bitrix_stage_id as stage_id")->
-                                 firstOrFail();
-                }
-//                elseif ($type === "contact"){
-//                    //CONTACT STILL NOT FINISHED, CONTINUE TOMORROW
-//                    return User::where('contact_id', $bitrixId)->firstOrFail();
-//                }
-                else throw new \Exception("Unsupported type of record provided for outbound webhook data retrieval from database.");
-
-            case 'bitrix':
-                if ($type === "deal"){// || $type === "contact"
-                    $method = 'crm.'.$type.'.get';
-                    return CRest::call($method, [
-                        'ID' => $bitrixId,
-                    ]);
-                }
-                else throw new \Exception("Unsupported type of record provided for outbound webhook data retrieval from bitrix.");
-
-            default:
-                // Unsupported location
-                return null;
+        //STAGE_ID NIJE SELEKTOVAN! DA BI MOGAO DA SE POREDI SA BITRIXOM TREBA DA SE JOINUJE SA STAGES TABELOM
+        //USER_INTAKE_PACKAGE_ID NIJE SELEKTOVAN! DA BI MOGAO DA SE POREDI SA BITRIXOM TREBA DA SE JOINUJE SA USER_INTAKE_PACKAGES I PACKAGES
+        if ($type === "deal") {
+            return Deal::where('deals.bitrix_deal_id', $bitrixId)
+                        ->select(
+                            "bitrix_deal_id as ID",
+                            "university as UF_CRM_1667335624051",
+                            "user_id",
+                            "degree as UF_CRM_1667335695035",
+                            "program as UF_CRM_1667335742921",// as uf_crm_1667335742921
+                            "intake as UF_CRM_1668001651504",
+                            //"stage_id",
+                            //"user_intake_package_id"
+                        )->first();
+//            return Deal::where('deals.bitrix_deal_id', $bitrixId)
+//                ->join('stages', 'deals.stage_id', '=', 'stages.stage_id')
+//                ->select(
+//                    "deals.bitrix_deal_id as id",
+//                    "deals.university",
+//                    "deals.degree",
+//                    "deals.program as uf_crm_1667335742921",
+//                    "deals.intake",
+//                    "stages.bitrix_stage_id as stage_id"
+//                )
+//                ->firstOrFail(); //returns ModelNotFoundException if fail
+        }
+        // elseif ($type === "contact"){
+        //     //CONTACT STILL NOT FINISHED, CONTINUE TOMORROW
+        //     return User::where('contact_id', $bitrixId)->firstOrFail();
+        // }
+        else {
+            throw new \Exception("Unsupported type of record provided for outbound webhook data retrieval from database.");
         }
     }
 
-//    private static function compareData($localData, $bitrixData)
-//    {
-//        // Compare the data and return the differences
-//        //CONTINUE WORKING HERE
-//        $localDataArray = array_change_key_case($localData->toArray(), CASE_LOWER);
-//        $bitrixDataArray = array_change_key_case($bitrixData["result"], CASE_LOWER);
-//        var_dump($bitrixData);
-////        var_dump($bitrixDataArray);
-//
-//        return array_diff_assoc($localDataArray, $bitrixDataArray);
-//    }
+    private static function fetchDataFromBitrix($type, $bitrixId)
+    {
+        if ($type === "deal") {// || $type === "contact"
+            $method = 'crm.' . $type . '.get';
+            return CRest::call($method, [
+                'ID' => $bitrixId,
+            ]);
+        }
+        else {
+            throw new \Exception("Unsupported type of record provided for outbound webhook data retrieval from Bitrix.");
+        }
+    }
+    private static function compareData($dataFromDatabase, $dataFromBitrix)
+    {
+        // Compare the data and return the differences
+        //CONTINUE WORKING HERE
+        $dataFromDatabaseArray = array_change_key_case($dataFromDatabase->toArray(), CASE_LOWER);
+        $dataFromBitrixArray = array_change_key_case($dataFromBitrix["result"], CASE_LOWER);
+        var_dump($dataFromBitrix);
+//        var_dump($dataFromBitrixArray);
+
+        return array_diff_assoc($dataFromDatabaseArray, $dataFromBitrixArray);
+    }
 
 //    private static function updateDatabase($location, $type, $bitrixId, $differences)
 //    {
