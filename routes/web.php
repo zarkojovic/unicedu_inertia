@@ -214,8 +214,13 @@ Route::middleware('auth')->group(function() {
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
 
-    Route::get('/test1', function() {
-        echo 'aloo';
+    Route::get('/test', function() {
+        //        $userActiveDeals = Deal::where('user_id', auth()->user()->user_id)
+        //            ->where('active', 1)
+        //            ->get();
+        //        return Deal::where('user_id', auth()->user()->user_id)
+        //            ->where('stage_id', '!=', 1)
+        //            ->get()->count();
     });
 });
 

@@ -64,12 +64,6 @@ const deleteDeal = () => {
     });
 };
 
-const syncForm = useForm({});
-
-const syncData = () => {
-    console.log('aloooo');
-    syncForm.post('/user/sync-deal-fields');
-};
 
 </script>
 
@@ -80,9 +74,7 @@ const syncData = () => {
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Applications</h2>
         </template>
         <div class="py-6 mt-10">
-            <Button v-if="page.props.auth.user.unsaved_changes" class="text-3xl mb-4" @click="syncData">
-                Synchronize data to bitrix
-            </Button>
+
             <div v-for="(deal,index) in applications" v-if="applications.length > 0"
                  id="applicationsContainerHeader" :key="index"
                  :class="packageClass(deal.package_id)"

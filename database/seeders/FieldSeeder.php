@@ -72,7 +72,9 @@ class FieldSeeder extends Seeder {
 
         // Example usage for CRM deal fields
         $resDeal = CRest::call('crm.deal.fields');
+        $resContact = CRest::call('crm.contact.fields');
         processAndStoreFields($resDeal);
+        processAndStoreFields($resContact, TRUE);
 
         // Array for declaring the order of fields in the 'Personal' category
         $personalCategory = [

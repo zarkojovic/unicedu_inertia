@@ -4,7 +4,7 @@ import toast from '@/Stores/toast.js';
 import Button from '@/Atoms/Button.vue';
 import {onMounted, provide, ref} from 'vue';
 import DisplayInfo from '@/Atoms/DisplayInfo.vue';
-import {useForm} from '@inertiajs/vue3';
+import {useForm, usePage} from '@inertiajs/vue3';
 import FieldsForm from '@/Molecules/FieldsForm.vue';
 
 const display = ref(true);
@@ -23,39 +23,93 @@ const formItems = ref({
 
 const form = useForm(formItems.value);
 
+const page = usePage();
+
 provide('formItems', formItems);
 
+// Variable to store the timer ID
+const timer = ref(null);
+
+// Form for updating the category fields to Bitrix CRM
+const bitrixForm = useForm({});
+
+// Function with a delayed execution
+const delayedFunction = () => {
+    // Clear the previous timer if it exists
+    if (timer.value) {
+        clearTimeout(timer.value);
+    }
+    // Set the timer
+    var seconds = 10;
+    timer.value = setTimeout(() => {
+        // console.log('Delayed function executed.');
+        bitrixForm.post('/user/sync-deal-fields', {
+            onSuccess: () => {
+                toast.add({
+                    message: 'Bitrix CRM fields are updated!',
+                    type: 'success',
+                });
+            },
+            preserveScroll: true,
+        });
+        // Clear the timer after execution if needed
+        clearTimeout(timer.value);
+    }, seconds * 1000);
+};
 const submitForm = () => {
+    // Copy formItems value to form.dataValues
     form.dataValues = formItems.value;
+
+    // Get the keys of formItems
     const keys = Object.keys(formItems.value.formItems);
+
+    // Check if there are no changes
     if (keys.length === 0) {
         display.value = !display.value;
+        // Display a warning toast if no changes are made
         toast.add({
             message: 'No changes made.',
             type: 'warning',
         });
         return;
     }
+
+    // Create an array to store updated fields
     var arrayOfUpdateFields = [];
+
+    // Iterate through the keys
     keys.forEach(el => {
+        // Set the field_name property in each formItem
         formItems.value.formItems[el].field_name = el;
+        // Push the formItem to the array
         arrayOfUpdateFields.push(formItems.value.formItems[el]);
     });
 
+    // Update the form with the array of updated fields
     form.formItems = arrayOfUpdateFields;
 
+    // Send a POST request to update user fields
     form.post('/userFieldsUpdate', {
         onSuccess: () => {
+            // Update the display value
             display.value = !display.value;
+
+            // Display a success toast
             toast.add({
                 message: props.categoryInfo.category_name + ' category is updated!',
                 type: 'success',
             });
+
+            // Reset formItems after successful update
             formItems.value = {formItems: {}};
+
+            // Check if there are unsaved changes on the page and trigger the delayed function
+            if (page.props.auth.user.unsaved_changes) {
+                delayedFunction();
+            }
         },
         preserveScroll: true,
     });
-
 };
 
 onMounted(() => {

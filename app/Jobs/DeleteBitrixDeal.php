@@ -31,6 +31,7 @@ class DeleteBitrixDeal implements ShouldQueue {
      * Execute the job.
      */
     public function handle(): void {
+        sleep(2);
         // Make an API call to delete the deal in Bitrix24
         $result = CRest::call("crm.deal.delete",
             ['ID' => (string) $this->deal_id]);

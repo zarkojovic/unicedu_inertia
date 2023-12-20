@@ -10,6 +10,7 @@ use App\Models\Intake;
 use App\Models\Log;
 use App\Models\Package;
 use App\Models\Stage;
+use App\Models\User;
 use CRest;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -22,7 +23,6 @@ use function Webmozart\Assert\Tests\StaticAnalysis\length;
 class DealController extends RootController {
 
     public function showApplication(Request $request) {
-        //        dd($request->all());
         try {
             $data = DB::table('deals')
                 ->join('users', 'users.user_id', 'deals.user_id')
@@ -134,6 +134,7 @@ class DealController extends RootController {
                 'active' => fn() => $request->active,
             ]);
         }
+
         catch (Exception $e) {
             // Log the error
             Log::errorLog("Error showing deals: ".$e->getMessage());
@@ -315,7 +316,6 @@ class DealController extends RootController {
                         'type' => 'danger',
                     ],
             ]);
-            //            throw new Exception('Application past first stage can\'t be deleted!');
         }
 
         if (!$deal) {
@@ -329,7 +329,6 @@ class DealController extends RootController {
                     ],
             ]);
         }
-        //OVDE MOZDA TRY CATCH
         // Retrieve the Bitrix deal ID associated with the deal
         $bitrix_deal_id = $deal->bitrix_deal_id;
 
@@ -337,6 +336,11 @@ class DealController extends RootController {
 
         // Update the 'active' column to indicate that the deal is inactive (false)
         $deal->active = FALSE;
+
+        if (User::userActiveDeals()) {
+            $user->unsaved_changes = 0;
+            $user->save();
+        }
 
         if (!$deal->save()) {
             Log::errorLog('Couldn\'t remove the deal from the database.',
