@@ -106,10 +106,82 @@ class OutboundService
 
 
         // COMPARE DATABASE AND BITRIX DATA AND CHECK FOR DIFFERENCES
-        $differences = array_diff_assoc($dataFromDatabase, $dataFromBitrix["result"]);
+        $differences = [];
+        foreach ($dataFromDatabase as $key => $value) {
+            if (isset($dataFromBitrix["result"][$key]) && $value !== $dataFromBitrix["result"][$key]) {
+                $differences[$key] = $dataFromBitrix["result"][$key];
+            }
+        }
 
         if ($differences){
             // here check if the fields found in differences belong to DEALS or USER_INFOS tables and update the values accordingly
+            $fieldNames[] = "UF_CRM_1667335742921";
+            $dealFields = array_intersect(array_keys($differences), $fieldNames);
+
+            if ($dealFields){
+                // changes in deal fields found. Proceed to update DEALS table
+//                var_dump($dealFields);
+//                die;
+            }
+            else {
+                // no changes found for DEALS table. Proceed to update USER_INFOS table
+                $fieldData = Field::whereIn('field_name', array_keys($differences))
+                    ->select('field_id', 'type')
+                    ->get()
+                    ->keyBy('field_id');
+
+                $fileFieldIds = $fieldData->filter(function ($field) {
+                    return $field->type === 'file';
+                })->pluck('field_id')->toArray();
+
+                if ($fileFieldIds){
+                    // update files
+                    var_dump("there are file fields to change");
+                }
+                else {
+                    // no file fields changed for USER_INFO table
+                    $nonFileFieldIds = $fieldData->filter(function ($field) {
+                        return $field->type !== 'file';
+                    })->pluck('field_id')->toArray();
+
+                    $fieldIdsAndNames = Field::whereIn('field_id', $nonFileFieldIds)
+                                            ->pluck("field_name", "field_id")
+                                            ->toArray();
+
+                    $fieldIdValueMapping = [];
+
+                    // Populate the field_id => value mapping
+                    foreach ($nonFileFieldIds as $fieldId) {
+                        $field_name = $fieldIdsAndNames[$fieldId];
+                        $fieldIdValueMapping[$fieldId] = $differences[$field_name];
+                    }
+
+                    $valuesForUpdating = [];
+                    foreach ($fieldIdValueMapping as $fieldId=>$value) {
+                        $valuesForUpdating[] = [
+                            'user_id' => $userId,
+                            'field_id' => $fieldId,
+                            'value' => $value,
+                        ];
+                    }
+
+//                    var_dump($valuesForUpdating);
+//                    die;
+
+                    try {
+                        UserInfo::upsert($valuesForUpdating,
+                                        ['user_id', 'field_id'],
+                                        ['value']);
+
+                        Log::informationLog("Outbound webhook message: Successfully updated values in our database!");
+                    } catch (\Exception $e) {
+                        Log::errorLog("Outbound webhook error: " . $e->getMessage());
+                    }
+                }
+            }
+
+
+
 
         }
         else { // ELSE THE VALUE OF A FIELD THAT THE USER HASN'T FILLED IN OUR APP HAS CHANGED
@@ -117,6 +189,12 @@ class OutboundService
             // 2. if the field doesn't exist in our database, refresh fields and then insert the new value --||--
 
         }
+
+
+
+
+
+
 
 //            var_dump($dataFromDatabaseArray["stage_id"]);
 //            $downloadUrl = $dataFromBitrixArray["uf_crm_1668771731749"]["downloadUrl"];
