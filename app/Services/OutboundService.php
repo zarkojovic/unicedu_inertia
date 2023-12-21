@@ -45,7 +45,7 @@ class OutboundService
                             ->toArray();
 
         if (!$fieldIds) {
-            Log::errorLog("Outbound webhook error: Couldn't find matching fieldId records in the database for fieldNames array.");
+            Log::errorLog("Outbound webhook error: Couldn't find matching fieldId records in the Deals table for fieldNames array (maybe field names have changed).");
             return null;
         }
 
@@ -76,8 +76,8 @@ class OutboundService
         // here the minimum number of records should be the required fields! Otherwise, no deal should exist
         $userInfoFromDatabase = UserInfo::join('fields', 'user_infos.field_id', '=', 'fields.field_id')
                                         ->where('user_infos.user_id', $userId)
-                                        ->whereNotNull('user_infos.value') // Only include rows where value is not null
-                                        ->pluck('user_infos.value', 'fields.field_name')
+//                                        ->whereNotNull('user_infos.value') // Only include rows which are not files
+                                        ->pluck('COALESCE(user_infos.value, user_infos.file_name)', 'fields.field_name')
                                         ->toArray();
 
         if (!$userInfoFromDatabase) {
@@ -86,7 +86,6 @@ class OutboundService
         }
 
         $dataFromDatabase = array_merge($fieldItemMap, $userInfoFromDatabase);
-
 
         // retrieve fresh data from bitrix
         $dataFromBitrix = [];
@@ -97,8 +96,10 @@ class OutboundService
             Log::errorLog("Outbound webhook error: ".$e->getMessage());
         }
 
-
+        var_dump($dataFromBitrix);
+        die;
         // Convert timestamps to formatted strings without timezone information
+        // THIS PART ASSUMES THERE'S DATE OF BIRTH FIELD VALUE! IT SHOULD BE OKAY SINCE IT'S A REQUIRED FIELD
         $format = 'Y-m-d';
 
         $bitrixTimestamp = date($format, strtotime($dataFromBitrix["result"]["UF_CRM_1680032383794"]));
@@ -112,7 +113,8 @@ class OutboundService
                 $differences[$key] = $dataFromBitrix["result"][$key];
             }
         }
-
+        var_dump($differences);
+        die;
         if ($differences){
             // here check if the fields found in differences belong to DEALS or USER_INFOS tables and update the values accordingly
             $fieldNames[] = "UF_CRM_1667335742921";
@@ -156,27 +158,37 @@ class OutboundService
                         $fieldIdValueMapping[$fieldId] = $differences[$field_name];
                     }
 
+                    // retrieve dropdown fields and their values if they exist
+                    $dropdownFieldIdsAndValues = FieldItem::whereIn('field_id', $nonFileFieldIds)
+                        ->whereIn("item_id", $fieldIdValueMapping)
+                        ->pluck("item_value", "field_id")
+                        ->toArray();
+
+
                     $valuesForUpdating = [];
                     foreach ($fieldIdValueMapping as $fieldId=>$value) {
+                        $displayValue = $dropdownFieldIdsAndValues[$fieldId] ?? null;
+
                         $valuesForUpdating[] = [
                             'user_id' => $userId,
                             'field_id' => $fieldId,
                             'value' => $value,
+                            'display_value' => $displayValue
                         ];
                     }
 
-//                    var_dump($valuesForUpdating);
-//                    die;
+                    var_dump($valuesForUpdating);
+                    die;
 
-                    try {
-                        UserInfo::upsert($valuesForUpdating,
-                                        ['user_id', 'field_id'],
-                                        ['value']);
-
-                        Log::informationLog("Outbound webhook message: Successfully updated values in our database!");
-                    } catch (\Exception $e) {
-                        Log::errorLog("Outbound webhook error: " . $e->getMessage());
-                    }
+//                    try {
+//                        UserInfo::upsert($valuesForUpdating,
+//                                        ['user_id', 'field_id'],
+//                                        ['value', 'display_value']);
+//
+//                        Log::informationLog("Outbound webhook message: Successfully updated values in our database!");
+//                    } catch (\Exception $e) {
+//                        Log::errorLog("Outbound webhook error: " . $e->getMessage());
+//                    }
                 }
             }
 
