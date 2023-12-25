@@ -207,7 +207,7 @@ class UserController extends RootController {
                                     'value' => $value,
                                 ]);
 
-                                Log::informationLog("User updated ".$fieldCheck->title.' to '.$value.'.',
+                                Log::informationLog("User updated ".$fieldCheck->title ?? $field_id->field_id.' to '.$value.'.',
                                     Auth::user()->user_id);
                             }
                         }
@@ -216,6 +216,7 @@ class UserController extends RootController {
                 // If the user_info is not null (if the user has entered some data for that field)
                 else {
                     // If the user has uploaded a new file
+
                     if ($value['value'] instanceof UploadedFile) {
                         // Get the old file name
                         $oldProfileImage = $user_info->file_path;
@@ -234,39 +235,59 @@ class UserController extends RootController {
                             Auth::user()->user_id);
                     }
                     else {
-                        if (!empty($value)) {
-                            // If the value is not empty that means the data is updated
-                            $updateData = [
-                                'value' => $value['value'] ?? NULL,
-                                'display_value' => $value['label'] ?? NULL,
-                            ];
+                        if (isset($value['is_file']) && $value['is_file']) {
+                            if ($value['file_path'] === NULL && $value['file_name'] === NULL) {
+                                //                            dd($value);
+                                // Update the record in the UserInfo table with the new file name
+                                $updateInfo = UserInfo::findOrFail($user_info->user_info_id);
+                                $updateInfo->file_name = NULL;
+                                $updateInfo->file_path = NULL;
+                                $updateInfo->save();
 
-                            if (is_string($value['value'])) {
-                                $updateData['value'] = ucfirst($value['value']);
-                            }
-
-                            DB::table('user_infos')
-                                ->where('user_info_id',
-                                    $user_info->user_info_id)
-                                ->update($updateData);
-                            Log::informationLog('User changed '.$fieldCheck->title.' from '.$user_info->display_value.' to '.isset($value['label']) ?? 'empty'.'.');
-                        }
-                        // If the value is empty that means the data is deleted or set to null
-                        else {
-                            DB::table('user_infos')
-                                ->where('user_info_id',
-                                    $user_info->user_info_id)
-                                ->update([
-                                    'value' => NULL,
-                                    'display_value' => NULL,
+                                // Get the old file name
+                                $oldProfileImage = $user_info->file_path;
+                                // Delete the old file from the storage
+                                Storage::delete([
+                                    "public/profile/documents/$oldProfileImage",
                                 ]);
+                            }
+                        }
 
-                            session([
-                                'toast' => [
-                                    'message' => 'Field Category updated!!',
-                                    'type' => 'success',
-                                ],
-                            ]);
+                        else {
+                            if (!empty($value)) {
+                                // If the value is not empty that means the data is updated
+                                $updateData = [
+                                    'value' => $value['value'] ?? NULL,
+                                    'display_value' => $value['label'] ?? NULL,
+                                ];
+
+                                if (is_string($value['value'])) {
+                                    $updateData['value'] = ucfirst($value['value']);
+                                }
+
+                                DB::table('user_infos')
+                                    ->where('user_info_id',
+                                        $user_info->user_info_id)
+                                    ->update($updateData);
+                                Log::informationLog('User changed '.$fieldCheck->title.' from '.$user_info->display_value.' to '.isset($value['label']) ?? 'empty'.'.');
+                            }
+                            // If the value is empty that means the data is deleted or set to null
+                            else {
+                                DB::table('user_infos')
+                                    ->where('user_info_id',
+                                        $user_info->user_info_id)
+                                    ->update([
+                                        'value' => NULL,
+                                        'display_value' => NULL,
+                                    ]);
+
+                                session([
+                                    'toast' => [
+                                        'message' => 'Field Category updated!!',
+                                        'type' => 'success',
+                                    ],
+                                ]);
+                            }
                         }
                     }
                 }

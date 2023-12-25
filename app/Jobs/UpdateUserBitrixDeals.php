@@ -67,11 +67,26 @@ class UpdateUserBitrixDeals implements ShouldQueue {
                 ->pluck('bitrix_deal_id')
                 ->toArray();
 
+            $updatingContact = CRest::call("crm.contact.update", [
+                'ID' => (string) $this->user->contact_id,
+                'FIELDS' => $dealObject[1],
+            ]);
+
+            if ($updatingContact['result']) {
+                Log::apiLog('Contact '.$this->user->contact_id.' successfully updated!');
+            }
+
+            else {
+                Log::errorLog('Failed to update contact with id '.$this->user->contact_id);
+                throw new Exception('Failed to save it!');
+            }
+
+            // Update the deal in Bitrix24
             foreach ($dealIds as $val) {
                 // Make API call to update the deal in Bitrix24
                 $res = CRest::call("crm.deal.update", [
                     'ID' => (string) $val,
-                    'FIELDS' => $dealObject,
+                    'FIELDS' => $dealObject[0],
                 ]);
 
                 if ($res['result']) {

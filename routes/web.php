@@ -82,6 +82,7 @@ Route::middleware('auth')->group(function() {
             Route::get('/', [UserController::class, 'show'])->name("home");
             Route::get('/profile', [UserController::class, 'show'])
                 ->name('profile');
+
             Route::get('/applications',
                 [DealController::class, 'showUserDeals'])
                 ->name('applications');
@@ -91,6 +92,9 @@ Route::middleware('auth')->group(function() {
             [UserController::class, 'syncFields'])->name('syncFields');
 
         // DEAL/APPLICATION ROUTES
+        Route::get('/applications/view/{id}',
+            [DealController::class, 'showUserDeal'])
+            ->name('application.view');
         Route::post('/applications/addNew',
             [DealController::class, 'apply'])
             ->name('newApplication');
@@ -215,12 +219,8 @@ Route::middleware('auth')->group(function() {
         ->name('profile.destroy');
 
     Route::get('/test', function() {
-        //        $userActiveDeals = Deal::where('user_id', auth()->user()->user_id)
-        //            ->where('active', 1)
-        //            ->get();
-        //        return Deal::where('user_id', auth()->user()->user_id)
-        //            ->where('stage_id', '!=', 1)
-        //            ->get()->count();
+        $dealCategories = FieldCategory::getAllCategoriesWithFields('/profile');
+        dd($dealCategories);
     });
 });
 

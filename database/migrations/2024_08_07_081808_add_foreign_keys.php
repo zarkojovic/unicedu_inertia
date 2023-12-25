@@ -53,6 +53,10 @@ return new class extends Migration {
                 ->references('user_id')
                 ->on('users')
                 ->onDelete('cascade');
+            $table->foreign('deal_id')
+                ->references('deal_id')
+                ->on('deals')
+                ->onDelete('cascade');
             $table->foreign('field_id')
                 ->references('field_id')
                 ->on('fields')

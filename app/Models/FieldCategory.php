@@ -50,7 +50,10 @@ class FieldCategory extends Model {
         return $fields;
     }
 
-    public static function getAllCategoriesWithFields($pageName): array {
+    public static function getAllCategoriesWithFields(
+        $pageName,
+        $dealId = NULL
+    ): array {
         function filterObjectsByFieldCategoryId(
             $arrayOfObjects,
             $categoryId
@@ -63,30 +66,41 @@ class FieldCategory extends Model {
             return array_values($filteredObjects);
         }
 
-        $categories = DB::table('field_categories')
-            ->join('field_category_page',
-                'field_categories.field_category_id', '=',
-                'field_category_page.field_category_id')
-            ->join('pages', 'field_category_page.page_id', '=', 'pages.page_id')
-            ->where('field_categories.is_visible', 1)
-            ->where('pages.route', $pageName)
-            ->select('pages.route', 'field_categories.category_name',
-                'field_categories.field_category_id')
-            ->distinct()
-            ->get()
-            ->toArray();
-
-        $catId = [];
-        foreach ($categories as $object) {
-            if (isset($object->field_category_id)) {
-                $catId[] = $object->field_category_id;
-            }
+        if ($pageName !== NULL) {
+            $categories = DB::table('field_categories')
+                ->join('field_category_page',
+                    'field_categories.field_category_id', '=',
+                    'field_category_page.field_category_id')
+                ->join('pages', 'field_category_page.page_id', '=',
+                    'pages.page_id')
+                ->where('field_categories.is_visible', 1)
+                ->where('pages.route', $pageName)
+                ->select('pages.route', 'field_categories.category_name',
+                    'field_categories.field_category_id')
+                ->distinct()
+                ->get()
+                ->toArray();
+        }
+        else {
+            $categories = DB::table('field_categories')
+                ->where('field_categories.is_visible', 1)
+                ->where('field_categories.is_deal_category', 1)
+                ->select('field_categories.category_name',
+                    'field_categories.read_only',
+                    'field_categories.field_category_id')
+                ->distinct()
+                ->get()
+                ->toArray();
         }
 
+        $catId = array_column($categories, 'field_category_id');
+
+        // Query for fields
         $fields = DB::table('fields')
-            ->leftJoin('user_infos', function($join) {
+            ->leftJoin('user_infos', function($join) use ($dealId) {
                 $join->on('fields.field_id', '=', 'user_infos.field_id')
-                    ->where('user_infos.user_id', auth()->user()->user_id);
+                    ->where($dealId ? 'user_infos.deal_id' : 'user_infos.user_id',
+                        $dealId ?? auth()->user()->user_id);
             })
             ->whereIn('fields.field_category_id', $catId)
             ->where('fields.is_active', 1)
@@ -106,36 +120,30 @@ class FieldCategory extends Model {
             )
             ->orderBy('order', 'asc')->get()->toArray();
 
-        //THIS IS FOR OPTIMIZING QUERIES
+        $fieldsIds = array_filter($fields, function($field) {
+            return $field->type === 'enumeration';
+        });
 
-        $fields_ids = [];
-
-        for ($i = 0; $i < count($fields); $i++) {
-            if ($fields[$i]->type === 'enumeration') {
-                $fields_ids[] = $fields[$i]->field_id;
-            }
-        }
-
+        // Query for field items
         $fieldItems = FieldItem::whereIn('field_id',
-            $fields_ids)
+            array_column($fieldsIds, 'field_id'))
             ->select('item_value as label', 'item_id as value', 'field_id')
             ->get()
             ->toArray();
 
-        for ($i = 0; $i < count($fields); $i++) {
-            if ($fields[$i]->type == 'enumeration') {
-                $items = array_filter($fieldItems,
-                    function($el) use ($fields, $i) {
-                        return $el['field_id'] === $fields[$i]->field_id;
-                    });
-                $fields[$i]->items = $items;
-            }
+        // Assign field items to fields
+        foreach ($fieldsIds as $field) {
+            $items = array_filter($fieldItems, function($el) use ($field) {
+                return $el['field_id'] === $field->field_id;
+            });
+            $field->items = $items;
         }
 
-        for ($i = 0; $i < count($categories); $i++) {
-            $fieldsWithThisCategories = filterObjectsByFieldCategoryId($fields,
-                $categories[$i]->field_category_id);
-            $categories[$i]->fields = $fieldsWithThisCategories;
+        // Assign fields to categories
+        foreach ($categories as $category) {
+            $fieldsWithThisCategory = filterObjectsByFieldCategoryId($fields,
+                $category->field_category_id);
+            $category->fields = $fieldsWithThisCategory;
         }
 
         return $categories;

@@ -6,11 +6,13 @@ use App\Jobs\DeleteBitrixDeal;
 use App\Jobs\sendingBitrixDeal;
 use App\Models\Deal;
 use App\Models\Field;
+use App\Models\FieldCategory;
 use App\Models\Intake;
 use App\Models\Log;
 use App\Models\Package;
 use App\Models\Stage;
 use App\Models\User;
+use Carbon\Carbon;
 use CRest;
 use Exception;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -21,6 +23,32 @@ use Inertia\Inertia;
 use function Webmozart\Assert\Tests\StaticAnalysis\length;
 
 class DealController extends RootController {
+
+    public function showUserDeal($id) {
+        $isDealFromUser = DB::table('deals')
+            ->join('stages', 'stages.stage_id', 'deals.stage_id')
+            ->join('user_intake_packages',
+                'user_intake_packages.user_intake_package_id',
+                'deals.user_intake_package_id')
+            ->where('deals.user_id', auth()->user()->user_id)
+            ->where('deals.deal_id', $id)
+            ->where('deals.active', '1')
+            ->select('deals.created_at', 'deals.degree', 'deals.program',
+                'deals.created_at', 'deals.intake', 'deals.university',
+                'deals.bitrix_deal_id',
+                'stages.stage_name', 'user_intake_packages.package_id')
+            ->first();
+        if (!$isDealFromUser) {
+            abort(404);
+        }
+        $isDealFromUser->created_at = Carbon::parse($isDealFromUser->created_at)
+            ->format('d/m/Y H:i:s A');
+        $dealCategories = FieldCategory::getAllCategoriesWithFields(NULL, $id);
+        return Inertia::render("Student/ApplicationDetail", [
+            'deal' => fn() => $isDealFromUser,
+            'dealCategories' => fn() => $dealCategories,
+        ]);
+    }
 
     public function showApplication(Request $request) {
         try {

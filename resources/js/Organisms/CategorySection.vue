@@ -2,7 +2,7 @@
 
 import toast from '@/Stores/toast.js';
 import Button from '@/Atoms/Button.vue';
-import {onMounted, provide, ref} from 'vue';
+import {provide, ref} from 'vue';
 import DisplayInfo from '@/Atoms/DisplayInfo.vue';
 import {useForm, usePage} from '@inertiajs/vue3';
 import FieldsForm from '@/Molecules/FieldsForm.vue';
@@ -57,6 +57,7 @@ const delayedFunction = () => {
     }, seconds * 1000);
 };
 const submitForm = () => {
+
     // Copy formItems value to form.dataValues
     form.dataValues = formItems.value;
 
@@ -112,8 +113,6 @@ const submitForm = () => {
     });
 };
 
-onMounted(() => {
-});
 </script>
 
 <template>
@@ -123,30 +122,33 @@ onMounted(() => {
                 <div class="font-bold text-neutral-800 text-md sm:text-md md:text-lg mb-2">
                     {{ props.categoryInfo.category_name }}
                 </div>
-                <div v-if="display" class="flex">
-                    <Button
-                        icon="edit"
-                        @click="display = !display"
-                    >
-                        <span class="pr-1">Edit</span>
-                    </Button>
-                </div>
-                <div v-else>
-                    <Button
-                        :disabled="form.processing"
-                        icon="save"
-                        type="success"
-                        @click="submitForm"
-                    >
-                    </Button>
-                    <Button
-                        :disabled="form.processing"
-                        class="ms-2"
-                        icon="close"
-                        type="danger"
-                        @click="display = !display"
-                    >
-                    </Button>
+                <div v-if="!props.categoryInfo.read_only">
+                    <div v-if="display" class="flex">
+                        <Button
+                            icon="edit"
+                            @click="display = !display"
+                        >
+                            <span class="pr-1">Edit</span>
+                        </Button>
+                    </div>
+
+                    <div v-else>
+                        <Button
+                            :disabled="form.processing"
+                            icon="save"
+                            type="success"
+                            @click="submitForm"
+                        >
+                        </Button>
+                        <Button
+                            :disabled="form.processing"
+                            class="ms-2"
+                            icon="close"
+                            type="danger"
+                            @click="display = !display"
+                        >
+                        </Button>
+                    </div>
                 </div>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-3">

@@ -1,5 +1,5 @@
 <script setup>
-import {computed, defineProps, inject, ref} from 'vue';
+import {computed, defineProps, inject, onMounted, ref} from 'vue';
 
 const props = defineProps({
     modelValue: {
@@ -27,6 +27,10 @@ const formattedOptions = computed(() => {
     if (!Array.isArray(props.options)) {
         return Object.values(props.options);
     }
+    var firstItem = {
+        label: 'Select an option',
+        value: null,
+    };
     return props.options;
 
 });
@@ -45,6 +49,14 @@ const handleUpdate = (event) => {
 };
 
 const val = ref(props.selectedItem);
+
+onMounted(() => {
+    // var firstItem = {
+    //     label: 'Select an option',
+    //     value: null,
+    // };
+    // props.options = [firstItem, ...props.options];
+});
 
 </script>
 

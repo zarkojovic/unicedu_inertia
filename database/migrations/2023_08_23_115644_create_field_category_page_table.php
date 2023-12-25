@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->id('field_category_page_id');
             $table->unsignedBigInteger('field_category_id');
             $table->unsignedBigInteger('page_id');
+            
             $table->timestamps();
         });
     }
