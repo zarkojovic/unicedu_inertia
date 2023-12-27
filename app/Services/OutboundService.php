@@ -5,13 +5,12 @@ namespace App\Services;
 use App\Models\Deal;
 use App\Models\Field;
 use App\Models\FieldItem;
-use App\Models\Stage;
-use App\Models\User;
 use App\Models\UserInfo;
 use CRest;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Http;
 use App\Models\Log;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
 
 class OutboundService
 {
@@ -72,12 +71,16 @@ class OutboundService
 
         // retrieve data from DEALS and USER_INFOS tables
         $userId = $record["user_id"];
+        if (!$userId) {
+            Log::errorLog("Outbound webhook error: Couldn't find user_id in Deals table.");
+            return null;
+        }
 
         // here the minimum number of records should be the required fields! Otherwise, no deal should exist
         $userInfoFromDatabase = UserInfo::join('fields', 'user_infos.field_id', '=', 'fields.field_id')
                                         ->where('user_infos.user_id', $userId)
-//                                        ->whereNotNull('user_infos.value') // Only include rows which are not files
-                                        ->pluck('COALESCE(user_infos.value, user_infos.file_name)', 'fields.field_name')
+                                        ->whereNotNull('user_infos.value') // Only include rows which are not files
+                                        ->pluck('user_infos.value', 'fields.field_name')
                                         ->toArray();
 
         if (!$userInfoFromDatabase) {
@@ -96,25 +99,23 @@ class OutboundService
             Log::errorLog("Outbound webhook error: ".$e->getMessage());
         }
 
-        var_dump($dataFromBitrix);
-        die;
+//        var_dump($dataFromBitrix); die;
         // Convert timestamps to formatted strings without timezone information
-        // THIS PART ASSUMES THERE'S DATE OF BIRTH FIELD VALUE! IT SHOULD BE OKAY SINCE IT'S A REQUIRED FIELD
+        // THIS PART ASSUMES THERE'S DATE OF BIRTH FIELD VALUE! IT SHOULD BE OKAY SINCE IT'S A REQUIRED FIELD...
         $format = 'Y-m-d';
 
         $bitrixTimestamp = date($format, strtotime($dataFromBitrix["result"]["UF_CRM_1680032383794"]));
         $dataFromBitrix["result"]["UF_CRM_1680032383794"] = $bitrixTimestamp;
 
 
-        // COMPARE DATABASE AND BITRIX DATA AND CHECK FOR DIFFERENCES
+        // COMPARE DATABASE AND BITRIX DATA (REGULAR AND DROPDOWN FIELDS, NO FILES) AND CHECK FOR DIFFERENCES
         $differences = [];
         foreach ($dataFromDatabase as $key => $value) {
             if (isset($dataFromBitrix["result"][$key]) && $value !== $dataFromBitrix["result"][$key]) {
                 $differences[$key] = $dataFromBitrix["result"][$key];
             }
         }
-        var_dump($differences);
-        die;
+
         if ($differences){
             // here check if the fields found in differences belong to DEALS or USER_INFOS tables and update the values accordingly
             $fieldNames[] = "UF_CRM_1667335742921";
@@ -177,7 +178,7 @@ class OutboundService
                         ];
                     }
 
-                    var_dump($valuesForUpdating);
+                    var_dump("differences");
                     die;
 
 //                    try {
@@ -200,20 +201,52 @@ class OutboundService
             // 1. if the field already exists in our database, insert the new value into USER_INFOS table (special case for DEALS table)
             // 2. if the field doesn't exist in our database, refresh fields and then insert the new value --||--
 
+
+            // 1st case
+//            var_dump($dataFromBitrix); die;
+            $receivedCategoryFieldNames = Field::where("field_category_id", 6)
+                                            ->pluck("field_id", "field_name")
+                                            ->toArray();
+
+            var_dump($receivedCategoryFieldNames); die;
         }
 
 
 
 
+        // retrieve field_ids and field_names for file fields in USER_INFOS table
+//        $fileFieldIdsAndNames = UserInfo::join('fields', 'user_infos.field_id', '=', 'fields.field_id')
+//                                        ->where('user_infos.user_id', $userId)
+//                                        ->whereNotNull('user_infos.file_name') // Only include rows which are files
+//                                        ->whereNotNull('user_infos.file_path')
+//                                        ->pluck('user_infos.file_name', 'fields.field_name')
+//                                        ->toArray();
+
+//        var_dump($fileFieldIdsAndNames); die;
+
+
+        // download files from bitrix
 
 
 
-//            var_dump($dataFromDatabaseArray["stage_id"]);
-//            $downloadUrl = $dataFromBitrixArray["uf_crm_1668771731749"]["downloadUrl"];
-//            $fileName = "ime-fajla-sa-bitrixa.pdf";
-//            $fileContents = Http::get("https://polandstudy.bitrix24.pl".$downloadUrl)->body();
-//            file_put_contents(storage_path("app/public/profile/documents/".$fileName), $fileContents);
-
+//        $pathOriginal = "public/profile/original";
+//        $pathThumbnail = "public/profile/thumbnail";
+//        $pathTiny = "public/profile/tiny";
+//
+//        $downloadUrl = $dataFromBitrix["result"]["UF_CRM_1667336320092"]["downloadUrl"];
+//        $fileContents = Http::get("https://polandstudy.bitrix24.pl".$downloadUrl)->body();
+//
+//        //formatting
+//        $thumbnailSize = 150;
+//        $tinySize = 35;
+//
+//        $fileName = "profile-image-from-bitrix.png";
+////        $moved = Storage::putFileAs($pathOriginal, $fileContents, $fileName);
+//        $moved = file_put_contents(storage_path("app/".$pathOriginal.'/'.$fileName), $fileContents);
+//        if ($moved) {
+//            ImageService::resize($thumbnailSize, $file, $pathThumbnail, $newFileName);
+//            ImageService::resize($tinySize, $file, $pathTiny, $newFileName);
+//        }
 
 
 //            $correctStageId = Stage::where('bitrix_stage_id', $dataFromBitrixArray["stage_id"])->value('stage_id');
@@ -250,42 +283,42 @@ class OutboundService
 //        }
     }
 
-    private static function fetchDataFromDatabase($type, $bitrixId)
-    {
-        //STAGE_ID NIJE SELEKTOVAN! DA BI MOGAO DA SE POREDI SA BITRIXOM TREBA DA SE JOINUJE SA STAGES TABELOM
-        //USER_INTAKE_PACKAGE_ID NIJE SELEKTOVAN! DA BI MOGAO DA SE POREDI SA BITRIXOM TREBA DA SE JOINUJE SA USER_INTAKE_PACKAGES I PACKAGES
-        if ($type === "deal") {
-            return Deal::where('deals.bitrix_deal_id', $bitrixId)
-                        ->select(
-                            "bitrix_deal_id as ID",
-                            "university as UF_CRM_1667335624051",
-                            "user_id",
-                            "degree as UF_CRM_1667335695035",
-                            "program as UF_CRM_1667335742921",// as uf_crm_1667335742921
-                            "intake as UF_CRM_1668001651504",
-                            //"stage_id",
-                            //"user_intake_package_id"
-                        )->first();
+//    private static function fetchDataFromDatabase($type, $bitrixId)
+//    {
+//        //STAGE_ID NIJE SELEKTOVAN! DA BI MOGAO DA SE POREDI SA BITRIXOM TREBA DA SE JOINUJE SA STAGES TABELOM
+//        //USER_INTAKE_PACKAGE_ID NIJE SELEKTOVAN! DA BI MOGAO DA SE POREDI SA BITRIXOM TREBA DA SE JOINUJE SA USER_INTAKE_PACKAGES I PACKAGES
+//        if ($type === "deal") {
 //            return Deal::where('deals.bitrix_deal_id', $bitrixId)
-//                ->join('stages', 'deals.stage_id', '=', 'stages.stage_id')
-//                ->select(
-//                    "deals.bitrix_deal_id as id",
-//                    "deals.university",
-//                    "deals.degree",
-//                    "deals.program as uf_crm_1667335742921",
-//                    "deals.intake",
-//                    "stages.bitrix_stage_id as stage_id"
-//                )
-//                ->firstOrFail(); //returns ModelNotFoundException if fail
-        }
-        // elseif ($type === "contact"){
-        //     //CONTACT STILL NOT FINISHED, CONTINUE TOMORROW
-        //     return User::where('contact_id', $bitrixId)->firstOrFail();
-        // }
-        else {
-            throw new \Exception("Unsupported type of record provided for outbound webhook data retrieval from database.");
-        }
-    }
+//                        ->select(
+//                            "bitrix_deal_id as ID",
+//                            "university as UF_CRM_1667335624051",
+//                            "user_id",
+//                            "degree as UF_CRM_1667335695035",
+//                            "program as UF_CRM_1667335742921",// as uf_crm_1667335742921
+//                            "intake as UF_CRM_1668001651504",
+//                            //"stage_id",
+//                            //"user_intake_package_id"
+//                        )->first();
+////            return Deal::where('deals.bitrix_deal_id', $bitrixId)
+////                ->join('stages', 'deals.stage_id', '=', 'stages.stage_id')
+////                ->select(
+////                    "deals.bitrix_deal_id as id",
+////                    "deals.university",
+////                    "deals.degree",
+////                    "deals.program as uf_crm_1667335742921",
+////                    "deals.intake",
+////                    "stages.bitrix_stage_id as stage_id"
+////                )
+////                ->firstOrFail(); //returns ModelNotFoundException if fail
+//        }
+//        // elseif ($type === "contact"){
+//        //     //CONTACT STILL NOT FINISHED, CONTINUE TOMORROW
+//        //     return User::where('contact_id', $bitrixId)->firstOrFail();
+//        // }
+//        else {
+//            throw new \Exception("Unsupported type of record provided for outbound webhook data retrieval from database.");
+//        }
+//    }
 
     private static function fetchDataFromBitrix($type, $bitrixId)
     {
@@ -299,17 +332,17 @@ class OutboundService
             throw new \Exception("Unsupported type of record provided for outbound webhook data retrieval from Bitrix.");
         }
     }
-    private static function compareData($dataFromDatabase, $dataFromBitrix)
-    {
-        // Compare the data and return the differences
-        //CONTINUE WORKING HERE
-        $dataFromDatabaseArray = array_change_key_case($dataFromDatabase->toArray(), CASE_LOWER);
-        $dataFromBitrixArray = array_change_key_case($dataFromBitrix["result"], CASE_LOWER);
-        var_dump($dataFromBitrix);
-//        var_dump($dataFromBitrixArray);
-
-        return array_diff_assoc($dataFromDatabaseArray, $dataFromBitrixArray);
-    }
+//    private static function compareData($dataFromDatabase, $dataFromBitrix)
+//    {
+//        // Compare the data and return the differences
+//        //CONTINUE WORKING HERE
+//        $dataFromDatabaseArray = array_change_key_case($dataFromDatabase->toArray(), CASE_LOWER);
+//        $dataFromBitrixArray = array_change_key_case($dataFromBitrix["result"], CASE_LOWER);
+//        var_dump($dataFromBitrix);
+////        var_dump($dataFromBitrixArray);
+//
+//        return array_diff_assoc($dataFromDatabaseArray, $dataFromBitrixArray);
+//    }
 
 //    private static function updateDatabase($location, $type, $bitrixId, $differences)
 //    {
