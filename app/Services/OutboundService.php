@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Deal;
 use App\Models\Field;
 use App\Models\FieldItem;
+use App\Models\Stage;
 use App\Models\UserInfo;
 use CRest;
 use Illuminate\Support\Facades\Http;
@@ -21,8 +22,10 @@ class OutboundService
     public static function handleUpdate($type, $bitrixId)
     {
         // Check if deal exists in our database and get column values
-        $record = Deal::where('bitrix_deal_id', $bitrixId)
-            ->select('user_id', 'university', 'degree', 'program', 'intake')
+        $record = Deal::join('stages','deals.stage_id','=','stages.stage_id')
+            ->where('deals.bitrix_deal_id', $bitrixId)
+            ->select('deals.user_id', 'deals.university', 'deals.degree', 'deals.program',
+                     'deals.intake', 'stages.bitrix_stage_id as STAGE_ID')
             ->first();
 
         if (!$record) {
@@ -67,7 +70,7 @@ class OutboundService
         }, $fieldValues));
 
         $fieldItemMap["UF_CRM_1667335742921"] = $record->program; // add program to array
-
+        $fieldItemMap["STAGE_ID"] = $record['STAGE_ID']; // add stage id to array
 
         // retrieve data from DEALS and USER_INFOS tables
         $userId = $record["user_id"];
@@ -99,7 +102,7 @@ class OutboundService
             Log::errorLog("Outbound webhook error: ".$e->getMessage());
         }
 
-//        var_dump($dataFromBitrix); die;
+//        var_dump($dataFromBitrix["result"]["STAGE_ID"]); die;
         // Convert timestamps to formatted strings without timezone information
         // THIS PART ASSUMES THERE'S DATE OF BIRTH FIELD VALUE! IT SHOULD BE OKAY SINCE IT'S A REQUIRED FIELD...
         $format = 'Y-m-d';
@@ -116,86 +119,113 @@ class OutboundService
             }
         }
 
+//        var_dump($differences); die;
         if ($differences){
             // here check if the fields found in differences belong to DEALS or USER_INFOS tables and update the values accordingly
-            $fieldNames[] = "UF_CRM_1667335742921";
-            $dealFields = array_intersect(array_keys($differences), $fieldNames);
+            $fieldNames[] = "UF_CRM_1667335742921"; // add program for checking for deal fields
+            $fieldNames[] = "STAGE_ID"; // add stage id for checking for deal fields
+            $dealFields = array_intersect_key($differences, array_flip($fieldNames));
 
-            if ($dealFields){
+//            var_dump($differences);
+//            var_dump($dealFields); die;
+            if ($dealFields) {
                 // changes in deal fields found. Proceed to update DEALS table
-//                var_dump($dealFields);
-//                die;
-            }
-            else {
-                // no changes found for DEALS table. Proceed to update USER_INFOS table
-                $fieldData = Field::whereIn('field_name', array_keys($differences))
-                    ->select('field_id', 'type')
-                    ->get()
-                    ->keyBy('field_id');
+                // currently there's support only for STAGE_ID, and not for other deal fields
 
-                $fileFieldIds = $fieldData->filter(function ($field) {
-                    return $field->type === 'file';
-                })->pluck('field_id')->toArray();
+                $currentStageIdValue = $record["STAGE_ID"];
+                $bitrixStageIdValue = $differences["STAGE_ID"];
 
-                if ($fileFieldIds){
-                    // update files
-                    var_dump("there are file fields to change");
-                }
-                else {
-                    // no file fields changed for USER_INFO table
-                    $nonFileFieldIds = $fieldData->filter(function ($field) {
-                        return $field->type !== 'file';
-                    })->pluck('field_id')->toArray();
+                if ($bitrixStageIdValue !== $currentStageIdValue) {
+                    try {
+                        $newStageId = Stage::where("bitrix_stage_id", $bitrixStageIdValue)
+                            ->value("stage_id");
 
-                    $fieldIdsAndNames = Field::whereIn('field_id', $nonFileFieldIds)
-                                            ->pluck("field_name", "field_id")
-                                            ->toArray();
+                        if (!$newStageId) {
+                            throw new \Exception("Could not retrieve stage_id for bitrix_stage_id: " . $bitrixStageIdValue);
+                        }
 
-                    $fieldIdValueMapping = [];
+                        $deal = Deal::where('bitrix_deal_id', $bitrixId)
+                            ->firstOrFail();
+                        $deal->stage_id = $newStageId;
+                        if (!$deal->save()) {
+                            throw new \Exception("Could not save stage_id for deal.");
+                        }
 
-                    // Populate the field_id => value mapping
-                    foreach ($nonFileFieldIds as $fieldId) {
-                        $field_name = $fieldIdsAndNames[$fieldId];
-                        $fieldIdValueMapping[$fieldId] = $differences[$field_name];
+                        Log::informationLog("Outbound webhook message: Successfully updated DEALS field values in our database!");
+                    } catch (\Exception $e) {
+                        Log::errorLog("Outbound webhook error: " . $e->getMessage());
                     }
-
-                    // retrieve dropdown fields and their values if they exist
-                    $dropdownFieldIdsAndValues = FieldItem::whereIn('field_id', $nonFileFieldIds)
-                        ->whereIn("item_id", $fieldIdValueMapping)
-                        ->pluck("item_value", "field_id")
-                        ->toArray();
-
-
-                    $valuesForUpdating = [];
-                    foreach ($fieldIdValueMapping as $fieldId=>$value) {
-                        $displayValue = $dropdownFieldIdsAndValues[$fieldId] ?? null;
-
-                        $valuesForUpdating[] = [
-                            'user_id' => $userId,
-                            'field_id' => $fieldId,
-                            'value' => $value,
-                            'display_value' => $displayValue
-                        ];
-                    }
-
-                    var_dump("differences");
-                    die;
-
-//                    try {
-//                        UserInfo::upsert($valuesForUpdating,
-//                                        ['user_id', 'field_id'],
-//                                        ['value', 'display_value']);
-//
-//                        Log::informationLog("Outbound webhook message: Successfully updated values in our database!");
-//                    } catch (\Exception $e) {
-//                        Log::errorLog("Outbound webhook error: " . $e->getMessage());
-//                    }
                 }
             }
 
 
+            if ($differences === $dealFields){
+                var_dump("nema user_infosa"); die;
+                return ;
+            }
+
+            // proceed to update USER_INFOS table
+            $fieldData = Field::whereIn('field_name', array_keys($differences))
+                ->select('field_id', 'type')
+                ->get()
+                ->keyBy('field_id');
+
+            $fileFieldIds = $fieldData->filter(function ($field) {
+                return $field->type === 'file';
+            })->pluck('field_id')->toArray();
+
+            if ($fileFieldIds){
+                // update files
+                var_dump("there are file fields to change");
+            }
+
+            // update other non-file fields in USER_INFO table
+            $nonFileFieldIds = $fieldData->filter(function ($field) {
+                return $field->type !== 'file';
+            })->pluck('field_id')->toArray();
+
+            $fieldIdsAndNames = Field::whereIn('field_id', $nonFileFieldIds)
+                                    ->pluck("field_name", "field_id")
+                                    ->toArray();
+
+            $fieldIdValueMapping = [];
+
+            // Populate the field_id => value mapping
+            foreach ($nonFileFieldIds as $fieldId) {
+                $field_name = $fieldIdsAndNames[$fieldId];
+                $fieldIdValueMapping[$fieldId] = $differences[$field_name];
+            }
+
+            // retrieve dropdown fields and their values if they exist
+            $dropdownFieldIdsAndValues = FieldItem::whereIn('field_id', $nonFileFieldIds)
+                ->whereIn("item_id", $fieldIdValueMapping)
+                ->pluck("item_value", "field_id")
+                ->toArray();
 
 
+            $valuesForUpdating = [];
+            foreach ($fieldIdValueMapping as $fieldId=>$value) {
+                $displayValue = $dropdownFieldIdsAndValues[$fieldId] ?? null;
+
+                $valuesForUpdating[] = [
+                    'user_id' => $userId,
+//                    'deal_id' => null,
+                    'field_id' => $fieldId,
+                    'value' => $value,
+                    'display_value' => $displayValue
+                ];
+            }
+
+//            var_dump($valuesForUpdating); die;
+            try {
+                UserInfo::upsert($valuesForUpdating,
+                                ['user_id', 'field_id'],//'deal_id',
+                                ['value', 'display_value']);
+
+                Log::informationLog("Outbound webhook message: Successfully updated USER_INFOS field values in our database!");
+            } catch (\Exception $e) {
+                Log::errorLog("Outbound webhook error: " . $e->getMessage());
+            }
         }
         else { // ELSE THE VALUE OF A FIELD THAT THE USER HASN'T FILLED IN OUR APP HAS CHANGED
             // 1. if the field already exists in our database, insert the new value into USER_INFOS table (special case for DEALS table)
@@ -204,11 +234,11 @@ class OutboundService
 
             // 1st case
 //            var_dump($dataFromBitrix); die;
-            $receivedCategoryFieldNames = Field::where("field_category_id", 6)
-                                            ->pluck("field_id", "field_name")
-                                            ->toArray();
-
-            var_dump($receivedCategoryFieldNames); die;
+//            $receivedCategoryFieldNames = Field::where("field_category_id", 6)
+//                                            ->pluck("field_id", "field_name")
+//                                            ->toArray();
+//
+//            var_dump($receivedCategoryFieldNames); die;
         }
 
 
@@ -249,10 +279,10 @@ class OutboundService
 //        }
 
 
-//            $correctStageId = Stage::where('bitrix_stage_id', $dataFromBitrixArray["stage_id"])->value('stage_id');
+//            $correctStageId = Stage::where('bitrix_stage_id', $dataFromBitrix["stage_id"])->value('stage_id');
 //            var_dump($correctStageId);
 //            var_dump($correctStageId);
-            // Update the stage_id in $dataFromDatabase
+////             Update the stage_id in $dataFromDatabase
 //            try {
 ////                $dataFromDatabase->stage_id = $correctStageId;
 //                $deal = Deal::where('bitrix_deal_id', $bitrixId)->firstOrFail();
