@@ -44,12 +44,22 @@ class sendingBitrixDeal implements ShouldQueue {
 
         // Make API call to create the deal in Bitrix24
         $result = CRest::call("crm.deal.add",
-            ['FIELDS' => $dealFields]);
+            ['FIELDS' => $dealFields[0]]);
+        $fillTheContact = CRest::call("crm.contact.update",
+            [
+                'id' => (string) $this->user->contact_id,
+                'fields' => $dealFields[1],
+            ]
+
+        );
 
         $deal = Deal::findOrFail($this->deal_id);
 
         $deal->bitrix_deal_id = $result['result'];
 
+        if (!$fillTheContact['result']) {
+            throw new Exception('Contact failed to update in Bitrix24.');
+        }
         if (!$deal->save()) {
             throw new Exception('Saving has failed');
         }

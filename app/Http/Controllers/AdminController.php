@@ -15,13 +15,8 @@ use Inertia\Inertia;
 class AdminController extends RootController {
 
     public function showLogsPage(Request $request) {
-        //I want to check if request has user_email
-
-        if (isset($request->user_email)) {
-            dd($request->user_email);
-        }
-
-        $data = DB::table('logs')
+        // Initialize the main query
+        $query = DB::table('logs')
             ->leftJoin('actions', 'actions.action_id', 'logs.action_id')
             ->leftJoin('users', 'users.user_id', 'logs.user_id')
             ->select(
@@ -32,17 +27,40 @@ class AdminController extends RootController {
                 'logs.created_at'
             );
 
-        $actions = Action::select('action_name as label',
-            DB::raw('action_name AS value'))->get()->toArray();
-
+        // Apply filters based on request parameters
         if ($request->action) {
-            $data = $data->where('actions.action_name', $request->action);
+            $query->where('actions.action_name', $request->action);
         }
-        $data = $data->paginate(10);
+
+        if ($request->user_email) {
+            // Case-insensitive search for user email
+            $request->user_email = strtolower(trim($request->user_email));
+            $query->whereRaw('LOWER(users.email) LIKE ?',
+                ["%{$request->user_email}%"]);
+        }
+
+        if ($request->begin_date) {
+            // Filter logs created after the specified date
+            $query->where('logs.created_at', '>=', $request->begin_date);
+        }
+
+        if ($request->end_date) {
+            // Filter logs created before the specified date
+            $query->where('logs.created_at', '<=', $request->end_date);
+        }
+
+        // Paginate the query results
+        $data = $query->paginate(10);
+
+        // Render the Inertia view with data and filters
         return Inertia::render("Admin/Dashboard", [
             'data' => $data,
-            'actions' => $actions,
+            'actions' => Action::select('action_name as label',
+                'action_name as value')->get()->toArray(),
             'action' => fn() => $request->action,
+            'user_email' => fn() => $request->user_email,
+            'begin_date' => fn() => $request->begin_date,
+            'end_date' => fn() => $request->end_date,
         ]);
     }
 

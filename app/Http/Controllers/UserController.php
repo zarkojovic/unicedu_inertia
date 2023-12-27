@@ -8,6 +8,7 @@ use App\Models\Field;
 use App\Models\FieldCategory;
 use App\Models\Log;
 use App\Models\Role;
+use App\Models\User;
 use App\Models\UserInfo;
 use App\Services\ImageService;
 use Exception;
@@ -20,7 +21,6 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
-use Intervention\Image\Facades\Image;
 use Kafka0238\Crest\Src;
 
 class UserController extends RootController {
@@ -72,40 +72,44 @@ class UserController extends RootController {
     }
 
     public function updateUserInfo(Request $request) {
-        //GET ALL OF THE DATA FROM REQUEST
-        $items = $request['formItems'];
-
-        //GET AUTH-ED USER FOR UPDATING HIS DATA
-        $user = Auth::user();
-
-        // GETTING FIELD NAME VALUES
-        $field_names = array_column($items, 'field_name');
-
-        // GETTING ALL THE FIELDS WITH THAT FIELD NAME
-        $field_id_array = DB::table('fields')
-            ->select('field_name', 'title', 'field_id')
-            ->whereIn('field_name',
-                $field_names)
-            ->orderBy('field_id')
-            ->get();
-
-        // GETTING JUST THE IDS OF THEM
-        $field_ids = array_column($field_id_array->toArray(), 'field_id');
-
-        // GETTING THE USER INFO FROM THE FIELD IDS1
-        $user_info_array = DB::table('user_infos')
-            ->join('fields', 'fields.field_id', 'user_infos.field_id')
-            ->where("user_infos.user_id", (int) $user->user_id)
-            ->whereIn("user_infos.field_id", $field_ids)
-            ->select('user_infos.*', 'fields.field_name')
-            ->orderBy('fields.field_name')
-            ->get();
-
-        usort($items, function($a, $b) {
-            return strcmp($a["field_name"], $b["field_name"]);
-        });
-
         try {
+            if (User::userDealsPastFirstStage()) {
+                throw new Exception("You are not allowed to update the deal when you have deal past first stage!");
+            }
+
+            //GET ALL OF THE DATA FROM REQUEST
+            $items = $request['formItems'];
+
+            //GET AUTH-ED USER FOR UPDATING HIS DATA
+            $user = Auth::user();
+
+            // GETTING FIELD NAME VALUES
+            $field_names = array_column($items, 'field_name');
+
+            // GETTING ALL THE FIELDS WITH THAT FIELD NAME
+            $field_id_array = DB::table('fields')
+                ->select('field_name', 'title', 'field_id')
+                ->whereIn('field_name',
+                    $field_names)
+                ->orderBy('field_id')
+                ->get();
+
+            // GETTING JUST THE IDS OF THEM
+            $field_ids = array_column($field_id_array->toArray(), 'field_id');
+
+            // GETTING THE USER INFO FROM THE FIELD IDS1
+            $user_info_array = DB::table('user_infos')
+                ->join('fields', 'fields.field_id', 'user_infos.field_id')
+                ->where("user_infos.user_id", (int) $user->user_id)
+                ->whereIn("user_infos.field_id", $field_ids)
+                ->select('user_infos.*', 'fields.field_name')
+                ->orderBy('fields.field_name')
+                ->get();
+
+            usort($items, function($a, $b) {
+                return strcmp($a["field_name"], $b["field_name"]);
+            });
+
             DB::beginTransaction();
             //LOOPING THROUGH EACH ELEMENT IN REQUEST
             foreach ($items as $key => $value) {
@@ -203,7 +207,7 @@ class UserController extends RootController {
                                     'value' => $value,
                                 ]);
 
-                                Log::informationLog("User updated ".$fieldCheck->title.' to '.$value.'.',
+                                Log::informationLog("User updated ".$fieldCheck->title ?? $field_id->field_id.' to '.$value.'.',
                                     Auth::user()->user_id);
                             }
                         }
@@ -212,6 +216,7 @@ class UserController extends RootController {
                 // If the user_info is not null (if the user has entered some data for that field)
                 else {
                     // If the user has uploaded a new file
+
                     if ($value['value'] instanceof UploadedFile) {
                         // Get the old file name
                         $oldProfileImage = $user_info->file_path;
@@ -230,39 +235,59 @@ class UserController extends RootController {
                             Auth::user()->user_id);
                     }
                     else {
-                        if (!empty($value)) {
-                            // If the value is not empty that means the data is updated
-                            $updateData = [
-                                'value' => $value['value'] ?? NULL,
-                                'display_value' => $value['label'] ?? NULL,
-                            ];
+                        if (isset($value['is_file']) && $value['is_file']) {
+                            if ($value['file_path'] === NULL && $value['file_name'] === NULL) {
+                                //                            dd($value);
+                                // Update the record in the UserInfo table with the new file name
+                                $updateInfo = UserInfo::findOrFail($user_info->user_info_id);
+                                $updateInfo->file_name = NULL;
+                                $updateInfo->file_path = NULL;
+                                $updateInfo->save();
 
-                            if (is_string($value['value'])) {
-                                $updateData['value'] = ucfirst($value['value']);
-                            }
-
-                            DB::table('user_infos')
-                                ->where('user_info_id',
-                                    $user_info->user_info_id)
-                                ->update($updateData);
-                            Log::informationLog('User changed '.$fieldCheck->title.' from '.$user_info->display_value.' to '.isset($value['label']) ?? 'empty'.'.');
-                        }
-                        // If the value is empty that means the data is deleted or set to null
-                        else {
-                            DB::table('user_infos')
-                                ->where('user_info_id',
-                                    $user_info->user_info_id)
-                                ->update([
-                                    'value' => NULL,
-                                    'display_value' => NULL,
+                                // Get the old file name
+                                $oldProfileImage = $user_info->file_path;
+                                // Delete the old file from the storage
+                                Storage::delete([
+                                    "public/profile/documents/$oldProfileImage",
                                 ]);
+                            }
+                        }
 
-                            session([
-                                'toast' => [
-                                    'message' => 'Field Category updated!!',
-                                    'type' => 'success',
-                                ],
-                            ]);
+                        else {
+                            if (!empty($value)) {
+                                // If the value is not empty that means the data is updated
+                                $updateData = [
+                                    'value' => $value['value'] ?? NULL,
+                                    'display_value' => $value['label'] ?? NULL,
+                                ];
+
+                                if (is_string($value['value'])) {
+                                    $updateData['value'] = ucfirst($value['value']);
+                                }
+
+                                DB::table('user_infos')
+                                    ->where('user_info_id',
+                                        $user_info->user_info_id)
+                                    ->update($updateData);
+                                Log::informationLog('User changed '.$fieldCheck->title.' from '.$user_info->display_value.' to '.isset($value['label']) ?? 'empty'.'.');
+                            }
+                            // If the value is empty that means the data is deleted or set to null
+                            else {
+                                DB::table('user_infos')
+                                    ->where('user_info_id',
+                                        $user_info->user_info_id)
+                                    ->update([
+                                        'value' => NULL,
+                                        'display_value' => NULL,
+                                    ]);
+
+                                session([
+                                    'toast' => [
+                                        'message' => 'Field Category updated!!',
+                                        'type' => 'success',
+                                    ],
+                                ]);
+                            }
                         }
                     }
                 }
@@ -296,26 +321,42 @@ class UserController extends RootController {
             $user->unsaved_changes = 1;
 
             $user->save();
-            return redirect()
-                ->back()
-                ->with([
-                    'toast' => [
-                        'message' => "You already have deal! You have to synchronize the data!",
-                        'type' => 'warning',
-                        'duration' => '10000',
-                    ],
-                ]);
+            //            return redirect()
+            //                ->back()
+            //                ->with([
+            //                    'toast' => [
+            //                        'message' => "You already have deal! You have to synchronize the data!",
+            //                        'type' => 'warning',
+            //                        'duration' => '10000',
+            //                    ],
+            //                ]);
         }
     }
 
+    /**
+     * Synchronize User Fields
+     *
+     * This function is responsible for synchronizing user fields with Bitrix
+     * CRM. It updates unsaved changes count, dispatches a job to update Bitrix
+     * deals, and then redirects back with a success message or an error
+     * message if the sync fails.
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function syncFields() {
         try {
+            // Get the authenticated user
             $user = Auth::user();
+
+            // Reset unsaved changes count
             $user->unsaved_changes = 0;
 
+            // Dispatch a job to update Bitrix deals for the user
             UpdateUserBitrixDeals::dispatch($user);
 
+            // Save the user and check if the operation was successful
             if ($user->save()) {
+                // Redirect back with a success message
                 return redirect()->back()->with([
                     'toast' => [
                         'message' => 'Synced changes!',
@@ -324,10 +365,12 @@ class UserController extends RootController {
                 ]);
             }
             else {
+                // Throw an exception if the save operation fails
                 throw new Exception('Save failed');
             }
         }
         catch (Exception $e) {
+            // Handle exceptions by redirecting back with an error message
             return redirect()->back()->with([
                 'toast' => [
                     'message' => 'Sync failed: '.$e->getMessage(),
@@ -358,15 +401,16 @@ class UserController extends RootController {
         // if the file is not moved to the original folder
         $moved = Storage::putFileAs($pathOriginal, $file, $newFileName);
         if (!$moved) {
-            throw new \Exception("Failed to move profile image to original folder.");
+            throw new Exception("Failed to move profile image to original folder.");
         }
 
         //make small images
         try {
-            ImageService::resize($thumbnailSize, $file, $pathThumbnail, $newFileName);
+            ImageService::resize($thumbnailSize, $file, $pathThumbnail,
+                $newFileName);
             ImageService::resize($tinySize, $file, $pathTiny, $newFileName);
         }
-        catch (\Exception $e) {
+        catch (Exception $e) {
             Log::errorLog("Failed to resize file image. Error: ".$e->getMessage(),
                 Auth::user()->user_id);
             return to_route('home')->with([
@@ -385,7 +429,7 @@ class UserController extends RootController {
 
             //remove old image from folders
             $oldProfileImage = $user->profile_image;
-            if ($oldProfileImage !== "profile.jpg"){
+            if ($oldProfileImage !== "profile.jpg") {
                 ImageService::remove($oldProfileImage);
             }
 
@@ -395,7 +439,7 @@ class UserController extends RootController {
 
             DB::commit();
         }
-        catch (\Exception $e) {
+        catch (Exception $e) {
             DB::rollback();
             Log::errorLog("Failed to update profile image. Error: ".$e->getMessage(),
                 Auth::user()->user_id);

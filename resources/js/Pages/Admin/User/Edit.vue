@@ -7,18 +7,23 @@ import ModelDataDisplay from '@/Organisms/ModelDataDisplay.vue';
 import DropdownInput from '@/Atoms/DropdownInput.vue';
 import Button from '@/Atoms/Button.vue';
 
+// Define props for the component
 const props = defineProps({
     userLogs: {
         type: Object,
-    }, userInfo: {
+    },
+    userInfo: {
         type: Object,
-    }, packages: {
+    },
+    packages: {
         type: Object,
-    }, roles: {
+    },
+    roles: {
         type: Object,
     },
 });
 
+// Initialize reactive form items with default values
 const formItems = ref({
     formItems: {},
     package_id: null,
@@ -26,12 +31,14 @@ const formItems = ref({
     user_id: props.userInfo.id,
 });
 
+// Create a form instance using the reactive form items
 const form = useForm(formItems.value);
 
+// Reactive variables to track changes in package and role
 const isPackageChanged = ref(null);
-
 const isRoleChanged = ref(null);
 
+// Watch for changes in form items and update form values accordingly
 watch(formItems.value.formItems, function(value, oldValue) {
     const userRole = value.userRole;
     const userPackage = value.userPackage;
@@ -46,22 +53,24 @@ watch(formItems.value.formItems, function(value, oldValue) {
     }
 });
 
+// Provide formItems globally using the 'provide' function
 provide('formItems', formItems);
 
+// Function to change user package
 const changeUserPackage = () => {
     form.post('/admin/users/change-user-package', {
         onSuccess: () => {
             isPackageChanged.value = false;
         },
-
     });
 };
+
+// Function to change user role
 const changeUserRole = () => {
     form.post('/admin/users/change-user-role', {
         onSuccess: () => {
             isRoleChanged.value = false;
         },
-
     });
 };
 

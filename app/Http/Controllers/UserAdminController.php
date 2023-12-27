@@ -135,21 +135,49 @@ class UserAdminController extends Controller {
         }
     }
 
-    public function showUser() {
+    public function showUser(Request $request) {
         $users = DB::table('users')
             ->join('roles', 'roles.role_id', 'users.role_id')
             ->select('users.user_id as id', 'users.profile_image',
                 'users.first_name',
                 'users.last_name',
                 'users.email', 'users.phone', 'roles.role_name as role name',
-                'users.package_id as package')
-            ->paginate(10);
+                'users.package_id as package');
+        if ($request->role_id) {
+            $users = $users->where('users.role_id', $request->role_id);
+        }
+        if ($request->package_id) {
+            $users = $users->where('users.package_id', $request->package_id);
+        }
+        if ($request->userInfo) {
+            $userInfo = strtolower(trim($request->userInfo));
+            $users->whereRaw('LOWER(users.first_name) like ?',
+                ['%'.$userInfo.'%'])
+                ->orWhereRaw('LOWER(users.last_name) like ?',
+                    ['%'.$userInfo.'%'])
+                ->orWhereRaw('LOWER(users.email) like ?', ['%'.$userInfo.'%'])
+                ->orWhereRaw('LOWER(users.phone) like ?', ['%'.$userInfo.'%']);
+        }
+        $users = $users->paginate(10);
+
+        $roles = Role::select('role_name as label',
+            DB::raw('CAST(role_id AS CHAR) AS value'))
+            ->get()
+            ->toArray();
+        $packages = Package::select('package_name as label',
+            DB::raw('CAST(package_id AS CHAR) AS value'))
+            ->get()
+            ->toArray();
 
         return Inertia::render(
-            "Admin/User/Show",
-            [
-                'data' => $users,
-            ]);
+            "Admin/User/Show", [
+            'data' => $users,
+            'userRoles' => $roles,
+            'userPackages' => $packages,
+            'role_id' => fn() => $request->role_id,
+            'package_id' => fn() => $request->package_id,
+            'userInfo' => fn() => $request->userInfo,
+        ]);
     }
 
     public function editUser(string $id) {

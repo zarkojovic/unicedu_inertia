@@ -42,7 +42,7 @@ const refreshFields = () => {
                                   fill-rule="evenodd"></path>
                         </svg>
                     </button>
-                    <Link class="flex ml-2 md:mr-24" href="/">
+                    <Link :href="route('home')" class="flex ml-2 md:mr-24">
                         <ApplicationLogo class="h-10 mr-3"/>
                         <span
                             class="self-center text-md font-semibold sm:text-md whitespace-nowrap dark:text-white hidden sm:block">Student Platform</span>

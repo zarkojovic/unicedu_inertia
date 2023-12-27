@@ -1,8 +1,6 @@
 <script setup>
-import {addIcons} from 'oh-vue-icons';
-import {MdDoneRound, PrUpload} from 'oh-vue-icons/icons';
 import toast from '@/Stores/toast';
-import {defineEmits, defineProps, inject, ref} from 'vue';
+import {defineEmits, defineProps, inject, onMounted, ref} from 'vue';
 import Button from '@/Atoms/Button.vue';
 
 // Define props and their default values
@@ -16,6 +14,7 @@ const {
     inputId = 'test',
     validTypes = null,
     isCategoryField,
+    fileExists = false,
 } = defineProps([
     'label',
     'error',
@@ -26,10 +25,14 @@ const {
     'inputId',
     'validTypes',
     'isCategoryField',
+    'fileExists',
 ]);
 
-// Add icons for later use
-addIcons(MdDoneRound, PrUpload);
+onMounted(() => {
+    if (fileExists) {
+        isReplace.value = true;
+    }
+});
 
 // Define emits for custom events
 const emits = defineEmits(['update:modelValue']);
@@ -61,7 +64,6 @@ const handleUpload = (event) => {
         }
 
         if (isValidType.value) {
-
             if (isCategoryField) {
                 formItems.value.formItems[inputName] = {
                     value: fileValue.value,
@@ -106,11 +108,21 @@ const handleMove = () => {
 };
 
 const clearFile = function() {
+    console.log(formItems.value.formItems);
     fileValue.value = null;
     isReplace.value = false;
     upload.value = false;
     isHover.value = false;
-    delete formItems.value.formItems[inputName];
+    if (fileExists) {
+        formItems.value.formItems[inputName] = {
+            value: null,
+            file_path: null,
+            file_name: null,
+            is_file: true,
+        };
+    } else {
+        delete formItems.value.formItems[inputName];
+    }
 };
 
 </script>
@@ -152,7 +164,7 @@ const clearFile = function() {
                 move-class="transition-all duration-200"
             >
                 <Button
-                    v-if="fileValue != null"
+                    v-if="fileValue != null || isReplace"
                     :icon="'delete'"
                     :type="'danger'"
                     class="ms-2"

@@ -49,7 +49,7 @@ class Deal extends Model {
             ->toArray();
 
         $userInfoFields = UserInfo::where('user_id', $user_id)
-            ->whereNotNull('value')
+            //            ->whereNotNull('value')
             ->orWhere(function($query) {
                 $query->whereNull('value')->whereNotNull('file_path');
             })
@@ -91,7 +91,8 @@ class Deal extends Model {
             $fileName = $userInfoFilesNames[$fieldId] ?? NULL;
 
             if ($fieldName) {
-                $path = $fieldName === "UF_CRM_1667336320092" ? $pathOriginalImage : $pathDocuments;
+                $profileImageField = "UF_CRM_1667336320092";
+                $path = $fieldName === $profileImageField ? $pathOriginalImage : $pathDocuments;
                 $fileContent = Storage::get($path.'/'.$fieldFilePath);
 
                 $dealFields[$fieldName] = [
@@ -109,13 +110,30 @@ class Deal extends Model {
         $intakeBitrixId = Intake::where('active', '1')->first();
 
         $dealFields[$intake->field_name] = $intakeBitrixId->intake_bitrix_id;
+
         foreach ($items as $value) {
-            $dealFields[$value['field_name']] = $value['value'];
+            $dealFields[$value['field_name']] = $value['value'] === NULL ? '' : $value['value'];
         }
         // PACKAGE FIELD ADDING
         $dealFields['UF_CRM_1667333858787'] = $package_name;
 
-        return $dealFields;
+        $keys = array_keys($dealFields);
+        $selectedFields = Field::whereIn('field_name', $keys)
+            ->pluck('is_contact_field', 'field_name')
+            ->toArray();
+        $contactArray = [];
+        $dealArray = [];
+        //        dd($dealFields);
+        foreach ($dealFields as $key => $value) {
+            if (isset($selectedFields[$key]) && $selectedFields[$key] == 0) {
+                $dealArray[$key] = $value === NULL ? '' : $value;
+            }
+            elseif (isset($selectedFields[$key]) && $selectedFields[$key] == 1) {
+                $contactArray[$key] = $value === NULL ? '' : $value;
+            }
+        }
+
+        return [$dealArray, $contactArray];
     }
 
     public function user(): BelongsTo {

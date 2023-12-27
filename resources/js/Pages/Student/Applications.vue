@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import {Head, useForm, usePage} from '@inertiajs/vue3';
+import {Head, Link, useForm, usePage} from '@inertiajs/vue3';
 import {onMounted, provide, ref} from 'vue';
 import Button from '@/Atoms/Button.vue';
 import Modal from '@/Molecules/Modal.vue';
@@ -64,12 +64,6 @@ const deleteDeal = () => {
     });
 };
 
-const syncForm = useForm({});
-
-const syncData = () => {
-    console.log('aloooo');
-    syncForm.post('/user/sync-deal-fields');
-};
 
 </script>
 
@@ -80,9 +74,7 @@ const syncData = () => {
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Applications</h2>
         </template>
         <div class="py-6 mt-10">
-            <Button v-if="page.props.auth.user.unsaved_changes" class="text-3xl mb-4" @click="syncData">
-                Synchronize data to bitrix
-            </Button>
+
             <div v-for="(deal,index) in applications" v-if="applications.length > 0"
                  id="applicationsContainerHeader" :key="index"
                  :class="packageClass(deal.package_id)"
@@ -115,7 +107,19 @@ const syncData = () => {
                             <span class="text-gray-400 font-medium text-md mt-3">Applied</span>
                             <h5 class="text-md">{{ item.created_at }}</h5>
                         </div>
-                        <div></div>
+                        <div class="flex justify-end">
+                            <Link
+                                :href="route('application.view', item.deal_id)"
+                                class="col-span-4 mt-3"
+                            >
+                                <Button
+                                    v-if="item.stage_id === 1"
+                                    class="col-span-4"
+                                    type="success"
+                                >View
+                                </Button>
+                            </Link>
+                        </div>
                         <div class="pt-4">
                             <span class="text-gray-400 font-medium text-md mt-3">Program</span>
                             <h5 class="text-md">{{ item.program }}</h5>
@@ -137,7 +141,6 @@ const syncData = () => {
                             <h5 v-else class="text-md">
                                 You can't delete this!
                             </h5>
-
                         </div>
                     </div>
                     <div v-else>

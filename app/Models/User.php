@@ -58,8 +58,20 @@ class User extends Authenticatable implements MustVerifyEmail {
      * @var array<int, string>
      */
 
-    //Relationships
+    public static function userActiveDeals() {
+        $userActiveDeals = Deal::where('user_id', auth()->user()->user_id)
+            ->where('active', 1)
+            ->get();
+        return $userActiveDeals->count();
+    }
 
+    public static function userDealsPastFirstStage() {
+        return Deal::where('user_id', auth()->user()->user_id)
+            ->where('stage_id', '!=', 1)
+            ->get()->count();
+    }
+
+    //Relationships
     public function role(): hasOne {
         return $this->hasOne(Role::class, 'role_id');
     }

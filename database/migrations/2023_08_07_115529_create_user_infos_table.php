@@ -5,19 +5,21 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
+
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
-        Schema::create('user_infos', function (Blueprint $table) {
+    public function up(): void {
+        Schema::create('user_infos', function(Blueprint $table) {
             $table->id('user_info_id');
-            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->unsignedBigInteger('deal_id')->nullable();
             $table->unsignedBigInteger('field_id');
             $table->string('value')->nullable();
             $table->string('display_value')->nullable();
             $table->string('file_name')->nullable();
             $table->string('file_path')->nullable();
+            $table->string('file_id')->nullable();
             $table->timestamps();
         });
     }
@@ -25,8 +27,8 @@ return new class extends Migration {
     /**
      * Reverse the migrations.
      */
-    public function down(): void
-    {
+    public function down(): void {
         Schema::dropIfExists('user_infos');
     }
+
 };

@@ -90,8 +90,14 @@ const checkHighlight = (item) => {
 };
 
 onMounted(() => {
-    if (props.columnTypes) {
-    }
+    // Map the array
+    props.data.links = props.data.links.map(item => {
+        var baseUrl = window.location.href;
+        // Update the "url" property based on the provided URL and "label" value
+        const separator = baseUrl.includes('?') ? '&' : '?';
+        const pageUrl = window.location.href + separator + 'page=' + item.label;
+        return {...item, url: pageUrl};
+    });
 });
 
 </script>

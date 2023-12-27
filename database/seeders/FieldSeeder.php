@@ -53,13 +53,14 @@ class FieldSeeder extends Seeder {
 
                     // Create an array with details of hidden fields.
                     global $hiddenFields;  // Access the global variable $hiddenFields
-                    $hiddenFields[] = [
-                        "field_name" => $object['field_name'],
-                        "is_required" => '0',
-                        'order' => $i,
-                        "field_category_id" => '5',
-                    ];
-
+                    if (!$isContactField) {
+                        $hiddenFields[] = [
+                            "field_name" => $object['field_name'],
+                            "is_required" => '0',
+                            'order' => $i,
+                            "field_category_id" => '5',
+                        ];
+                    }
                     // Create a Field record for hidden fields.
                     Field::create([
                         'field_name' => $object['field_name'],
@@ -72,7 +73,9 @@ class FieldSeeder extends Seeder {
 
         // Example usage for CRM deal fields
         $resDeal = CRest::call('crm.deal.fields');
+        $resContact = CRest::call('crm.contact.fields');
         processAndStoreFields($resDeal);
+        processAndStoreFields($resContact, TRUE);
 
         // Array for declaring the order of fields in the 'Personal' category
         $personalCategory = [
@@ -218,12 +221,12 @@ class FieldSeeder extends Seeder {
         $i++;
         // Array for declaring the order of fields in the 'Hidden' category
         $hiddenCategory = [
-            [
-                "field_name" => 'UF_CRM_1667336320092',
-                "is_required" => '1',
-                'order' => $i,
-                "field_category_id" => '5',
-            ],
+            //            [
+            //                "field_name" => 'UF_CRM_1667336320092',
+            //                "is_required" => '1',
+            //                'order' => $i,
+            //                "field_category_id" => '5',
+            //            ],
         ];
         $hiddenCategory = array_merge($hiddenCategory, $hiddenFields);
 

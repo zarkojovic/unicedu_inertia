@@ -6,6 +6,9 @@
             <label :class="is_required ? 'text-orange-500' : '', !is_active ? 'line-through' : ''"
                    :for="'field_check_'+field_id" class="hover:cursor-grab active:cursor-grabbing select-none">
                 {{ title }}
+                <span v-if="props.custom_title" class="text-sm text-gray-400 italic">
+                    / {{ props.custom_title }}
+                </span>
             </label>
             <div class="mb-field-settings-icon">
                 <IconAdjustments :id="'icon_'+field_id" :data-field-name="title"
