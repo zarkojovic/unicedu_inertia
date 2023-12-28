@@ -139,7 +139,7 @@ const deleteDeal = () => {
                                 </Button>
                             </h5>
                             <h5 v-else class="text-md">
-                                You can't delete this!
+                                You can't delete this application!
                             </h5>
                         </div>
                     </div>
