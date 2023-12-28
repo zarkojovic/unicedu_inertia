@@ -102,7 +102,7 @@ class OutboundService
             Log::errorLog("Outbound webhook error: ".$e->getMessage());
         }
 
-//        var_dump($dataFromBitrix["result"]["STAGE_ID"]); die;
+//        var_dump($dataFromBitrix["result"]); die;
         // Convert timestamps to formatted strings without timezone information
         // THIS PART ASSUMES THERE'S DATE OF BIRTH FIELD VALUE! IT SHOULD BE OKAY SINCE IT'S A REQUIRED FIELD...
         $format = 'Y-m-d';
@@ -160,7 +160,7 @@ class OutboundService
 
 
             if ($differences === $dealFields){
-                var_dump("nema user_infosa"); die;
+                // only deal fields, no user_info fields
                 return ;
             }
 
@@ -233,12 +233,16 @@ class OutboundService
 
 
             // 1st case
-//            var_dump($dataFromBitrix); die;
-//            $receivedCategoryFieldNames = Field::where("field_category_id", 6)
-//                                            ->pluck("field_id", "field_name")
-//                                            ->toArray();
-//
-//            var_dump($receivedCategoryFieldNames); die;
+            $notFilledFieldNames = Field::leftJoin('user_infos', function ($join) use ($userId) {
+                                                    $join->on('fields.field_id', '=', 'user_infos.field_id')
+                                                        ->where('user_infos.user_id', '=', $userId);
+                                                })
+                                                ->whereNull('user_infos.field_id')
+                                                ->whereNotIn('fields.field_category_id', [4, 5])
+                                                ->pluck('fields.title')// , 'fields.field_id'
+                                                ->toArray();
+
+            var_dump($notFilledFieldNames);
         }
 
 
