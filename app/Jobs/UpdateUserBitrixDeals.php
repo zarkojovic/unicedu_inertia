@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Deal;
 use App\Models\Log;
+use App\Services\SyncDealFileIdsService;
 use CRest;
 use Exception;
 use Illuminate\Bus\Queueable;
@@ -90,6 +91,7 @@ class UpdateUserBitrixDeals implements ShouldQueue {
                 ]);
 
                 if ($res['result']) {
+                    SyncDealFileIdsService::sync((string) $val);
                     Log::apiLog('Deal '.$val.' successfully updated!');
                 }
 

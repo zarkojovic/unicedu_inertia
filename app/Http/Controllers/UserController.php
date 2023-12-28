@@ -242,6 +242,7 @@ class UserController extends RootController {
                                 $updateInfo = UserInfo::findOrFail($user_info->user_info_id);
                                 $updateInfo->file_name = NULL;
                                 $updateInfo->file_path = NULL;
+                                
                                 $updateInfo->save();
 
                                 // Get the old file name

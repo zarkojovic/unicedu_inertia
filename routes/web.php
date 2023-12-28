@@ -13,6 +13,7 @@ use App\Http\Controllers\UserAdminController;
 use App\Http\Controllers\UserController;
 use App\Models\FieldCategory;
 use App\Models\Page;
+use App\Services\SyncDealFileIdsService;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -219,8 +220,12 @@ Route::middleware('auth')->group(function() {
         ->name('profile.destroy');
 
     Route::get('/test', function() {
-        $dealCategories = FieldCategory::getAllCategoriesWithFields('/profile');
-        dd($dealCategories);
+        //        $dealCategories = FieldCategory::getAllCategoriesWithFields('/profile');
+        //        dd($dealCategories);
+        //        $deal = Deal::generateDealObject(1, [], 1, 1);
+        //        dd($deal);
+        $dealFilesId = SyncDealFileIdsService::sync('9309');
+        dd($dealFilesId);
     });
 });
 

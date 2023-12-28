@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class Deal extends Model {
@@ -42,12 +43,25 @@ class Deal extends Model {
         $dealFields = [
             'CONTACT_ID' => $contact_id,
         ];
-        $userInfoFiles = UserInfo::where('user_id', $user_id)
-            ->whereNull("value")
-            ->whereNotNull("file_path")
-            ->pluck("file_path", "field_id")
+
+        $userInfoFiles = DB::table('user_infos')
+            ->join('fields', 'user_infos.field_id', '=', 'fields.field_id')
+            ->where('user_id', $user_id)
+            ->where('fields.type', 'file')
+            //            ->whereNull("value")
+            //            ->whereNotNull("file_path")
+            ->pluck("user_infos.file_path", "user_infos.field_id")
             ->toArray();
 
+        // Declaring name for empty pdf file
+        $emptyPdf = 'deleted.pdf';
+
+        // Replacing NULL values with empty pdf file name
+        $userInfoFiles = array_map(function($item) use ($emptyPdf) {
+            return $item === NULL ? $emptyPdf : $item;
+        }, $userInfoFiles);
+
+        //EXTRACT FIELD NAMES FOR FIELDS FROM USER_INFO TABLE THAT ARE NOT FILES
         $userInfoFields = UserInfo::where('user_id', $user_id)
             //            ->whereNotNull('value')
             ->orWhere(function($query) {
@@ -56,13 +70,15 @@ class Deal extends Model {
             ->pluck('value', 'field_id')
             ->toArray();
 
-        //EXTRACT FIELD NAMES FOR FIELDS FROM USER_INFO TABLE THAT ARE NOT FILES
+        // Getting field ids from $userInfoFields
         $userInfoFieldIds = array_keys($userInfoFields);
 
+        // Getting field names from $userInfoFieldIds
         $fieldNames = Field::whereIn('field_id', $userInfoFieldIds)
             ->pluck('field_name', 'field_id')
             ->toArray();
 
+        //EXTRACT FILES NAMES FOR FIELDS FROM USER_INFO TABLE THAT ARE FILES
         $userInfoFilesNames = UserInfo::where('user_id',
             $user_id)
             ->whereNull("value")
@@ -73,7 +89,6 @@ class Deal extends Model {
         // Populate $dealFields with the field names and values
         foreach ($userInfoFields as $fieldId => $fieldValue) {
             $fieldName = $fieldNames[$fieldId] ?? NULL;
-
             if ($fieldName) {
                 $dealFields[$fieldName] = $fieldValue;
             }
@@ -89,7 +104,6 @@ class Deal extends Model {
         foreach ($userInfoFiles as $fieldId => $fieldFilePath) {
             $fieldName = $fieldNames[$fieldId] ?? NULL;
             $fileName = $userInfoFilesNames[$fieldId] ?? NULL;
-
             if ($fieldName) {
                 $profileImageField = "UF_CRM_1667336320092";
                 $path = $fieldName === $profileImageField ? $pathOriginalImage : $pathDocuments;
@@ -97,20 +111,20 @@ class Deal extends Model {
 
                 $dealFields[$fieldName] = [
                     'fileData' => [
-                        $fileName,
+                        // Insert file name or empty pdf file name for deleted files
+                        $fileName ?? $emptyPdf,
                         base64_encode($fileContent),
                     ],
                 ];
             }
         }
 
-        //EXTRACT APPLICATION FIELDS NAMES AND THEIR VALUES (FROM DROPDOWNS) AND THEIR OPTION NAMES
-
         $intake = Field::where('title', 'Intake')->first();
         $intakeBitrixId = Intake::where('active', '1')->first();
 
         $dealFields[$intake->field_name] = $intakeBitrixId->intake_bitrix_id;
 
+        //EXTRACT APPLICATION FIELDS NAMES AND THEIR VALUES (FROM DROPDOWNS) AND THEIR OPTION NAMES
         foreach ($items as $value) {
             $dealFields[$value['field_name']] = $value['value'] === NULL ? '' : $value['value'];
         }
@@ -118,12 +132,13 @@ class Deal extends Model {
         $dealFields['UF_CRM_1667333858787'] = $package_name;
 
         $keys = array_keys($dealFields);
+
+        // Get is_contact_field value for each field
         $selectedFields = Field::whereIn('field_name', $keys)
             ->pluck('is_contact_field', 'field_name')
             ->toArray();
         $contactArray = [];
         $dealArray = [];
-        //        dd($dealFields);
         foreach ($dealFields as $key => $value) {
             if (isset($selectedFields[$key]) && $selectedFields[$key] == 0) {
                 $dealArray[$key] = $value === NULL ? '' : $value;
@@ -132,12 +147,11 @@ class Deal extends Model {
                 $contactArray[$key] = $value === NULL ? '' : $value;
             }
         }
-
         return [$dealArray, $contactArray];
     }
 
     public function user(): BelongsTo {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id', 'user_id');
     }
 
 }
