@@ -159,91 +159,137 @@ class OutboundService
             }
 
 
-            if ($differences === $dealFields){
+            if ($differences !== $dealFields){
                 // only deal fields, no user_info fields
-                return ;
-            }
-
-            // proceed to update USER_INFOS table
-            $fieldData = Field::whereIn('field_name', array_keys($differences))
-                ->select('field_id', 'type')
-                ->get()
-                ->keyBy('field_id');
-
-            $fileFieldIds = $fieldData->filter(function ($field) {
-                return $field->type === 'file';
-            })->pluck('field_id')->toArray();
-
-            if ($fileFieldIds){
-                // update files
-                var_dump("there are file fields to change");
-            }
-
-            // update other non-file fields in USER_INFO table
-            $nonFileFieldIds = $fieldData->filter(function ($field) {
-                return $field->type !== 'file';
-            })->pluck('field_id')->toArray();
-
-            $fieldIdsAndNames = Field::whereIn('field_id', $nonFileFieldIds)
-                                    ->pluck("field_name", "field_id")
-                                    ->toArray();
-
-            $fieldIdValueMapping = [];
-
-            // Populate the field_id => value mapping
-            foreach ($nonFileFieldIds as $fieldId) {
-                $field_name = $fieldIdsAndNames[$fieldId];
-                $fieldIdValueMapping[$fieldId] = $differences[$field_name];
-            }
-
-            // retrieve dropdown fields and their values if they exist
-            $dropdownFieldIdsAndValues = FieldItem::whereIn('field_id', $nonFileFieldIds)
-                ->whereIn("item_id", $fieldIdValueMapping)
-                ->pluck("item_value", "field_id")
-                ->toArray();
-
-
-            $valuesForUpdating = [];
-            foreach ($fieldIdValueMapping as $fieldId=>$value) {
-                $displayValue = $dropdownFieldIdsAndValues[$fieldId] ?? null;
-
-                $valuesForUpdating[] = [
-                    'user_id' => $userId,
-//                    'deal_id' => null,
-                    'field_id' => $fieldId,
-                    'value' => $value,
-                    'display_value' => $displayValue
-                ];
-            }
-
-//            var_dump($valuesForUpdating); die;
-            try {
-                UserInfo::upsert($valuesForUpdating,
-                                ['user_id', 'field_id'],//'deal_id',
-                                ['value', 'display_value']);
-
-                Log::informationLog("Outbound webhook message: Successfully updated USER_INFOS field values in our database!");
-            } catch (\Exception $e) {
-                Log::errorLog("Outbound webhook error: " . $e->getMessage());
+                // proceed to update USER_INFOS table
+                OutboundService::updateOrInsertIntoUserInfoTable($userId, $differences);
+//                $fieldData = Field::whereIn('field_name', array_keys($differences))
+//                    ->select('field_id', 'type')
+//                    ->get()
+//                    ->keyBy('field_id');
+//
+//                $fileFieldIds = $fieldData->filter(function ($field) {
+//                    return $field->type === 'file';
+//                })->pluck('field_id')->toArray();
+//
+//                if ($fileFieldIds){
+//                    // update files
+//                    var_dump("there are file fields to change");
+//                }
+//
+//                // update other non-file fields in USER_INFO table
+//                $nonFileFieldIds = $fieldData->filter(function ($field) {
+//                    return $field->type !== 'file';
+//                })->pluck('field_id')->toArray();
+//
+//                // ovo je verovatno visak upit
+//                $fieldIdsAndNames = Field::whereIn('field_id', $nonFileFieldIds)
+//                    ->pluck("field_name", "field_id")
+//                    ->toArray();
+//
+//                $fieldIdValueMapping = [];
+//
+//                // Populate the field_id => value mapping
+//                foreach ($nonFileFieldIds as $fieldId) {
+//                    $field_name = $fieldIdsAndNames[$fieldId];
+//                    $fieldIdValueMapping[$fieldId] = $differences[$field_name];
+//                }
+//
+//                // retrieve dropdown fields and their values if they exist
+//                // pre ovoga pitaj da li zapravo postoje dropdown polja (type === "enumeration"
+//                $dropdownFieldIdsAndValues = FieldItem::whereIn('field_id', $nonFileFieldIds)
+//                    ->whereIn("item_id", $fieldIdValueMapping)
+//                    ->pluck("item_value", "field_id")
+//                    ->toArray();
+//
+//
+//                $valuesForUpdating = [];
+//                foreach ($fieldIdValueMapping as $fieldId=>$value) {
+//                    $displayValue = $dropdownFieldIdsAndValues[$fieldId] ?? null;
+//
+//                    $valuesForUpdating[] = [
+//                        'user_id' => $userId,
+////                    'deal_id' => null,
+//                        'field_id' => $fieldId,
+//                        'value' => $value,
+//                        'display_value' => $displayValue
+//                    ];
+//                }
+//
+////            var_dump($valuesForUpdating); die;
+//                try {
+//                    UserInfo::upsert($valuesForUpdating,
+//                        ['user_id', 'field_id'],//'deal_id',
+//                        ['value', 'display_value']);
+//
+//                    Log::informationLog("Outbound webhook message: Successfully updated USER_INFOS field values in our database!");
+//                } catch (\Exception $e) {
+//                    Log::errorLog("Outbound webhook error: " . $e->getMessage());
+//                }
             }
         }
-        else { // ELSE THE VALUE OF A FIELD THAT THE USER HASN'T FILLED IN OUR APP HAS CHANGED
-            // 1. if the field already exists in our database, insert the new value into USER_INFOS table (special case for DEALS table)
-            // 2. if the field doesn't exist in our database, refresh fields and then insert the new value --||--
+
+        // HERE CHECK IF THE VALUE OF A FIELD THAT THE USER HASN'T FILLED IN OUR APP HAS CHANGED
+        // 1. if the field already exists in our database, insert the new value into USER_INFOS table (special case for DEALS table)
+        // 2. if the field doesn't exist in our database, refresh fields and then insert the new value --||--
 
 
-            // 1st case
-            $notFilledFieldNames = Field::leftJoin('user_infos', function ($join) use ($userId) {
-                                                    $join->on('fields.field_id', '=', 'user_infos.field_id')
-                                                        ->where('user_infos.user_id', '=', $userId);
-                                                })
-                                                ->whereNull('user_infos.field_id')
-                                                ->whereNotIn('fields.field_category_id', [4, 5])
-                                                ->pluck('fields.title')// , 'fields.field_id'
-                                                ->toArray();
+        // 1st case
+        $notFilledFieldNames = Field::leftJoin('user_infos', function ($join) use ($userId) {
+                                                $join->on('fields.field_id', '=', 'user_infos.field_id')
+                                                    ->where('user_infos.user_id', '=', $userId);
+                                            })
+                                            ->whereNull('user_infos.field_id')
+                                            ->whereNotIn('fields.field_category_id', [4, 5])
+                                            ->pluck('fields.field_name')// , 'fields.field_id'
+                                            ->toArray();
 
-            var_dump($notFilledFieldNames);
+        // check for NON-FILE fields
+
+        // format the array for inserting into USER_INFOS table
+        $filledFieldNamesAndValues = [];
+        foreach ($notFilledFieldNames as $fieldName) {
+            if (isset($dataFromBitrix["result"][$fieldName]) && $dataFromBitrix["result"][$fieldName]) {
+                $filledFieldNamesAndValues[$fieldName] = $dataFromBitrix["result"][$fieldName];
+            }
         }
+
+        if ($filledFieldNamesAndValues) {
+            OutboundService::updateOrInsertIntoUserInfoTable($userId, $filledFieldNamesAndValues);
+        }
+
+
+
+
+
+
+
+        // check for file fields
+
+        // insert in USER_INFOS table
+//        $valuesForUpdating = [];
+//        foreach ($fieldIdValueMapping as $fieldId=>$value) {
+//            $displayValue = $dropdownFieldIdsAndValues[$fieldId] ?? null;
+//
+//            $valuesForUpdating[] = [
+//                'user_id' => $userId,
+////                    'deal_id' => null,
+//                'field_id' => $fieldId,
+//                'value' => $value,
+//                'display_value' => $displayValue
+//            ];
+//        }
+//
+////            var_dump($valuesForUpdating); die;
+//        try {
+//            UserInfo::upsert($valuesForUpdating,
+//                ['user_id', 'field_id'],//'deal_id',
+//                ['value', 'display_value']);
+//
+//            Log::informationLog("Outbound webhook message: Successfully updated USER_INFOS field values in our database!");
+//        } catch (\Exception $e) {
+//            Log::errorLog("Outbound webhook error: " . $e->getMessage());
+//        }
 
 
 
@@ -366,23 +412,71 @@ class OutboundService
             throw new \Exception("Unsupported type of record provided for outbound webhook data retrieval from Bitrix.");
         }
     }
-//    private static function compareData($dataFromDatabase, $dataFromBitrix)
-//    {
-//        // Compare the data and return the differences
-//        //CONTINUE WORKING HERE
-//        $dataFromDatabaseArray = array_change_key_case($dataFromDatabase->toArray(), CASE_LOWER);
-//        $dataFromBitrixArray = array_change_key_case($dataFromBitrix["result"], CASE_LOWER);
-//        var_dump($dataFromBitrix);
-////        var_dump($dataFromBitrixArray);
-//
-//        return array_diff_assoc($dataFromDatabaseArray, $dataFromBitrixArray);
-//    }
 
-//    private static function updateDatabase($location, $type, $bitrixId, $differences)
-//    {
-//        // Update the appropriate fields in our database
-//                $storage = ($type === 'deal') ? new Deal() : new Contact();
-//                $storage->where('bitrix_id', $bitrixId)->update($differences);
-//
-//    }
+    private static function updateOrInsertIntoUserInfoTable($userId, $differences)
+    {
+        $fieldData = Field::whereIn('field_name', array_keys($differences))
+            ->select('field_name', 'field_id', 'type')
+            ->get()
+            ->keyBy('field_id');
+
+        $fileFieldIds = $fieldData->filter(function ($field) {
+            return $field->type === 'file';
+        })->pluck('field_id')->toArray();
+
+        if ($fileFieldIds){
+            // update files
+            var_dump("there are file fields to change");
+        }
+
+        // update other non-file fields in USER_INFO table
+        $nonFileFieldIds = $fieldData->filter(function ($field) {
+            return $field->type !== 'file';
+        })->pluck('field_id')->toArray();
+
+
+        $fieldIdsAndNames = $fieldData->pluck('field_name', 'field_id')->toArray();
+
+        $fieldIdValueMapping = [];
+        // Populate the field_id => value mapping
+        foreach ($nonFileFieldIds as $fieldId) {
+            $field_name = $fieldIdsAndNames[$fieldId];
+            $fieldIdValueMapping[$fieldId] = $differences[$field_name];
+        }
+
+        $hasEnumerationFields = $fieldData->contains('type', 'enumeration');
+
+        // Retrieve dropdown fields and their values if they exist
+        if ($hasEnumerationFields) {
+            $dropdownFieldIdsAndValues = FieldItem::whereIn('field_id', $nonFileFieldIds)
+                ->whereIn("item_id", $fieldIdValueMapping)
+                ->pluck("item_value", "field_id")
+                ->toArray();
+        }
+
+
+        $valuesForUpdating = [];
+        foreach ($fieldIdValueMapping as $fieldId=>$value) {
+            $displayValue = $dropdownFieldIdsAndValues[$fieldId] ?? null;
+
+            $valuesForUpdating[] = [
+                'user_id' => $userId,
+//                    'deal_id' => null,
+                'field_id' => $fieldId,
+                'value' => $value,
+                'display_value' => $displayValue
+            ];
+        }
+
+//            var_dump($valuesForUpdating); die;
+        try {
+            UserInfo::upsert($valuesForUpdating,
+                ['user_id', 'field_id'],//'deal_id',
+                ['value', 'display_value']);
+
+            Log::informationLog("Outbound webhook message: Successfully updated USER_INFOS field values in our database!");
+        } catch (\Exception $e) {
+            Log::errorLog("Outbound webhook error: " . $e->getMessage());
+        }
+    }
 }
