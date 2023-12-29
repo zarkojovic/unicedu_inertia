@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Deal;
 use App\Models\Field;
 use App\Models\Log;
 use App\Models\UserInfo;
@@ -65,30 +66,70 @@ class SyncDealFileIdsService {
                 }
             });
 
+            $dealFromDatabase = Deal::where('bitrix_deal_id', $bitrixDealId)
+                ->first();
+
+            if (!$dealFromDatabase) {
+                throw new Exception('Error: Deal not found');
+            }
+
             foreach ($transformedArray as $key => $value) {
                 // Get the field ID from the database
-                $fieldId = Field::where('field_name', $key)
-                    ->first()->field_id;
-                // Get the user info record from the database
-                $userInfo = UserInfo::where('user_id',
-                    $dealInfoFromDatabase[0]->user_id)
-                    ->where('field_id', $fieldId)
+                $fieldForUpdating = Field::where('field_name', $key)
                     ->first();
+                //                dd($fieldForUpdating->category->is_deal_category);
+                $fieldId = $fieldForUpdating->field_id;
+
+                if (!$fieldForUpdating->category->is_deal_category) {
+                    //Searching using user_id
+                    // Get the user info record from the database
+                    $userInfo = UserInfo::where('user_id',
+                        $dealInfoFromDatabase[0]->user_id)
+                        ->where('field_id', $fieldId)
+                        ->first();
+                }
+                else {
+                    //Searching using deal_id
+                    $userInfo = UserInfo::where('deal_id',
+                        $dealFromDatabase->deal_id)
+                        ->where('field_id', $fieldId)
+                        ->first();
+                }
+
                 // Update the file ID in the user_info table
                 if ($userInfo) {
+                    if ($fieldForUpdating->category->is_deal_category) {
+                        $userInfo->user_id = NULL;
+                    }
+                    else {
+                        $userInfo->deal_id = NULL;
+                    }
                     $userInfo->file_id = (string) $value['id'];
                     $userInfo->save();
                 }
                 else {
                     // Create a new record in the user_info table
-                    // Here we should take care of taking files from bitrix
-                    UserInfo::create([
-                        'user_id' => $dealInfoFromDatabase[0]->user_id,
-                        'field_id' => $fieldId,
-                        'file_id' => $value['id'],
-                        'file_path' => 'path_to_file.pdf',
-                        'file_name' => 'name_of_file.pdf',
-                    ]);
+
+                    // Checking should we create a record for user or deal
+                    if (!$fieldForUpdating->category->is_deal_category) {
+                        // Here we should take care of taking files from bitrix
+                        UserInfo::create([
+                            'user_id' => $dealInfoFromDatabase[0]->user_id,
+                            'field_id' => $fieldId,
+                            'file_id' => $value['id'],
+                            'file_path' => 'path_to_file.pdf',
+                            'file_name' => 'name_of_file.pdf',
+                        ]);
+                    }
+                    else {
+                        UserInfo::create([
+                            'deal_id' => $dealFromDatabase->deal_id,
+                            'field_id' => $fieldId,
+                            'file_id' => $value['id'],
+                            'file_path' => 'path_to_file.pdf',
+                            'file_name' => 'name_of_file.pdf',
+                        ]);
+                    }
                 }
             }
 
