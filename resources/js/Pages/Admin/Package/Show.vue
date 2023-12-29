@@ -17,7 +17,7 @@ const packages = ref(props.packagePages);
 
 
 <template>
-    <Head title="Profile"/>
+    <Head title="Packages"/>
     <AuthenticatedLayout>
         <template #header>
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">Package</h2>

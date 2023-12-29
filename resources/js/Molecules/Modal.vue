@@ -14,16 +14,16 @@
                                      leave-from="opacity-100 translate-y-0 sm:scale-100"
                                      leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
                         <DialogPanel
-                            class="relative p-1 transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
+                            class="relative p-1 transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-fit sm:max-w-2xl">
                             <div class="bg-white px-5 pb-5 pt-1">
                                 <div class="flex flex-col">
 
                                     <div class="text-center">
                                         <DialogTitle as="h3"
-                                                     class="text-base w-full font-semibold leading-6 text-gray-900">
+                                                     class="text-base w-full font-semibold leading-6 text-gray-900 border-b-2 border-gray-300 pb-3 mt-2">
                                             <slot name="modalTitle"><p> Default Title</p></slot>
                                         </DialogTitle>
-                                        <div class="mt-5">
+                                        <div class="mt-5 p-5 px-10">
                                             <slot name="modalContent">
                                             </slot>
                                         </div>
