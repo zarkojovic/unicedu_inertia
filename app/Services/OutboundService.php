@@ -11,6 +11,7 @@ use CRest;
 use Illuminate\Support\Facades\Http;
 use App\Models\Log;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class OutboundService
@@ -24,7 +25,7 @@ class OutboundService
         // Check if deal exists in our database and get column values
         $record = Deal::join('stages','deals.stage_id','=','stages.stage_id')
             ->where('deals.bitrix_deal_id', $bitrixId)
-            ->select('deals.user_id', 'deals.university', 'deals.degree', 'deals.program',
+            ->select('deals.deal_id', 'deals.user_id', 'deals.university', 'deals.degree', 'deals.program',
                      'deals.intake', 'stages.bitrix_stage_id as STAGE_ID')
             ->first();
 
@@ -74,8 +75,13 @@ class OutboundService
 
         // retrieve data from DEALS and USER_INFOS tables
         $userId = $record["user_id"];
+        $dealId = $record["deal_id"];
         if (!$userId) {
             Log::errorLog("Outbound webhook error: Couldn't find user_id in Deals table.");
+            return null;
+        }
+        if (!$dealId) {
+            Log::errorLog("Outbound webhook error: Couldn't find deal_id in Deals table.");
             return null;
         }
 
@@ -160,72 +166,8 @@ class OutboundService
 
 
             if ($differences !== $dealFields){
-                // only deal fields, no user_info fields
                 // proceed to update USER_INFOS table
-                OutboundService::updateOrInsertIntoUserInfoTable($userId, $differences);
-//                $fieldData = Field::whereIn('field_name', array_keys($differences))
-//                    ->select('field_id', 'type')
-//                    ->get()
-//                    ->keyBy('field_id');
-//
-//                $fileFieldIds = $fieldData->filter(function ($field) {
-//                    return $field->type === 'file';
-//                })->pluck('field_id')->toArray();
-//
-//                if ($fileFieldIds){
-//                    // update files
-//                    var_dump("there are file fields to change");
-//                }
-//
-//                // update other non-file fields in USER_INFO table
-//                $nonFileFieldIds = $fieldData->filter(function ($field) {
-//                    return $field->type !== 'file';
-//                })->pluck('field_id')->toArray();
-//
-//                // ovo je verovatno visak upit
-//                $fieldIdsAndNames = Field::whereIn('field_id', $nonFileFieldIds)
-//                    ->pluck("field_name", "field_id")
-//                    ->toArray();
-//
-//                $fieldIdValueMapping = [];
-//
-//                // Populate the field_id => value mapping
-//                foreach ($nonFileFieldIds as $fieldId) {
-//                    $field_name = $fieldIdsAndNames[$fieldId];
-//                    $fieldIdValueMapping[$fieldId] = $differences[$field_name];
-//                }
-//
-//                // retrieve dropdown fields and their values if they exist
-//                // pre ovoga pitaj da li zapravo postoje dropdown polja (type === "enumeration"
-//                $dropdownFieldIdsAndValues = FieldItem::whereIn('field_id', $nonFileFieldIds)
-//                    ->whereIn("item_id", $fieldIdValueMapping)
-//                    ->pluck("item_value", "field_id")
-//                    ->toArray();
-//
-//
-//                $valuesForUpdating = [];
-//                foreach ($fieldIdValueMapping as $fieldId=>$value) {
-//                    $displayValue = $dropdownFieldIdsAndValues[$fieldId] ?? null;
-//
-//                    $valuesForUpdating[] = [
-//                        'user_id' => $userId,
-////                    'deal_id' => null,
-//                        'field_id' => $fieldId,
-//                        'value' => $value,
-//                        'display_value' => $displayValue
-//                    ];
-//                }
-//
-////            var_dump($valuesForUpdating); die;
-//                try {
-//                    UserInfo::upsert($valuesForUpdating,
-//                        ['user_id', 'field_id'],//'deal_id',
-//                        ['value', 'display_value']);
-//
-//                    Log::informationLog("Outbound webhook message: Successfully updated USER_INFOS field values in our database!");
-//                } catch (\Exception $e) {
-//                    Log::errorLog("Outbound webhook error: " . $e->getMessage());
-//                }
+                OutboundService::updateOrInsertIntoUserInfoTable($dealId, $userId, $differences);
             }
         }
 
@@ -254,8 +196,10 @@ class OutboundService
             }
         }
 
+//        var_dump($filledFieldNamesAndValues); die;
+
         if ($filledFieldNamesAndValues) {
-            OutboundService::updateOrInsertIntoUserInfoTable($userId, $filledFieldNamesAndValues);
+            OutboundService::updateOrInsertIntoUserInfoTable($dealId, $userId, $filledFieldNamesAndValues);
         }
 
 
@@ -265,35 +209,6 @@ class OutboundService
 
 
         // check for file fields
-
-        // insert in USER_INFOS table
-//        $valuesForUpdating = [];
-//        foreach ($fieldIdValueMapping as $fieldId=>$value) {
-//            $displayValue = $dropdownFieldIdsAndValues[$fieldId] ?? null;
-//
-//            $valuesForUpdating[] = [
-//                'user_id' => $userId,
-////                    'deal_id' => null,
-//                'field_id' => $fieldId,
-//                'value' => $value,
-//                'display_value' => $displayValue
-//            ];
-//        }
-//
-////            var_dump($valuesForUpdating); die;
-//        try {
-//            UserInfo::upsert($valuesForUpdating,
-//                ['user_id', 'field_id'],//'deal_id',
-//                ['value', 'display_value']);
-//
-//            Log::informationLog("Outbound webhook message: Successfully updated USER_INFOS field values in our database!");
-//        } catch (\Exception $e) {
-//            Log::errorLog("Outbound webhook error: " . $e->getMessage());
-//        }
-
-
-
-
         // retrieve field_ids and field_names for file fields in USER_INFOS table
 //        $fileFieldIdsAndNames = UserInfo::join('fields', 'user_infos.field_id', '=', 'fields.field_id')
 //                                        ->where('user_infos.user_id', $userId)
@@ -328,77 +243,7 @@ class OutboundService
 //            ImageService::resize($tinySize, $file, $pathTiny, $newFileName);
 //        }
 
-
-//            $correctStageId = Stage::where('bitrix_stage_id', $dataFromBitrix["stage_id"])->value('stage_id');
-//            var_dump($correctStageId);
-//            var_dump($correctStageId);
-////             Update the stage_id in $dataFromDatabase
-//            try {
-////                $dataFromDatabase->stage_id = $correctStageId;
-//                $deal = Deal::where('bitrix_deal_id', $bitrixId)->firstOrFail();
-////                $deal->stage_id = $correctStageId;
-////                $deal->save();
-//                var_dump($deal->stage_id);
-////                if($dataFromDatabase->save()){
-////                    var_dump("uspeh");
-////                };
-////                var_dump($dataFromDatabase->stage_id);
-//            }
-//            catch (\Exception $e){
-//                var_dump("neuspeh ".$e->getMessage());
-//            }
-
-//            var_dump($dataFromBitrix["result"]["STAGE_ID"]);
-
-            // Check if there are any differences between our data and received from Bitrix
-//            $differences = self::compareData($dataFromDatabase, $dataFromBitrix);
-//            var_dump($differences);
-            // If there are differences, update the appropriate fields in our database
-//            if ($differences) {
-//                self::updateDatabase('database', $type, $bitrixId, $differences);
-//            }
-//        }
-//        else {
-//            Log::informationLog("No matching record in our database with received Outbound webhook.");
-//        }
     }
-
-//    private static function fetchDataFromDatabase($type, $bitrixId)
-//    {
-//        //STAGE_ID NIJE SELEKTOVAN! DA BI MOGAO DA SE POREDI SA BITRIXOM TREBA DA SE JOINUJE SA STAGES TABELOM
-//        //USER_INTAKE_PACKAGE_ID NIJE SELEKTOVAN! DA BI MOGAO DA SE POREDI SA BITRIXOM TREBA DA SE JOINUJE SA USER_INTAKE_PACKAGES I PACKAGES
-//        if ($type === "deal") {
-//            return Deal::where('deals.bitrix_deal_id', $bitrixId)
-//                        ->select(
-//                            "bitrix_deal_id as ID",
-//                            "university as UF_CRM_1667335624051",
-//                            "user_id",
-//                            "degree as UF_CRM_1667335695035",
-//                            "program as UF_CRM_1667335742921",// as uf_crm_1667335742921
-//                            "intake as UF_CRM_1668001651504",
-//                            //"stage_id",
-//                            //"user_intake_package_id"
-//                        )->first();
-////            return Deal::where('deals.bitrix_deal_id', $bitrixId)
-////                ->join('stages', 'deals.stage_id', '=', 'stages.stage_id')
-////                ->select(
-////                    "deals.bitrix_deal_id as id",
-////                    "deals.university",
-////                    "deals.degree",
-////                    "deals.program as uf_crm_1667335742921",
-////                    "deals.intake",
-////                    "stages.bitrix_stage_id as stage_id"
-////                )
-////                ->firstOrFail(); //returns ModelNotFoundException if fail
-//        }
-//        // elseif ($type === "contact"){
-//        //     //CONTACT STILL NOT FINISHED, CONTINUE TOMORROW
-//        //     return User::where('contact_id', $bitrixId)->firstOrFail();
-//        // }
-//        else {
-//            throw new \Exception("Unsupported type of record provided for outbound webhook data retrieval from database.");
-//        }
-//    }
 
     private static function fetchDataFromBitrix($type, $bitrixId)
     {
@@ -413,7 +258,7 @@ class OutboundService
         }
     }
 
-    private static function updateOrInsertIntoUserInfoTable($userId, $differences)
+    private static function updateOrInsertIntoUserInfoTable($dealId, $userId, $differences)
     {
         $fieldData = Field::whereIn('field_name', array_keys($differences))
             ->select('field_name', 'field_id', 'type')
@@ -426,9 +271,68 @@ class OutboundService
 
         if ($fileFieldIds){
             // update files
-            var_dump("there are file fields to change");
-        }
+            $valuesForUpdating = [];
+            foreach ($fileFieldIds as $fileFieldId) {
+                // get file id
+                $fieldName = $fieldData->where("field_id", $fileFieldId)->value('field_name');
+                $fileId = $differences[$fieldName]['id'];
+                $domain = "https://polandstudy.bitrix24.pl";
+                $downloadUrl = $differences[$fieldName]["downloadUrl"];
+                $pathDocuments = "public/profile/documents";
 
+                // download file
+                $response = Http::get($domain.$downloadUrl); //returns Laravel Response object
+
+                if ($response->hasHeader('Content-Disposition')) {
+                    $contentDisposition = $response->header('Content-Disposition');
+
+                    // Extract the filename from the Content-Disposition header
+                    if (preg_match('/filename="(.+)"/', $contentDisposition, $matches)) {
+                        $originalFileName = $matches[1];
+
+                        try {
+                            file_put_contents(storage_path("app/" . $pathDocuments . '/' . $originalFileName), $response->body());
+                        }
+                        catch (\Exception $e) {
+                            var_dump("failed to move file");
+                        }
+                    }
+                }
+                else {
+                    // default file name
+                    try {
+                        file_put_contents(storage_path("app/" . $pathDocuments . '/' . "Download.pdf"), $response->body());
+                    }
+                    catch (\Exception $e) {
+                        var_dump("failed to move file");
+                    }                }
+
+                // change file path
+
+
+                // insert or update in database
+                $valuesForUpdating[] = [
+//                    'user_id' => null,
+                    'deal_id' => $dealId,
+                    'field_id' => $fileFieldId,
+                    'file_name' => $originalFileName,
+                    'file_path' => $originalFileName
+                ];
+            }
+
+            try {
+                UserInfo::upsert($valuesForUpdating,
+                    ['deal_id', 'field_id'],//'deal_id',
+                    ['file_name', 'file_path']);
+
+                Log::informationLog("Outbound webhook message: Successfully updated USER_INFOS field values in our database!");
+            } catch (\Exception $e) {
+                Log::errorLog("Outbound webhook error: " . $e->getMessage());
+            }
+        }
+        var_dump("proslo");
+
+//        die;
         // update other non-file fields in USER_INFO table
         $nonFileFieldIds = $fieldData->filter(function ($field) {
             return $field->type !== 'file';
