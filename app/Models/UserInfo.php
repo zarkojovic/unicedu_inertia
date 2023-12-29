@@ -13,11 +13,15 @@ class UserInfo extends Model
 
     protected $fillable = [
         'user_id',
+        'deal_id',
         'field_id',
         'value',
         'display_value',
         'file_name',
-        'file_path'
+        'file_path',
+        'file_id',
+        'created_at',
+        'updated_at'
     ];
 
     protected $primaryKey = 'user_info_id';

@@ -13,6 +13,7 @@ use App\Http\Controllers\UserAdminController;
 use App\Http\Controllers\UserController;
 use App\Models\FieldCategory;
 use App\Models\Page;
+use App\Services\SyncDealFileIdsService;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -23,14 +24,14 @@ use Inertia\Inertia;
 |
 */
 //  404 ROUTE
-Route::fallback(function () {
+Route::fallback(function() {
     return Inertia::render('404');
 });
 
 //FOR AUTHENTICATED USERS
-Route::middleware('auth')->group(function () {
+Route::middleware('auth')->group(function() {
     //FOR VERIFIED USERS
-    Route::middleware('verified')->group(function () {
+    Route::middleware('verified')->group(function() {
         //DYNAMIC ROUTES
         $routeNames = Page::all();
         foreach ($routeNames as $route) {
@@ -39,22 +40,22 @@ Route::middleware('auth')->group(function () {
                 switch ($route->role->role_name) {
                     // CHECK IF THE ROLE IS ADMIN
                     case 'admin':
-                        Route::middleware(["admin"])->group(function () use (
+                        Route::middleware(["admin"])->group(function() use (
                             $route
                         ) {
                             //ADMIN ROUTES
                             Route::get($route->route,
-                                function () use ($route) {
+                                function() use ($route) {
                                     return Inertia::render('Dashboard');
                                 });
                         });
                         break;
                     // CHECK IF THE ROLE IS STUDENT
                     case 'student':
-                        Route::middleware('package')->group(function () use (
+                        Route::middleware('package')->group(function() use (
                             $route
                         ) {
-                            Route::get($route->route, function () use ($route) {
+                            Route::get($route->route, function() use ($route) {
                                 $categoriesWithFields = FieldCategory::getAllCategoriesWithFields($route->route);
 
                                 return Inertia::render('Dashboard', [
@@ -66,7 +67,7 @@ Route::middleware('auth')->group(function () {
                         break;
                     default :
                         // Dynamic routes
-                        Route::get($route->route, function () use ($route) {
+                        Route::get($route->route, function() use ($route) {
                             $categoriesWithFields = FieldCategory::getAllCategoriesWithFields($route->route);
                             return Inertia::render('Dashboard', [
                                 'categoriesWithFields' => $categoriesWithFields,
@@ -78,7 +79,7 @@ Route::middleware('auth')->group(function () {
             }
         }
         // Middleware for package
-        Route::middleware('package')->group(function () {
+        Route::middleware('package')->group(function() {
             Route::get('/', [UserController::class, 'show'])->name("home");
             Route::get('/profile', [UserController::class, 'show'])
                 ->name('profile');
@@ -111,7 +112,7 @@ Route::middleware('auth')->group(function () {
             ->name("user.image.update");
 
         //ADMIN
-        Route::middleware('admin')->prefix('admin')->group(function () {
+        Route::middleware('admin')->prefix('admin')->group(function() {
             //DASHBOARD
             Route::get('/dashboard', [AdminController::class, 'showLogsPage'])
                 ->name('adminDashboard');
@@ -218,13 +219,17 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])
         ->name('profile.destroy');
 
-    Route::get('/test', function () {
-        $dealCategories = FieldCategory::getAllCategoriesWithFields('/profile');
-        dd($dealCategories);
+    Route::get('/test', function() {
+        //        $dealCategories = FieldCategory::getAllCategoriesWithFields('/profile');
+        //        dd($dealCategories);
+        //        $deal = Deal::generateDealObject(1, [], 1, 1);
+        //        dd($deal);
+        $dealFilesId = SyncDealFileIdsService::sync('9309');
+        dd($dealFilesId);
     });
 });
 
 Route::post('/bitrix-outbound', [BitrixController::class, 'receiveOutbound']);
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';
 // }

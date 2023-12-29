@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Deal;
 use App\Models\Log;
+use App\Services\SyncDealFileIdsService;
 use CRest;
 use Exception;
 use Illuminate\Bus\Queueable;
@@ -62,6 +63,9 @@ class sendingBitrixDeal implements ShouldQueue {
         }
         if (!$deal->save()) {
             throw new Exception('Saving has failed');
+        }
+        else {
+            SyncDealFileIdsService::sync($result['result']);
         }
     }
 

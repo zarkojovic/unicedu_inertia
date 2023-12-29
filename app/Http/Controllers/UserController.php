@@ -74,7 +74,7 @@ class UserController extends RootController {
     public function updateUserInfo(Request $request) {
         try {
             if (User::userDealsPastFirstStage()) {
-                throw new Exception("You are not allowed to update the deal when you have deal past first stage!");
+                throw new Exception("You cannot update your information currently as it's being used in the application process.");
             }
 
             //GET ALL OF THE DATA FROM REQUEST
@@ -242,6 +242,7 @@ class UserController extends RootController {
                                 $updateInfo = UserInfo::findOrFail($user_info->user_info_id);
                                 $updateInfo->file_name = NULL;
                                 $updateInfo->file_path = NULL;
+                                
                                 $updateInfo->save();
 
                                 // Get the old file name
