@@ -17,32 +17,44 @@
             <Modal v-if="openModal" @close="openModal=false">
                 <template v-slot:modalTitle>Field "{{ title }}" configurations</template>
                 <template v-slot:modalContent>
-                    <div :id="'field_check_'+field_id" class="checkboxes">
-                        <label :for="'active_'+field_id" class="flex items-center mb-1">
-                            <input :id="'active_'+field_id"
-                                   v-model="is_active"
-                                   :value="field_id"
-                                   name="fields[]"
-                                   type="checkbox"/>
-                            <span class="ml-2">Active</span>
-                        </label>
-                        <label :for="'required_'+field_id"
-                               class="flex items-center">
-                            <input :id="'required_'+field_id"
-                                   v-model="is_required"
-                                   :disabled="!is_active"
-                                   :value="field_id"
-                                   name="requiredFields[]"
-                                   type="checkbox"/>
-                            <span :class="!is_active ? 'text-gray-200':''" class="ml-2">Required</span>
-                        </label>
+                    <div class="flex flex-col justify-center items-center">
+                        <div>
+                            <div :id="'field_check_'+field_id" class="checkboxes">
+                                <label :for="'active_'+field_id" class="flex items-center mb-1">
+                                    <input :id="'active_'+field_id"
+                                           v-model="is_active"
+                                           :value="field_id"
+                                           class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-orange-500 focus:ring-0 focus:ring-offset-0 transition ease-in-out"
+                                           name="fields[]"
+                                           type="checkbox"/>
+                                    <span class="ml-2">Active</span>
+                                </label>
+                                <label :for="'required_'+field_id"
+                                       class="flex items-center">
+                                    <input :id="'required_'+field_id"
+                                           v-model="is_required"
+                                           :disabled="!is_active"
+                                           :value="field_id"
+                                           class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-orange-500 focus:ring-0 focus:ring-offset-0 transition ease-in-out"
+                                           name="requiredFields[]"
+                                           type="checkbox"/>
+                                    <span :class="!is_active ? 'text-gray-200':''" class="ml-2">Required</span>
+                                </label>
+                            </div>
+                            <div class="flex items-center mt-3">
+                                <GenericInput v-model="customTitle"
+                                              label="Custom Field Title"
+                                              placeholder="Enter Custom Field Title"
+                                              type="text"
+
+                                />
+                                <Button :class="{ 'invisible ': !isCustomTitleChanged }"
+                                        class="mt-5 ms-3"
+                                        @click="updateCustomTitle">Save
+                                </Button>
+                            </div>
+                        </div>
                     </div>
-                    <GenericInput v-model="customTitle"
-                                  label="Custom Field Title"
-                                  placeholder="Enter Custom Field Title"
-                                  type="text"
-                    />
-                    <Button v-if="isCustomTitleChanged" @click="updateCustomTitle">Save</Button>
                 </template>
                 <template v-slot:modalFooter>
                     <Button :type="'muted'" @click="openModal=false">Close</Button>
