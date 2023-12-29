@@ -94,7 +94,7 @@ const labelProgressClasses = computed(() => ({
                     <Modal v-if="showModal" :imagePreview="imagePreview" @close="handleCloseModal"
                            @confirmed="handleConfirmation">
                         <template v-slot:modalTitle>
-                            <h1 class="text-left text-lg py-5 border-b-2 border-gray-300 text-gray-800">Submit a
+                            <h1 class="text-left text-lg py-3text-gray-800">Submit a
                                 Profile
                                 Picture</h1>
                         </template>
