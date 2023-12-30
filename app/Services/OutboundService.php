@@ -167,7 +167,7 @@ class OutboundService
 
             if ($differences !== $dealFields){
                 // proceed to update USER_INFOS table
-                OutboundService::updateOrInsertIntoUserInfoTable($dealId, $userId, $differences);
+                self::updateOrInsertIntoUserInfoTable($dealId, $userId, $differences);
             }
         }
 
@@ -199,7 +199,7 @@ class OutboundService
 //        var_dump($filledFieldNamesAndValues); die;
 
         if ($filledFieldNamesAndValues) {
-            OutboundService::updateOrInsertIntoUserInfoTable($dealId, $userId, $filledFieldNamesAndValues);
+            self::updateOrInsertIntoUserInfoTable($dealId, $userId, $filledFieldNamesAndValues);
         }
 
 
@@ -271,21 +271,23 @@ class OutboundService
 
         if ($fileFieldIds){
             // update files
+            $domain = "https://polandstudy.bitrix24.pl";
+            $pathDocuments = "public/profile/documents";
             $valuesForUpdating = [];
             foreach ($fileFieldIds as $fileFieldId) {
                 // get file id
                 $fieldName = $fieldData->where("field_id", $fileFieldId)->value('field_name');
                 $fileId = $differences[$fieldName]['id'];
-                $domain = "https://polandstudy.bitrix24.pl";
                 $downloadUrl = $differences[$fieldName]["downloadUrl"];
-                $pathDocuments = "public/profile/documents";
+
+                // compare file ids before download
 
                 // download file
                 $response = Http::get($domain.$downloadUrl); //returns Laravel Response object
+                $originalFileName = '';
 
                 if ($response->hasHeader('Content-Disposition')) {
                     $contentDisposition = $response->header('Content-Disposition');
-
                     // Extract the filename from the Content-Disposition header
                     if (preg_match('/filename="(.+)"/', $contentDisposition, $matches)) {
                         $originalFileName = $matches[1];
@@ -298,7 +300,7 @@ class OutboundService
                         }
                     }
                     else {
-
+                        Log::errorLog("Outbound webhook error: Filename doesn't match regular expression.");
                     }
                 }
                 else {
