@@ -292,20 +292,24 @@ class OutboundService
 
                         try {
                             file_put_contents(storage_path("app/" . $pathDocuments . '/' . $originalFileName), $response->body());
+                            Log::informationLog("Outbound webhook message: Successfully moved file to documents folder!");
+                        } catch (\Exception $e) {
+                            Log::errorLog("Outbound webhook error: " . $e->getMessage());
                         }
-                        catch (\Exception $e) {
-                            var_dump("failed to move file");
-                        }
+                    }
+                    else {
+
                     }
                 }
                 else {
                     // default file name
                     try {
                         file_put_contents(storage_path("app/" . $pathDocuments . '/' . "Download.pdf"), $response->body());
+                        Log::informationLog("Outbound webhook message: Successfully moved file to documents folder!");
+                    } catch (\Exception $e) {
+                        Log::errorLog("Outbound webhook error: " . $e->getMessage());
                     }
-                    catch (\Exception $e) {
-                        var_dump("failed to move file");
-                    }                }
+                }
 
                 // change file path
 
@@ -330,9 +334,7 @@ class OutboundService
                 Log::errorLog("Outbound webhook error: " . $e->getMessage());
             }
         }
-        var_dump("proslo");
 
-//        die;
         // update other non-file fields in USER_INFO table
         $nonFileFieldIds = $fieldData->filter(function ($field) {
             return $field->type !== 'file';
