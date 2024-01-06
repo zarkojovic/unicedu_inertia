@@ -24,6 +24,8 @@ class OutboundService
     {
         // Check if deal exists in our database and get column values
         $record = Deal::join('stages','deals.stage_id','=','stages.stage_id')
+//            ->join('user_intake_packages', 'deals.user_intake_package_id', '=', 'user_intake_packages.user_intake_package_id')
+//            ->join('packages', 'user_intake_package.package_id')
             ->where('deals.bitrix_deal_id', $bitrixId)
             ->select('deals.deal_id', 'deals.user_id', 'deals.university', 'deals.degree', 'deals.program',
                      'deals.intake', 'stages.bitrix_stage_id as STAGE_ID')
@@ -76,6 +78,7 @@ class OutboundService
         // retrieve data from DEALS and USER_INFOS tables
         $userId = $record["user_id"];
         $dealId = $record["deal_id"];
+
         if (!$userId) {
             Log::errorLog("Outbound webhook error: Couldn't find user_id in Deals table.");
             return null;
@@ -173,11 +176,14 @@ class OutboundService
 
         // HERE CHECK IF THE VALUE OF A FIELD THAT THE USER HASN'T FILLED IN OUR APP HAS CHANGED
         // 1. if the field already exists in our database, insert the new value into USER_INFOS table (special case for DEALS table)
+        //    or update the existing value for the unique deal field (user_id = null, deal_id = id, not tied to user like citizenship,
+        //    but unique like acceptance letter)
         // 2. if the field doesn't exist in our database, refresh fields and then insert the new value --||--
 
 
         // 1st case
-        $notFilledFieldNames = Field::leftJoin('user_infos', function ($join) use ($userId) {
+        // get all fields which are not filled in, or are filled in but tied to deal_id instead of user_id (like acceptance letter)
+        $notFilledAndUniqueDealFieldNames = Field::leftJoin('user_infos', function ($join) use ($userId, $dealId) {
                                                 $join->on('fields.field_id', '=', 'user_infos.field_id')
                                                     ->where('user_infos.user_id', '=', $userId);
                                             })
@@ -185,12 +191,11 @@ class OutboundService
                                             ->whereNotIn('fields.field_category_id', [4, 5])
                                             ->pluck('fields.field_name')// , 'fields.field_id'
                                             ->toArray();
-
         // check for NON-FILE fields
 
         // format the array for inserting into USER_INFOS table
         $filledFieldNamesAndValues = [];
-        foreach ($notFilledFieldNames as $fieldName) {
+        foreach ($notFilledAndUniqueDealFieldNames as $fieldName) {
             if (isset($dataFromBitrix["result"][$fieldName]) && $dataFromBitrix["result"][$fieldName]) {
                 $filledFieldNamesAndValues[$fieldName] = $dataFromBitrix["result"][$fieldName];
             }
@@ -199,6 +204,7 @@ class OutboundService
 //        var_dump($filledFieldNamesAndValues); die;
 
         if ($filledFieldNamesAndValues) {
+            // update (existing unique deal field values) or insert (previously unfilled field values)
             self::updateOrInsertIntoUserInfoTable($dealId, $userId, $filledFieldNamesAndValues);
         }
 
@@ -261,7 +267,8 @@ class OutboundService
     private static function updateOrInsertIntoUserInfoTable($dealId, $userId, $differences)
     {
         $fieldData = Field::whereIn('field_name', array_keys($differences))
-            ->select('field_name', 'field_id', 'type')
+            ->select('fields.field_id', 'fields.field_name', 'fields.type', 'user_infos.file_id')
+            ->join('user_infos', 'fields.field_id', '=', 'user_infos.field_id')
             ->get()
             ->keyBy('field_id');
 
@@ -271,76 +278,15 @@ class OutboundService
 
         if ($fileFieldIds){
             // update files
-            $domain = "https://polandstudy.bitrix24.pl";
-            $pathDocuments = "public/profile/documents";
-            $valuesForUpdating = [];
-            foreach ($fileFieldIds as $fileFieldId) {
-                // get file id
-                $fieldName = $fieldData->where("field_id", $fileFieldId)->value('field_name');
-                $fileId = $differences[$fieldName]['id'];
-                $downloadUrl = $differences[$fieldName]["downloadUrl"];
-
-                // compare file ids before download
-
-                // download file
-                $response = Http::get($domain.$downloadUrl); //returns Laravel Response object
-                $originalFileName = '';
-
-                if ($response->hasHeader('Content-Disposition')) {
-                    $contentDisposition = $response->header('Content-Disposition');
-                    // Extract the filename from the Content-Disposition header
-                    if (preg_match('/filename="(.+)"/', $contentDisposition, $matches)) {
-                        $originalFileName = $matches[1];
-
-                        try {
-                            file_put_contents(storage_path("app/" . $pathDocuments . '/' . $originalFileName), $response->body());
-                            Log::informationLog("Outbound webhook message: Successfully moved file to documents folder!");
-                        } catch (\Exception $e) {
-                            Log::errorLog("Outbound webhook error: " . $e->getMessage());
-                        }
-                    }
-                    else {
-                        Log::errorLog("Outbound webhook error: Filename doesn't match regular expression.");
-                    }
-                }
-                else {
-                    // default file name
-                    try {
-                        file_put_contents(storage_path("app/" . $pathDocuments . '/' . "Download.pdf"), $response->body());
-                        Log::informationLog("Outbound webhook message: Successfully moved file to documents folder!");
-                    } catch (\Exception $e) {
-                        Log::errorLog("Outbound webhook error: " . $e->getMessage());
-                    }
-                }
-
-                // change file path
-
-
-                // insert or update in database
-                $valuesForUpdating[] = [
-//                    'user_id' => null,
-                    'deal_id' => $dealId,
-                    'field_id' => $fileFieldId,
-                    'file_name' => $originalFileName,
-                    'file_path' => $originalFileName
-                ];
-            }
-
-            try {
-                UserInfo::upsert($valuesForUpdating,
-                    ['deal_id', 'field_id'],//'deal_id',
-                    ['file_name', 'file_path']);
-
-                Log::informationLog("Outbound webhook message: Successfully updated USER_INFOS field values in our database!");
-            } catch (\Exception $e) {
-                Log::errorLog("Outbound webhook error: " . $e->getMessage());
-            }
+            self::updateOrInsertFileFields($fileFieldIds, $fieldData, $differences, $dealId);
         }
 
         // update other non-file fields in USER_INFO table
         $nonFileFieldIds = $fieldData->filter(function ($field) {
             return $field->type !== 'file';
         })->pluck('field_id')->toArray();
+
+        //maybe check here if there are any non file fields before proceeding
 
 
         $fieldIdsAndNames = $fieldData->pluck('field_name', 'field_id')->toArray();
@@ -381,6 +327,84 @@ class OutboundService
             UserInfo::upsert($valuesForUpdating,
                 ['user_id', 'field_id'],//'deal_id',
                 ['value', 'display_value']);
+
+            Log::informationLog("Outbound webhook message: Successfully updated USER_INFOS field values in our database!");
+        } catch (\Exception $e) {
+            Log::errorLog("Outbound webhook error: " . $e->getMessage());
+        }
+    }
+
+    private static function updateOrInsertFileFields($fileFieldIds, $fieldData, $differences, $dealId){
+        $domain = "https://polandstudy.bitrix24.pl";
+        $pathDocuments = "public/profile/documents";
+        $valuesForUpdating = [];
+
+        foreach ($fileFieldIds as $fileFieldId) {
+            // get file id
+            $fieldName = $fieldData->where("field_id", $fileFieldId)->value('field_name');
+            $downloadUrl = $differences[$fieldName]["downloadUrl"];
+            $databaseFileId = $fieldData->where("field_id", $fileFieldId)->value('file_id');
+            $bitrixFileId = $differences[$fieldName]['id'];
+
+            // compare file ids before download so that it downloads and updates only the new files
+            if ($databaseFileId == $bitrixFileId) {
+                continue ;
+            }
+
+            // download file
+            $response = Http::get($domain.$downloadUrl); //returns Laravel Response object
+            $originalFileName = '';
+            $newFileName = Str::random(45);
+
+            if ($response->hasHeader('Content-Disposition')) {
+                $contentDisposition = $response->header('Content-Disposition');
+                // Extract the filename from the Content-Disposition header
+                if (preg_match('/filename="(.+)"/', $contentDisposition, $matches)) {
+                    $originalFileName = $matches[1];
+                    $fileExtension = pathinfo($originalFileName, PATHINFO_EXTENSION);
+                    $newFileName = $newFileName . '.' . $fileExtension;
+
+                    try {
+                        file_put_contents(storage_path("app/" . $pathDocuments . '/' . $newFileName), $response->body());
+                        Log::informationLog("Outbound webhook message: Successfully moved file to documents folder!");
+                    } catch (\Exception $e) {
+                        Log::errorLog("Outbound webhook error: " . $e->getMessage());
+                    }
+                }
+                else {
+                    Log::errorLog("Outbound webhook error: Filename doesn't match regular expression.");
+                }
+            }
+            else {
+                // default file name
+                try {
+                    $newFileName = Str::random(45);
+                    $fileExtension = ".pdf";
+                    file_put_contents(storage_path("app/" . $pathDocuments . '/' . $newFileName . $fileExtension), $response->body());
+                    Log::informationLog("Outbound webhook message: Successfully moved file to documents folder!");
+                } catch (\Exception $e) {
+                    Log::errorLog("Outbound webhook error: " . $e->getMessage());
+                }
+            }
+
+            // remove old file
+
+
+            // insert or update in database
+            $valuesForUpdating[] = [
+//                    'user_id' => null,
+                'deal_id' => $dealId,
+                'field_id' => $fileFieldId,
+                'file_name' => $originalFileName,
+                'file_path' => $newFileName,
+                'file_id' => $bitrixFileId
+            ];
+        }
+//            var_dump($valuesForUpdating); die;
+        try {
+            UserInfo::upsert($valuesForUpdating,
+                ['deal_id', 'field_id'],//'deal_id',
+                ['file_name', 'file_path', 'file_id']);
 
             Log::informationLog("Outbound webhook message: Successfully updated USER_INFOS field values in our database!");
         } catch (\Exception $e) {
