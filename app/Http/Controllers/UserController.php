@@ -399,18 +399,29 @@ class UserController extends RootController {
         $newFileName = $currentDate.'_'.$uniqueString.'.'.$fileExtension;
 
         // if the file is not moved to the original folder
-        $moved = Storage::putFileAs($pathOriginal, $file, $newFileName);
-        if (!$moved) {
-            throw new Exception("Failed to move profile image to original folder.");
+        try {
+            $moved = Storage::putFileAs($pathOriginal, $file, $newFileName);
+            if (!$moved) {
+                throw new Exception("Failed to move profile image to original folder.");
+            }
         }
-
+        catch (\Exception $e) {
+            Log::errorLog("Failed to resize file image. Error: ".$e->getMessage(),
+                Auth::user()->user_id);
+            return to_route('home')->with([
+                'toast' => [
+                    'message' => 'An error occurred while saving profile image.',
+                    'type' => 'danger',
+                ],
+            ]);
+        }
         //make small images
         try {
             ImageService::resize($thumbnailSize, $file, $pathThumbnail,
                 $newFileName);
             ImageService::resize($tinySize, $file, $pathTiny, $newFileName);
         }
-        catch (Exception $e) {
+        catch (\Exception $e) {
             Log::errorLog("Failed to resize file image. Error: ".$e->getMessage(),
                 Auth::user()->user_id);
             return to_route('home')->with([
@@ -439,7 +450,7 @@ class UserController extends RootController {
 
             DB::commit();
         }
-        catch (Exception $e) {
+        catch (\Exception $e) {
             DB::rollback();
             Log::errorLog("Failed to update profile image. Error: ".$e->getMessage(),
                 Auth::user()->user_id);
