@@ -104,6 +104,20 @@ class PageSeeder extends Seeder {
                 'role_id' => '1',
                 'is_editable' => FALSE,
             ],
+            [
+                'route' => '/agent/profile',
+                'title' => 'Agent Profile',
+                'icon' => 'user-pentagon',
+                'role_id' => '2',
+                'is_editable' => FALSE,
+            ],
+            [
+                'route' => '/agent/students',
+                'title' => 'My Students',
+                'icon' => 'list-details',
+                'role_id' => '2',
+                'is_editable' => FALSE,
+            ],
         ];
 
         foreach ($pages as $page) {

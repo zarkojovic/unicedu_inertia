@@ -6,6 +6,7 @@ use App\Models\FieldCategory;
 use App\Models\Intake;
 use App\Models\Package;
 use App\Models\Page;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Middleware;
@@ -36,7 +37,9 @@ class HandleInertiaRequests extends Middleware {
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user(),
+                'user_role' => $request->user() ? $request->user()->role->role_name : NULL,
                 'img' => auth()->check() ? asset("storage/profile/tiny/".$request->user()->profile_image) : '',
+                'agencyName' => auth()->check() && auth()->user()->agency_id != NULL ? $request->user()->agency->agency_name : NULL,
             ],
             'ziggy' => fn() => [
                 //                ...(new Ziggy())->toArray(), //this returns all routes to front, which I don't see a reason for (Martin)
@@ -53,6 +56,7 @@ class HandleInertiaRequests extends Middleware {
             'packages' => Package::select('package_name', 'package_id',
                 'primary_color',
                 'secondary_color', 'text_color')->get()->toArray(),
+            'user_notifications' => auth()->check() ? User::getUserNotifications()['data'] : NULL,
         ];
     }
 

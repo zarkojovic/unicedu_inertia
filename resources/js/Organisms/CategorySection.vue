@@ -23,9 +23,8 @@ const formItems = ref({
 
 const form = useForm(formItems.value);
 
-const page = usePage();
-
 provide('formItems', formItems);
+const page = usePage();
 
 // Variable to store the timer ID
 const timer = ref(null);

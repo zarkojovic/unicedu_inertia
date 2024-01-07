@@ -104,6 +104,12 @@ return new class extends Migration {
                 ->on('actions')
                 ->onDelete('cascade');
         });
+        Schema::table('notifications', function(Blueprint $table) {
+            $table->foreign('user_id')
+                ->references('user_id')
+                ->on('users')
+                ->onDelete('cascade');
+        });
 
         Schema::table('field_items', function(Blueprint $table) {
             $table->foreign('field_id')

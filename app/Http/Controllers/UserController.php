@@ -7,7 +7,6 @@ use App\Jobs\UpdateUserBitrixDeals;
 use App\Models\Field;
 use App\Models\FieldCategory;
 use App\Models\Log;
-use App\Models\Role;
 use App\Models\User;
 use App\Models\UserInfo;
 use App\Services\ImageService;
@@ -33,12 +32,12 @@ class UserController extends RootController {
         $user = Auth::user();
 
         $categoriesWithFields = FieldCategory::getAllCategoriesWithFields('/profile');
-        // If the user is admin, redirect him to the admin home page
-        $adminId = Role::where('role_name', 'admin')
-            ->value('role_id');
 
-        if ($user->role_id === $adminId) {
+        if ($user->role->role_name === 'admin') {
             return redirect()->route('admin_home');
+        }
+        if ($user->role->role_name === 'agent') {
+            return redirect()->route('agentDashboard');
         }
         return Inertia::render("Student/Profile", [
             'categoriesWithFields' => $categoriesWithFields,
@@ -242,7 +241,7 @@ class UserController extends RootController {
                                 $updateInfo = UserInfo::findOrFail($user_info->user_info_id);
                                 $updateInfo->file_name = NULL;
                                 $updateInfo->file_path = NULL;
-                                
+
                                 $updateInfo->save();
 
                                 // Get the old file name

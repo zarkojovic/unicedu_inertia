@@ -9,6 +9,7 @@ use App\Models\UserInfo;
 use CRest;
 use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class SyncDealFileIdsService {
 
@@ -130,6 +131,27 @@ class SyncDealFileIdsService {
                             'file_name' => 'name_of_file.pdf',
                         ]);
                     }
+                }
+            }
+
+            $resultArray = array_filter($dealInfoFromDatabase,
+                function($item) use ($transformedArray) {
+                    return !in_array($item->field_name,
+                            array_keys($transformedArray)) && $item->field_name !== 'UF_CRM_1667336320092';
+                });
+
+            foreach ($resultArray as $item) {
+                $userInfo = UserInfo::where('user_info_id', $item->user_info_id)
+                    ->first();
+
+                if ($userInfo) {
+                    Storage::delete([
+                        "public/profile/documents/$userInfo->file_path",
+                    ]);
+                    $userInfo->delete();
+                }
+                else {
+                    Log::errorLog('User info not found');
                 }
             }
 

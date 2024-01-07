@@ -3,10 +3,10 @@
 namespace App\Http;
 
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\AgentMiddleware;
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\EncryptCookies;
 use App\Http\Middleware\HandleInertiaRequests;
-use App\Http\Middleware\LocalizationMiddleware;
 use App\Http\Middleware\PackageMiddleware;
 use App\Http\Middleware\PreventRequestsDuringMaintenance;
 use App\Http\Middleware\RedirectIfAuthenticated;
@@ -66,7 +66,7 @@ class Kernel extends HttpKernel {
             SubstituteBindings::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
-            LocalizationMiddleware::class,
+
         ],
 
         'api' => [
@@ -98,6 +98,7 @@ class Kernel extends HttpKernel {
         'verified' => EnsureEmailIsVerified::class,
         'admin' => AdminMiddleware::class,
         'package' => PackageMiddleware::class,
+        'agent' => AgentMiddleware::class,
     ];
 
 }

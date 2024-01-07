@@ -1,19 +1,22 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AgencyController;
+use App\Http\Controllers\AgentController;
 use App\Http\Controllers\BitrixController;
 use App\Http\Controllers\DealController;
 use App\Http\Controllers\FieldCategoryController;
 use App\Http\Controllers\FieldController;
 use App\Http\Controllers\IntakeController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserAdminController;
 use App\Http\Controllers\UserController;
 use App\Models\FieldCategory;
+use App\Models\Notification;
 use App\Models\Page;
-use App\Services\SyncDealFileIdsService;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -65,6 +68,21 @@ Route::middleware('auth')->group(function() {
                             });
                         });
                         break;
+                    // CHECK IF THE ROLE IS AGENT
+                    case 'agent':
+                        Route::middleware(["agent"])->group(function() use (
+                            $route
+                        ) {
+                            Route::get($route->route, function() use ($route) {
+                                $categoriesWithFields = FieldCategory::getAllCategoriesWithFields($route->route);
+
+                                return Inertia::render('Dashboard', [
+                                    'categoriesWithFields' => $categoriesWithFields,
+                                    'title' => $route->title,
+                                ]);
+                            });
+                        });
+                        break;
                     default :
                         // Dynamic routes
                         Route::get($route->route, function() use ($route) {
@@ -91,6 +109,20 @@ Route::middleware('auth')->group(function() {
 
         Route::post('/user/sync-deal-fields',
             [UserController::class, 'syncFields'])->name('syncFields');
+
+        //NOTIFICATIONS
+        Route::get('/notifications',
+            [
+                NotificationController::class,
+                'showNotifications',
+            ])
+            ->name('notifications');
+        Route::post('/notifications/markAsRead',
+            [
+                NotificationController::class,
+                'markAsRead',
+            ])
+            ->name('markAsRead');
 
         // DEAL/APPLICATION ROUTES
         Route::get('/applications/view/{id}',
@@ -208,6 +240,42 @@ Route::middleware('auth')->group(function() {
             Route::post('/intakes/change-active-intake',
                 [IntakeController::class, 'changeActiveIntake'])
                 ->name('changeActiveIntake');
+
+            //AGENCY ROUTES
+            Route::get('/agencies',
+                [AgencyController::class, 'showAgencies'])
+                ->name('showAgencies');
+            Route::get('/agencies/new',
+                [AgencyController::class, 'createNewAgency'])
+                ->name('createNewAgency');
+            Route::post('/agencies/insertNew',
+                [AgencyController::class, 'insertAgency'])
+                ->name('insertAgency');
+            Route::post('/agencies/deleteAgency', [
+                AgencyController::class,
+                'deleteAgency',
+            ]);
+        });
+
+        //AGENTS
+        Route::middleware('agent')->prefix('agent')->group(function() {
+            //DASHBOARD
+            Route::get('/profile', [
+                AgentController::class,
+                'AgentDashboard',
+            ])->name('agentDashboard');
+            Route::get('/students', [
+                AgentController::class,
+                'AgentStudents',
+            ])->name('AgentStudents');
+            Route::get('/student/{id}', [
+                AgentController::class,
+                'agentStudentProfile',
+            ])->name('agentStudentProfile');
+            Route::post('/addNewStudentToAgent', [
+                AgentController::class,
+                'addNewStudentToAgent',
+            ])->name('addNewStudentToAgent');
         });
     });
 
@@ -220,16 +288,11 @@ Route::middleware('auth')->group(function() {
         ->name('profile.destroy');
 
     Route::get('/test', function() {
-        //        $dealCategories = FieldCategory::getAllCategoriesWithFields('/profile');
-        //        dd($dealCategories);
-        //        $deal = Deal::generateDealObject(1, [], 1, 1);
-        //        dd($deal);
-        $dealFilesId = SyncDealFileIdsService::sync('9309');
-        dd($dealFilesId);
+        $newNotification = Notification::createNotification(auth()->user()->user_id,
+            'test');
     });
 });
 
 Route::post('/bitrix-outbound', [BitrixController::class, 'receiveOutbound']);
 
 require __DIR__.'/auth.php';
-// }
