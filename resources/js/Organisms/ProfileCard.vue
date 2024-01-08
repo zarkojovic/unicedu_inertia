@@ -1,6 +1,6 @@
 <script setup>
 import {useForm, usePage} from '@inertiajs/vue3';
-import {computed, ref} from 'vue';
+import {computed, onMounted, ref} from 'vue';
 import Modal from '@/Molecules/Modal.vue';
 import Button from '@/Atoms/Button.vue';
 import PackageIndicator from '@/Atoms/PackageIndicator.vue';
@@ -18,6 +18,9 @@ const form = useForm({
     profileImage: null,
 });
 
+onMounted(() => {
+    // console.log(page.props.auth.user_role);
+});
 const agreedToUsePicture = ref(false);
 
 const isNotValidType = ref(false);
@@ -71,7 +74,11 @@ const labelProgressClasses = computed(() => ({
 <template>
     <div class="py-6 mt-10">
         <div class="mx-auto bg-white rounded-3xl shadow-md overflow-hidden p-5 lg:px-8">
-            <h2 class="text-center mb-5 text-lg md:text-left md:text-xl">Student Profile</h2>
+            <h2 class="text-center mb-5 text-lg md:text-left md:text-xl">{{
+                    page.props.auth.user_role === 'student'
+                        ? 'Student Profile'
+                        : 'Agent Profile'
+                }}</h2>
             <div class="md:flex md:justify-left">
                 <div class="mx-auto md:mx-0 w-32">
                     <img :src="img" alt="Student profile image" class="h-auto max-w-full rounded-full"/>
@@ -82,8 +89,13 @@ const labelProgressClasses = computed(() => ({
                             {{ page.props.auth.user.first_name }} {{ page.props.auth.user.last_name }}</p>
                         <p class="text-md leading-tight font-medium text-gray-400 text-center md:text-left my-1">
                             {{ page.props.auth.user.email }}</p>
-                        <div class="w-full flex justify-center md:justify-start">
+                        <div v-if="page.props.auth.user_role === 'student'"
+                             class="w-full flex justify-center md:justify-start">
                             <PackageIndicator :package-id="page.props.auth.user.package_id"/>
+                        </div>
+                        <div v-if="page.props.auth.agencyName && page.props.auth.user_role ==='agent'"
+                             class="text-orange-500 font-bold italic">
+                            {{ page.props.auth.agencyName }}
                         </div>
                     </div>
 
