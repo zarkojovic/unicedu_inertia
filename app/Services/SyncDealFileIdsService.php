@@ -108,30 +108,30 @@ class SyncDealFileIdsService {
                     $userInfo->file_id = (string) $value['id'];
                     $userInfo->save();
                 }
-                else {
-                    // Create a new record in the user_info table
-
-                    // Checking should we create a record for user or deal
-                    if (!$fieldForUpdating->category->is_deal_category) {
-                        // Here we should take care of taking files from bitrix
-                        UserInfo::create([
-                            'user_id' => $dealInfoFromDatabase[0]->user_id,
-                            'field_id' => $fieldId,
-                            'file_id' => $value['id'],
-                            'file_path' => 'path_to_file.pdf',
-                            'file_name' => 'name_of_file.pdf',
-                        ]);
-                    }
-                    else {
-                        UserInfo::create([
-                            'deal_id' => $dealFromDatabase->deal_id,
-                            'field_id' => $fieldId,
-                            'file_id' => $value['id'],
-                            'file_path' => 'path_to_file.pdf',
-                            'file_name' => 'name_of_file.pdf',
-                        ]);
-                    }
-                }
+//                else {
+//                    // Create a new record in the user_info table
+//
+//                    // Checking should we create a record for user or deal
+//                    if (!$fieldForUpdating->category->is_deal_category) {
+//                        // Here we should take care of taking files from bitrix
+//                        UserInfo::create([
+//                            'user_id' => $dealInfoFromDatabase[0]->user_id,
+//                            'field_id' => $fieldId,
+//                            'file_id' => $value['id'],
+//                            'file_path' => 'path_to_file.pdf',
+//                            'file_name' => 'name_of_file.pdf',
+//                        ]);
+//                    }
+//                    else {
+//                        UserInfo::create([
+//                            'deal_id' => $dealFromDatabase->deal_id,
+//                            'field_id' => $fieldId,
+//                            'file_id' => $value['id'],
+//                            'file_path' => 'path_to_file.pdf',
+//                            'file_name' => 'name_of_file.pdf',
+//                        ]);
+//                    }
+//                }
             }
 
             $resultArray = array_filter($dealInfoFromDatabase,
