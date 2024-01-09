@@ -8,6 +8,7 @@ use App\Models\FieldItem;
 use App\Models\Stage;
 use App\Models\UserInfo;
 use CRest;
+use DateTime;
 use Illuminate\Support\Facades\Http;
 use App\Models\Log;
 use Illuminate\Support\Str;
@@ -270,7 +271,34 @@ class OutboundService
         $fieldIdValueMapping = [];
         foreach ($nonFileFieldIds as $fieldId) {
             $field_name = $fieldIdsAndNames[$fieldId];
-            $fieldIdValueMapping[$fieldId] = $differences[$field_name];
+            $fieldType = $fieldData->where("field_id", $fieldId)->value('type');
+            $value = $differences[$field_name];
+
+            if ($fieldType === 'date' || $fieldType === 'datetime') {
+                // Try to create a DateTime object from the string with the expected formats
+                $dateTimeFormats = ['Y-m-d\TH:i:sP', 'Y-m-d'];
+                $dateTime = null;
+
+                foreach ($dateTimeFormats as $format) {
+                    $dateTime = DateTime::createFromFormat($format, $value);
+
+                    if ($dateTime) {
+                        break;
+                    }
+                }
+
+                if ($dateTime) {
+                    // Format the date in the desired format based on the original type
+                    $format = ($fieldType === 'datetime') ? 'Y-m-d\TH:i:sP' : 'Y-m-d';
+                    $value = $dateTime->format($format);
+                } else {
+                    // Handle the case where the format is not as expected
+                    Log::errorLog("Outbound webhook error: Invalid date format: $value");
+                    continue;
+                }
+            }
+
+            $fieldIdValueMapping[$fieldId] = $value;
         }
 
         $hasEnumerationFields = $fieldData->contains('type', 'enumeration');
