@@ -21,6 +21,12 @@ return new class extends Migration {
             $table->string('file_path')->nullable();
             $table->string('file_id')->nullable();
             $table->timestamps();
+
+            // Unique index for user_id and field_id (required for outbound webhooks)
+            $table->unique(['user_id', 'field_id']);
+
+            // Unique index for deal_id and field_id (required for outbound webhooks)
+            $table->unique(['deal_id', 'field_id']);
         });
     }
 
